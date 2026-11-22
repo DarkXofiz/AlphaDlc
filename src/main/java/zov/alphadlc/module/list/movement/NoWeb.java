@@ -16,23 +16,23 @@ import zov.alphadlc.util.player.move.MoveUtil;
 public class NoWeb extends Module {
    @Subscribe
    private void onCobweb(EventCobweb e) {
-      Vec3d velocity = this.mc.field_1724.method_18798();
-      float yaw = this.mc.field_1724.method_36454();
+      Vec3d velocity = this.mc.player.getVelocity();
+      float yaw = this.mc.player.getYaw();
       double forward = 0.0;
       double strafe = 0.0;
-      if (this.mc.field_1724.field_3913.field_54155.comp_3159()) {
+      if (this.mc.player.input.playerInput.comp_3159()) {
          forward++;
       }
 
-      if (this.mc.field_1724.field_3913.field_54155.comp_3160()) {
+      if (this.mc.player.input.playerInput.comp_3160()) {
          forward--;
       }
 
-      if (this.mc.field_1724.field_3913.field_54155.comp_3161()) {
+      if (this.mc.player.input.playerInput.comp_3161()) {
          strafe++;
       }
 
-      if (this.mc.field_1724.field_3913.field_54155.comp_3162()) {
+      if (this.mc.player.input.playerInput.comp_3162()) {
          strafe--;
       }
 
@@ -96,12 +96,12 @@ public class NoWeb extends Module {
          result = 0.295F;
       }
 
-      if (this.mc.field_1690.field_1903.method_1434()) {
-         this.mc.field_1724.method_18800(velocity.field_1352, 1.219F, velocity.field_1350);
-      } else if (this.mc.field_1690.field_1832.method_1434()) {
-         this.mc.field_1724.method_18800(velocity.field_1352, this.mc.field_1724.method_6128() ? -1.5 : -3.5, velocity.field_1350);
+      if (this.mc.options.jumpKey.isPressed()) {
+         this.mc.player.setVelocity(velocity.x, 1.219F, velocity.z);
+      } else if (this.mc.options.sneakKey.isPressed()) {
+         this.mc.player.setVelocity(velocity.x, this.mc.player.isGliding() ? -1.5 : -3.5, velocity.z);
       } else {
-         this.mc.field_1724.method_18800(velocity.field_1352, 0.0, velocity.field_1350);
+         this.mc.player.setVelocity(velocity.x, 0.0, velocity.z);
       }
 
       MoveUtil.setMotion((double)result);

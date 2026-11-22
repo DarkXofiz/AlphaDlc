@@ -37,14 +37,14 @@ public class AirStuck extends Module {
    );
    public final SliderSetting killAuraDistance = new SliderSetting("\u0414\u0438\u0441\u0442\u0430\u043d\u0446\u0438\u044f", 6.0, 2.0, 8.0, 0.1)
       .setVisible(this.useKillAuraDistance::getValue);
-   private Vec3d savedVelocity = Vec3d.field_1353;
+   private Vec3d savedVelocity = Vec3d.ZERO;
    private boolean isElytra;
    private boolean hasFailed = false;
    private int pauseTicks = 0;
 
    @Subscribe
    private void onPacket(EventPacket e2) {
-      if (this.mc.field_1724 != null && !this.hasFailed) {
+      if (this.mc.player != null && !this.hasFailed) {
          if (e2.getPacket() instanceof PlayerMoveC2SPacket) {
             if (this.pauseTicks > 0) {
                return;
@@ -57,12 +57,12 @@ public class AirStuck extends Module {
 
    @Subscribe
    private void onTick(EventTick e2) {
-      if (this.mc.field_1724 != null && !this.hasFailed) {
+      if (this.mc.player != null && !this.hasFailed) {
          if (this.pauseTicks > 0) {
             this.pauseTicks--;
          } else {
-            this.mc.field_1724.method_18800(0.0, 0.0, 0.0);
-            this.mc.field_1724.method_5875(true);
+            this.mc.player.setVelocity(0.0, 0.0, 0.0);
+            this.mc.player.setNoGravity(true);
          }
       }
    }
@@ -70,14 +70,14 @@ public class AirStuck extends Module {
    @Override
    public void onEnable() {
       super.onEnable();
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
+      if (this.mc.player != null && this.mc.world != null) {
          this.hasFailed = false;
-         if (this.mc.field_1724.field_6017 == 0.0F && this.fallCheck.getValue()) {
+         if (this.mc.player.fallDistance == 0.0F && this.fallCheck.getValue()) {
             this.setEnabled(false);
          } else {
-            this.mc.field_1724.method_5875(true);
-            this.savedVelocity = this.mc.field_1724.method_18798();
-            boolean wearingElytra = this.mc.field_1724.method_6118(EquipmentSlot.field_6174).method_7909() == Items.field_8833;
+            this.mc.player.setNoGravity(true);
+            this.savedVelocity = this.mc.player.getVelocity();
+            boolean wearingElytra = this.mc.player.getEquippedStack(EquipmentSlot.CHEST).getItem() == Items.ELYTRA;
             if (wearingElytra && this.autoSwapChest.getValue()) {
                this.isElytra = true;
                Instance.get(ElytraHelper.class).swap(this.mode, true);
@@ -85,7 +85,7 @@ public class AirStuck extends Module {
                this.isElytra = false;
             }
 
-            if (this.mc.field_1724.method_24828() && this.mc.field_1724.field_6017 == 0.0F) {
+            if (this.mc.player.isOnGround() && this.mc.player.fallDistance == 0.0F) {
                this.setEnabled(false);
             }
          }
@@ -95,14 +95,14 @@ public class AirStuck extends Module {
    @Override
    public void onDisable() {
       super.onDisable();
-      if (this.mc.field_1724 != null) {
+      if (this.mc.player != null) {
          if (this.savedVelocity != null && !this.hasFailed) {
-            this.mc.field_1724.method_18799(this.savedVelocity);
+            this.mc.player.setVelocity(this.savedVelocity);
          }
 
-         this.mc.field_1724.method_5875(false);
+         this.mc.player.setNoGravity(false);
          if (this.isElytra) {
-            boolean wearingChestPlate = this.mc.field_1724.method_6118(EquipmentSlot.field_6174).method_7909() instanceof ArmorItem;
+            boolean wearingChestPlate = this.mc.player.getEquippedStack(EquipmentSlot.CHEST).getItem() instanceof ArmorItem;
             if (wearingChestPlate && this.backElytra.getValue()) {
                Instance.get(ElytraHelper.class).swap(this.mode, false);
             }
@@ -111,7 +111,7 @@ public class AirStuck extends Module {
          }
 
          this.hasFailed = false;
-         this.savedVelocity = Vec3d.field_1353;
+         this.savedVelocity = Vec3d.ZERO;
       }
    }
 

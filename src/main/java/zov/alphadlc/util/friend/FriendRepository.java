@@ -33,7 +33,7 @@ public class FriendRepository implements QuickLogger {
    }
 
    public static boolean shouldAttack(PlayerEntity player) {
-      return !isFriend(player.method_5820());
+      return !isFriend(player.getNameForScoreboard());
    }
 
    public static boolean isFriend(String friend) {

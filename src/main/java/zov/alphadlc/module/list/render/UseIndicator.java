@@ -42,9 +42,9 @@ public class UseIndicator extends Module {
    private void onEntitySpawn(EventEntitySpawn e) {
       if (this.fireworks.getValue()) {
          if (e.getEntity() instanceof FireworkRocketEntity rocket) {
-            ItemStack var7 = new ItemStack(Items.field_8639);
+            ItemStack var7 = new ItemStack(Items.FIREWORK_ROCKET);
             synchronized (this.fireworkSpawns) {
-               this.fireworkSpawns.add(new UseIndicator.Spawn(rocket.method_19538(), var7, System.currentTimeMillis() + 1000L));
+               this.fireworkSpawns.add(new UseIndicator.Spawn(rocket.getPos(), var7, System.currentTimeMillis() + 1000L));
 
                while (this.fireworkSpawns.size() > 64) {
                   this.fireworkSpawns.remove(0);
@@ -56,19 +56,19 @@ public class UseIndicator extends Module {
 
    @Subscribe
    private void onHud(EventHUD e) {
-      if (this.mc.field_1687 != null && this.mc.field_1724 != null) {
+      if (this.mc.world != null && this.mc.player != null) {
          DrawContext ctx = e.getDrawContext();
-         float tickDelta = this.mc.method_61966().method_60637(true);
+         float tickDelta = this.mc.getRenderTickCounter().getTickDelta(true);
          float sc = this.scale.getFloatValue();
          if (this.players.getValue()) {
-            for (PlayerEntity player : this.mc.field_1687.method_18456()) {
+            for (PlayerEntity player : this.mc.world.getPlayers()) {
                if (this.shouldRender(player)) {
                   ItemStack stack = this.resolveConsumable(player);
-                  if (!stack.method_7960()) {
-                     Vec3d pos = player.method_30950(tickDelta).method_1031(0.0, (double)player.method_17682() / 2.0, 0.0);
+                  if (!stack.isEmpty()) {
+                     Vec3d pos = player.getLerpedPos(tickDelta).add(0.0, (double)player.getHeight() / 2.0, 0.0);
                      Vector2f screen = ProjectionUtil.project(pos, tickDelta);
-                     if (screen.method_32118() != Float.MAX_VALUE) {
-                        this.drawIcon(ctx, stack, screen.method_32118(), screen.method_32119(), sc);
+                     if (screen.getX() != Float.MAX_VALUE) {
+                        this.drawIcon(ctx, stack, screen.getX(), screen.getY(), sc);
                      }
                   }
                }
@@ -86,8 +86,8 @@ public class UseIndicator extends Module {
                      it.remove();
                   } else {
                      Vector2f screen = ProjectionUtil.project(spawn.pos(), tickDelta);
-                     if (screen.method_32118() != Float.MAX_VALUE) {
-                        this.drawIcon(ctx, spawn.stack(), screen.method_32118(), screen.method_32119(), sc);
+                     if (screen.getX() != Float.MAX_VALUE) {
+                        this.drawIcon(ctx, spawn.stack(), screen.getX(), screen.getY(), sc);
                      }
                   }
                }
@@ -97,40 +97,40 @@ public class UseIndicator extends Module {
    }
 
    private boolean shouldRender(LivingEntity entity) {
-      if (!entity.method_5805() || !entity.method_6115()) {
+      if (!entity.isAlive() || !entity.isUsingItem()) {
          return false;
-      } else if (entity == this.mc.field_1724 && this.mc.field_1690.method_31044().method_31034()) {
+      } else if (entity == this.mc.player && this.mc.options.getPerspective().isFirstPerson()) {
          return false;
       } else {
-         return entity.method_5767() && entity != this.mc.field_1724 ? false : !this.resolveConsumable(entity).method_7960();
+         return entity.isInvisible() && entity != this.mc.player ? false : !this.resolveConsumable(entity).isEmpty();
       }
    }
 
    private ItemStack resolveConsumable(LivingEntity entity) {
-      if (!entity.method_6115()) {
-         return ItemStack.field_8037;
+      if (!entity.isUsingItem()) {
+         return ItemStack.EMPTY;
       } else {
-         ItemStack active = entity.method_6030();
+         ItemStack active = entity.getActiveItem();
          if (this.isConsumable(active)) {
             return active;
          } else {
-            Hand hand = entity.method_6058();
+            Hand hand = entity.getActiveHand();
             if (hand != null) {
-               ItemStack handStack = entity.method_5998(hand);
+               ItemStack handStack = entity.getStackInHand(hand);
                if (this.isConsumable(handStack)) {
                   return handStack;
                }
             }
 
-            return ItemStack.field_8037;
+            return ItemStack.EMPTY;
          }
       }
    }
 
    private boolean isConsumable(ItemStack stack) {
-      if (stack != null && !stack.method_7960()) {
-         UseAction action = stack.method_7976();
-         return action == UseAction.field_8950 || action == UseAction.field_8946;
+      if (stack != null && !stack.isEmpty()) {
+         UseAction action = stack.getUseAction();
+         return action == UseAction.EAT || action == UseAction.DRINK;
       } else {
          return false;
       }
@@ -140,11 +140,11 @@ public class UseIndicator extends Module {
       float radius = 9.0F * sc;
       DrawUtil.drawRound(x - radius, y - radius, radius * 2.0F, radius * 2.0F, radius, ColorProvider.rgba(16, 16, 20, 205.0F));
       float itemSize = 16.0F * sc;
-      ctx.method_51448().method_22903();
-      ctx.method_51448().method_46416(x - itemSize / 2.0F, y - itemSize / 2.0F, 300.0F);
-      ctx.method_51448().method_22905(sc, sc, 1.0F);
-      ctx.method_51427(stack, 0, 0);
-      ctx.method_51448().method_22909();
+      ctx.getMatrices().push();
+      ctx.getMatrices().translate(x - itemSize / 2.0F, y - itemSize / 2.0F, 300.0F);
+      ctx.getMatrices().scale(sc, sc, 1.0F);
+      ctx.drawItem(stack, 0, 0);
+      ctx.getMatrices().pop();
    }
 
    @Override

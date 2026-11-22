@@ -36,17 +36,17 @@ public class SoulESP extends Module {
 
    @Subscribe
    public void onPacket(EventPacket e) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
+      if (this.mc.player != null && this.mc.world != null) {
          if (e.getPacket() instanceof EntityStatusS2CPacket packet) {
-            byte status = packet.method_11470();
-            if ((status == 3 || status == 35) && packet.method_11469(this.mc.field_1687) instanceof PlayerEntity player) {
-               if (player == this.mc.field_1724) {
+            byte status = packet.getStatus();
+            if ((status == 3 || status == 35) && packet.getEntity(this.mc.world) instanceof PlayerEntity player) {
+               if (player == this.mc.player) {
                   return;
                }
 
                this.ghosts
                   .add(
-                     new SoulESP.Ghost(player.method_19538(), player.method_43078(), player.method_5715(), (float)player.field_6012, System.currentTimeMillis())
+                     new SoulESP.Ghost(player.getPos(), player.getBodyYaw(), player.isSneaking(), (float)player.age, System.currentTimeMillis())
                   );
             }
          }
@@ -55,17 +55,17 @@ public class SoulESP extends Module {
 
    @Subscribe
    public void onRender(EventWorldRender e) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null && !this.ghosts.isEmpty()) {
+      if (this.mc.player != null && this.mc.world != null && !this.ghosts.isEmpty()) {
          long now = System.currentTimeMillis();
          float dur = 3000.0F;
          this.ghosts.removeIf(gx -> (float)(now - gx.time) >= dur);
-         Vec3d cam = this.mc.field_1773.method_19418().method_19326();
+         Vec3d cam = this.mc.gameRenderer.getCamera().getPos();
          MatrixStack m = e.getMatrixStack();
          RenderSystem.enableBlend();
          RenderSystem.defaultBlendFunc();
          RenderSystem.disableDepthTest();
          RenderSystem.disableCull();
-         RenderSystem.setShader(ShaderProgramKeys.field_53876);
+         RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
 
          for (SoulESP.Ghost g : this.ghosts) {
             float t = (float)(now - g.time) / dur;
@@ -78,48 +78,48 @@ public class SoulESP extends Module {
                float r = (float)ColorProvider.red(c) / 255.0F;
                float gr = (float)ColorProvider.green(c) / 255.0F;
                float b = (float)ColorProvider.blue(c) / 255.0F;
-               m.method_22903();
-               m.method_22904(g.pos.field_1352 - cam.field_1352, g.pos.field_1351 - cam.field_1351 + (double)rise, g.pos.field_1350 - cam.field_1350);
-               m.method_22907(RotationAxis.field_40716.rotationDegrees(180.0F - g.yaw));
-               m.method_22905(-1.0F, -1.0F, 1.0F);
-               m.method_22904(0.0, -1.5, 0.0);
+               m.push();
+               m.translate(g.pos.x - cam.x, g.pos.y - cam.y + (double)rise, g.pos.z - cam.z);
+               m.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180.0F - g.yaw));
+               m.scale(-1.0F, -1.0F, 1.0F);
+               m.translate(0.0, -1.5, 0.0);
                if (g.sneak) {
-                  m.method_22904(0.0, 0.2, 0.0);
-                  m.method_22907(RotationAxis.field_40714.rotationDegrees(28.0F));
+                  m.translate(0.0, 0.2, 0.0);
+                  m.multiply(RotationAxis.POSITIVE_X.rotationDegrees(28.0F));
                }
 
-               Matrix4f mat = m.method_23760().method_23761();
-               BufferBuilder buf = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1576);
+               Matrix4f mat = m.peek().getPositionMatrix();
+               BufferBuilder buf = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_COLOR);
                float u = 0.0625F;
-               float swing = MathHelper.method_15374(g.phase * 0.6662F) * 0.6F;
+               float swing = MathHelper.sin(g.phase * 0.6662F) * 0.6F;
                this.box(buf, mat, -4.0F * u, 0.0F, -2.0F * u, 8.0F * u, 12.0F * u, 4.0F * u, r, gr, b, alpha);
                this.box(buf, mat, -4.0F * u, -8.0F * u, -4.0F * u, 8.0F * u, 8.0F * u, 8.0F * u, r, gr, b, alpha);
-               m.method_22903();
-               m.method_46416(-6.0F * u, 2.0F * u, 0.0F);
-               m.method_22907(RotationAxis.field_40714.rotation(-swing));
-               m.method_46416(6.0F * u, -2.0F * u, 0.0F);
-               this.box(buf, m.method_23760().method_23761(), -8.0F * u, -2.0F * u, -2.0F * u, 4.0F * u, 12.0F * u, 4.0F * u, r, gr, b, alpha);
-               m.method_22909();
-               m.method_22903();
-               m.method_46416(6.0F * u, 2.0F * u, 0.0F);
-               m.method_22907(RotationAxis.field_40714.rotation(swing));
-               m.method_46416(-6.0F * u, -2.0F * u, 0.0F);
-               this.box(buf, m.method_23760().method_23761(), 4.0F * u, -2.0F * u, -2.0F * u, 4.0F * u, 12.0F * u, 4.0F * u, r, gr, b, alpha);
-               m.method_22909();
-               m.method_22903();
-               m.method_46416(-2.0F * u, 12.0F * u, 0.0F);
-               m.method_22907(RotationAxis.field_40714.rotation(swing));
-               m.method_46416(2.0F * u, -12.0F * u, 0.0F);
-               this.box(buf, m.method_23760().method_23761(), -4.0F * u, 12.0F * u, -2.0F * u, 4.0F * u, 12.0F * u, 4.0F * u, r, gr, b, alpha);
-               m.method_22909();
-               m.method_22903();
-               m.method_46416(2.0F * u, 12.0F * u, 0.0F);
-               m.method_22907(RotationAxis.field_40714.rotation(-swing));
-               m.method_46416(-2.0F * u, -12.0F * u, 0.0F);
-               this.box(buf, m.method_23760().method_23761(), 0.0F, 12.0F * u, -2.0F * u, 4.0F * u, 12.0F * u, 4.0F * u, r, gr, b, alpha);
-               m.method_22909();
-               BufferRenderer.method_43433(buf.method_60800());
-               m.method_22909();
+               m.push();
+               m.translate(-6.0F * u, 2.0F * u, 0.0F);
+               m.multiply(RotationAxis.POSITIVE_X.rotation(-swing));
+               m.translate(6.0F * u, -2.0F * u, 0.0F);
+               this.box(buf, m.peek().getPositionMatrix(), -8.0F * u, -2.0F * u, -2.0F * u, 4.0F * u, 12.0F * u, 4.0F * u, r, gr, b, alpha);
+               m.pop();
+               m.push();
+               m.translate(6.0F * u, 2.0F * u, 0.0F);
+               m.multiply(RotationAxis.POSITIVE_X.rotation(swing));
+               m.translate(-6.0F * u, -2.0F * u, 0.0F);
+               this.box(buf, m.peek().getPositionMatrix(), 4.0F * u, -2.0F * u, -2.0F * u, 4.0F * u, 12.0F * u, 4.0F * u, r, gr, b, alpha);
+               m.pop();
+               m.push();
+               m.translate(-2.0F * u, 12.0F * u, 0.0F);
+               m.multiply(RotationAxis.POSITIVE_X.rotation(swing));
+               m.translate(2.0F * u, -12.0F * u, 0.0F);
+               this.box(buf, m.peek().getPositionMatrix(), -4.0F * u, 12.0F * u, -2.0F * u, 4.0F * u, 12.0F * u, 4.0F * u, r, gr, b, alpha);
+               m.pop();
+               m.push();
+               m.translate(2.0F * u, 12.0F * u, 0.0F);
+               m.multiply(RotationAxis.POSITIVE_X.rotation(-swing));
+               m.translate(-2.0F * u, -12.0F * u, 0.0F);
+               this.box(buf, m.peek().getPositionMatrix(), 0.0F, 12.0F * u, -2.0F * u, 4.0F * u, 12.0F * u, 4.0F * u, r, gr, b, alpha);
+               m.pop();
+               BufferRenderer.drawWithGlobalProgram(buf.end());
+               m.pop();
             }
          }
 
@@ -133,34 +133,34 @@ public class SoulESP extends Module {
       float x2 = x + sx;
       float y2 = y + sy;
       float z2 = z + sz;
-      b.method_22918(m, x, y, z2).method_22915(r, g, bl, a);
-      b.method_22918(m, x2, y, z2).method_22915(r, g, bl, a);
-      b.method_22918(m, x2, y2, z2).method_22915(r, g, bl, a);
-      b.method_22918(m, x, y2, z2).method_22915(r, g, bl, a);
-      b.method_22918(m, x2, y, z).method_22915(r, g, bl, a);
-      b.method_22918(m, x, y, z).method_22915(r, g, bl, a);
-      b.method_22918(m, x, y2, z).method_22915(r, g, bl, a);
-      b.method_22918(m, x2, y2, z).method_22915(r, g, bl, a);
-      b.method_22918(m, x, y, z).method_22915(r, g, bl, a);
-      b.method_22918(m, x, y, z2).method_22915(r, g, bl, a);
-      b.method_22918(m, x, y2, z2).method_22915(r, g, bl, a);
-      b.method_22918(m, x, y2, z).method_22915(r, g, bl, a);
-      b.method_22918(m, x2, y, z2).method_22915(r, g, bl, a);
-      b.method_22918(m, x2, y, z).method_22915(r, g, bl, a);
-      b.method_22918(m, x2, y2, z).method_22915(r, g, bl, a);
-      b.method_22918(m, x2, y2, z2).method_22915(r, g, bl, a);
-      b.method_22918(m, x, y2, z2).method_22915(r, g, bl, a);
-      b.method_22918(m, x2, y2, z2).method_22915(r, g, bl, a);
-      b.method_22918(m, x2, y2, z).method_22915(r, g, bl, a);
-      b.method_22918(m, x, y2, z).method_22915(r, g, bl, a);
-      b.method_22918(m, x, y, z).method_22915(r, g, bl, a);
-      b.method_22918(m, x2, y, z).method_22915(r, g, bl, a);
-      b.method_22918(m, x2, y, z2).method_22915(r, g, bl, a);
-      b.method_22918(m, x, y, z2).method_22915(r, g, bl, a);
+      b.vertex(m, x, y, z2).color(r, g, bl, a);
+      b.vertex(m, x2, y, z2).color(r, g, bl, a);
+      b.vertex(m, x2, y2, z2).color(r, g, bl, a);
+      b.vertex(m, x, y2, z2).color(r, g, bl, a);
+      b.vertex(m, x2, y, z).color(r, g, bl, a);
+      b.vertex(m, x, y, z).color(r, g, bl, a);
+      b.vertex(m, x, y2, z).color(r, g, bl, a);
+      b.vertex(m, x2, y2, z).color(r, g, bl, a);
+      b.vertex(m, x, y, z).color(r, g, bl, a);
+      b.vertex(m, x, y, z2).color(r, g, bl, a);
+      b.vertex(m, x, y2, z2).color(r, g, bl, a);
+      b.vertex(m, x, y2, z).color(r, g, bl, a);
+      b.vertex(m, x2, y, z2).color(r, g, bl, a);
+      b.vertex(m, x2, y, z).color(r, g, bl, a);
+      b.vertex(m, x2, y2, z).color(r, g, bl, a);
+      b.vertex(m, x2, y2, z2).color(r, g, bl, a);
+      b.vertex(m, x, y2, z2).color(r, g, bl, a);
+      b.vertex(m, x2, y2, z2).color(r, g, bl, a);
+      b.vertex(m, x2, y2, z).color(r, g, bl, a);
+      b.vertex(m, x, y2, z).color(r, g, bl, a);
+      b.vertex(m, x, y, z).color(r, g, bl, a);
+      b.vertex(m, x2, y, z).color(r, g, bl, a);
+      b.vertex(m, x2, y, z2).color(r, g, bl, a);
+      b.vertex(m, x, y, z2).color(r, g, bl, a);
    }
 
    private float ease(float t) {
-      return 1.0F - (float)Math.pow((double)(1.0F - MathHelper.method_15363(t, 0.0F, 1.0F)), 3.0);
+      return 1.0F - (float)Math.pow((double)(1.0F - MathHelper.clamp(t, 0.0F, 1.0F)), 3.0);
    }
 
    @Override

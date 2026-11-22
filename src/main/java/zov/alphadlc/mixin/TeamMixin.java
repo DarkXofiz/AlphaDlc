@@ -22,10 +22,10 @@ public class TeamMixin {
       index = 0
    )
    private Text modify(Text original) {
-      if (MinecraftClient.method_1551().field_1724 == null) {
+      if (MinecraftClient.getInstance().player == null) {
          return original;
       } else {
-         String me = MinecraftClient.method_1551().field_1724.method_5820();
+         String me = MinecraftClient.getInstance().player.getNameForScoreboard();
          String replaced = AlphaDLC.getInstance().getModuleStorage().get(NameProtect.class).getCustomName(me);
          return me.equals(replaced) ? original : ReplaceUtil.replaceLiteral(original, me, replaced);
       }

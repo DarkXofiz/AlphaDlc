@@ -38,11 +38,11 @@ public final class ChamsRenderer extends FeatureRenderer<PlayerEntityRenderState
       MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, PlayerEntityRenderState state, float limbAngle, float limbDistance
    ) {
       Chams module = Chams.getInstance();
-      MinecraftClient mc = MinecraftClient.method_1551();
-      if (module != null && module.isEnabled() && mc.field_1724 != null && mc.field_1687 != null) {
-         if (state.field_53528 != mc.field_1724.method_5628() || !mc.field_1690.method_31044().method_31034()) {
+      MinecraftClient mc = MinecraftClient.getInstance();
+      if (module != null && module.isEnabled() && mc.player != null && mc.world != null) {
+         if (state.id != mc.player.getId() || !mc.options.getPerspective().isFirstPerson()) {
             if (vertexConsumers instanceof Immediate immediate) {
-               immediate.method_22993();
+               immediate.draw();
             }
 
             boolean depthEnabled = GL11.glIsEnabled(2929);
@@ -56,15 +56,15 @@ public final class ChamsRenderer extends FeatureRenderer<PlayerEntityRenderState
                RenderSystem.disableCull();
                long nowNanos = System.nanoTime();
                float pulse = module.isBlinking() ? pulse((double)nowNanos) : 1.0F;
-               float baseAlpha = MathHelper.method_15363(module.getAlpha(), 0.0F, 1.0F);
-               float fillAlpha = (module.isMode("Vanilla") ? baseAlpha : MathHelper.method_15363(module.getShaderAlpha(), 0.0F, 1.0F)) * pulse;
-               float outlineBaseAlpha = MathHelper.method_15363(baseAlpha + 0.2F, 0.0F, 1.0F);
+               float baseAlpha = MathHelper.clamp(module.getAlpha(), 0.0F, 1.0F);
+               float fillAlpha = (module.isMode("Vanilla") ? baseAlpha : MathHelper.clamp(module.getShaderAlpha(), 0.0F, 1.0F)) * pulse;
+               float outlineBaseAlpha = MathHelper.clamp(baseAlpha + 0.2F, 0.0F, 1.0F);
                int sourceColor = module.getColor();
                float brightness = module.getBrightness();
                float red = (float)(sourceColor >> 16 & 0xFF) / 255.0F * brightness;
                float green = (float)(sourceColor >> 8 & 0xFF) / 255.0F * brightness;
                float blue = (float)(sourceColor & 0xFF) / 255.0F * brightness;
-               EntityModel<?> model = this.method_17165();
+               EntityModel<?> model = this.getContextModel();
                float animTime = (float)(nowNanos - ANIMATION_START_NANOS) / 1.0E9F;
                RenderSystem.enableDepthTest();
                RenderSystem.depthMask(false);
@@ -87,12 +87,12 @@ public final class ChamsRenderer extends FeatureRenderer<PlayerEntityRenderState
                   matrices,
                   model,
                   outlineScale,
-                  MathHelper.method_15363(red + 0.15F, 0.0F, 1.0F),
-                  MathHelper.method_15363(green + 0.15F, 0.0F, 1.0F),
-                  MathHelper.method_15363(blue + 0.15F, 0.0F, 1.0F),
+                  MathHelper.clamp(red + 0.15F, 0.0F, 1.0F),
+                  MathHelper.clamp(green + 0.15F, 0.0F, 1.0F),
+                  MathHelper.clamp(blue + 0.15F, 0.0F, 1.0F),
                   outlineBaseAlpha * pulse
                );
-               renderFill(matrices, model, state.field_53520.comp_1626(), module, red, green, blue, fillAlpha, animTime);
+               renderFill(matrices, model, state.skinTextures.comp_1626(), module, red, green, blue, fillAlpha, animTime);
                if (module.isThroughWalls()) {
                   RenderSystem.disableDepthTest();
                   if (module.hasGlow()) {
@@ -113,12 +113,12 @@ public final class ChamsRenderer extends FeatureRenderer<PlayerEntityRenderState
                      matrices,
                      model,
                      outlineScale,
-                     MathHelper.method_15363(red + 0.15F, 0.0F, 1.0F),
-                     MathHelper.method_15363(green + 0.15F, 0.0F, 1.0F),
-                     MathHelper.method_15363(blue + 0.15F, 0.0F, 1.0F),
+                     MathHelper.clamp(red + 0.15F, 0.0F, 1.0F),
+                     MathHelper.clamp(green + 0.15F, 0.0F, 1.0F),
+                     MathHelper.clamp(blue + 0.15F, 0.0F, 1.0F),
                      outlineBaseAlpha * pulse * 0.5F
                   );
-                  renderFill(matrices, model, state.field_53520.comp_1626(), module, red, green, blue, fillAlpha * 0.5F, animTime);
+                  renderFill(matrices, model, state.skinTextures.comp_1626(), module, red, green, blue, fillAlpha * 0.5F, animTime);
                }
             } finally {
                RenderSystem.defaultBlendFunc();
@@ -162,42 +162,42 @@ public final class ChamsRenderer extends FeatureRenderer<PlayerEntityRenderState
          } else if (module.isMode("Wave")) {
             Chams.bindWave(timeSeconds * module.getShaderSpeed());
          } else {
-            RenderSystem.setShader(ShaderProgramKeys.field_53880);
+            RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX_COLOR);
             RenderSystem.setShaderTexture(0, skin);
          }
 
-         BufferBuilder buffer = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1575);
+         BufferBuilder buffer = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
          ChamsRenderer.ModelVertexConsumer consumer = new ChamsRenderer.ModelVertexConsumer(buffer, true);
-         model.method_62100(matrices, consumer, 15728880, OverlayTexture.field_21444, argb(red, green, blue, alpha));
+         model.render(matrices, consumer, 15728880, OverlayTexture.DEFAULT_UV, argb(red, green, blue, alpha));
          draw(buffer);
       }
    }
 
    private static void renderSolidModel(MatrixStack matrices, EntityModel<?> model, float scale, float red, float green, float blue, float alpha) {
       if (!(alpha <= 0.001F)) {
-         matrices.method_22903();
-         matrices.method_22905(scale, scale, scale);
-         RenderSystem.setShader(ShaderProgramKeys.field_53876);
-         BufferBuilder buffer = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1576);
+         matrices.push();
+         matrices.scale(scale, scale, scale);
+         RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
+         BufferBuilder buffer = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_COLOR);
          ChamsRenderer.ModelVertexConsumer consumer = new ChamsRenderer.ModelVertexConsumer(buffer, false);
-         model.method_62100(matrices, consumer, 15728880, OverlayTexture.field_21444, argb(red, green, blue, alpha));
+         model.render(matrices, consumer, 15728880, OverlayTexture.DEFAULT_UV, argb(red, green, blue, alpha));
          draw(buffer);
-         matrices.method_22909();
+         matrices.pop();
       }
    }
 
    private static int argb(float red, float green, float blue, float alpha) {
-      int a = MathHelper.method_15340((int)(alpha * 255.0F), 0, 255);
-      int r = MathHelper.method_15340((int)(red * 255.0F), 0, 255);
-      int g = MathHelper.method_15340((int)(green * 255.0F), 0, 255);
-      int b = MathHelper.method_15340((int)(blue * 255.0F), 0, 255);
+      int a = MathHelper.clamp((int)(alpha * 255.0F), 0, 255);
+      int r = MathHelper.clamp((int)(red * 255.0F), 0, 255);
+      int g = MathHelper.clamp((int)(green * 255.0F), 0, 255);
+      int b = MathHelper.clamp((int)(blue * 255.0F), 0, 255);
       return a << 24 | r << 16 | g << 8 | b;
    }
 
    private static void draw(BufferBuilder buffer) {
-      BuiltBuffer built = buffer.method_60794();
+      BuiltBuffer built = buffer.endNullable();
       if (built != null) {
-         BufferRenderer.method_43433(built);
+         BufferRenderer.drawWithGlobalProgram(built);
       }
    }
 
@@ -219,14 +219,14 @@ public final class ChamsRenderer extends FeatureRenderer<PlayerEntityRenderState
          this.textured = textured;
       }
 
-      public VertexConsumer method_22912(float x, float y, float z) {
+      public VertexConsumer vertex(float x, float y, float z) {
          this.x = x;
          this.y = y;
          this.z = z;
          return this;
       }
 
-      public VertexConsumer method_1336(int red, int green, int blue, int alpha) {
+      public VertexConsumer color(int red, int green, int blue, int alpha) {
          this.red = red;
          this.green = green;
          this.blue = blue;
@@ -234,25 +234,25 @@ public final class ChamsRenderer extends FeatureRenderer<PlayerEntityRenderState
          return this;
       }
 
-      public VertexConsumer method_22913(float u, float v) {
+      public VertexConsumer texture(float u, float v) {
          this.u = u;
          this.v = v;
          return this;
       }
 
-      public VertexConsumer method_60796(int u, int v) {
+      public VertexConsumer overlay(int u, int v) {
          return this;
       }
 
-      public VertexConsumer method_22921(int u, int v) {
+      public VertexConsumer light(int u, int v) {
          return this;
       }
 
-      public VertexConsumer method_22914(float x, float y, float z) {
+      public VertexConsumer normal(float x, float y, float z) {
          if (this.textured) {
-            this.target.method_22912(this.x, this.y, this.z).method_22913(this.u, this.v).method_1336(this.red, this.green, this.blue, this.alpha);
+            this.target.vertex(this.x, this.y, this.z).texture(this.u, this.v).color(this.red, this.green, this.blue, this.alpha);
          } else {
-            this.target.method_22912(this.x, this.y, this.z).method_1336(this.red, this.green, this.blue, this.alpha);
+            this.target.vertex(this.x, this.y, this.z).color(this.red, this.green, this.blue, this.alpha);
          }
 
          return this;

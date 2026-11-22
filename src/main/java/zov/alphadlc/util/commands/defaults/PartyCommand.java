@@ -50,7 +50,7 @@ public class PartyCommand extends Command implements IMinecraft {
    }
 
    private String nick() {
-      return mc.field_1724.method_5820();
+      return mc.player.getNameForScoreboard();
    }
 
    private void handleCreate(IArgConsumer args) throws CommandException {
@@ -63,9 +63,9 @@ public class PartyCommand extends Command implements IMinecraft {
          "/party/create",
          req,
          json -> ChatUtil.send(
-               Formatting.field_1080
+               Formatting.GRAY
                   + "\u0412\u044b \u0441\u043e\u0437\u0434\u0430\u043b\u0438 \u043f\u0430\u0442\u0438 \u0441 \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435\u043c "
-                  + Formatting.field_1068
+                  + Formatting.WHITE
                   + name
             )
       );
@@ -81,9 +81,9 @@ public class PartyCommand extends Command implements IMinecraft {
          "/party/invite",
          req,
          json -> ChatUtil.send(
-               Formatting.field_1080
+               Formatting.GRAY
                   + "\u0412\u044b \u043f\u0440\u0438\u0433\u043b\u0430\u0441\u0438\u043b\u0438 \u0438\u0433\u0440\u043e\u043a\u0430 "
-                  + Formatting.field_1068
+                  + Formatting.WHITE
                   + target
             )
       );
@@ -99,7 +99,7 @@ public class PartyCommand extends Command implements IMinecraft {
          "/party/join",
          req,
          json -> ChatUtil.send(
-               Formatting.field_1080 + "\u0412\u044b \u0432\u043e\u0448\u043b\u0438 \u0432 \u043f\u0430\u0442\u0438 " + Formatting.field_1068 + party
+               Formatting.GRAY + "\u0412\u044b \u0432\u043e\u0448\u043b\u0438 \u0432 \u043f\u0430\u0442\u0438 " + Formatting.WHITE + party
             )
       );
    }
@@ -110,7 +110,7 @@ public class PartyCommand extends Command implements IMinecraft {
       PartyApiClient.postAsync(
          "/party/leave",
          req,
-         json -> ChatUtil.send(Formatting.field_1080 + "\u0412\u044b \u043f\u043e\u043a\u0438\u043d\u0443\u043b\u0438 \u043f\u0430\u0442\u0438")
+         json -> ChatUtil.send(Formatting.GRAY + "\u0412\u044b \u043f\u043e\u043a\u0438\u043d\u0443\u043b\u0438 \u043f\u0430\u0442\u0438")
       );
    }
 
@@ -120,7 +120,7 @@ public class PartyCommand extends Command implements IMinecraft {
       PartyApiClient.postAsync(
          "/party/disband",
          req,
-         json -> ChatUtil.send(Formatting.field_1080 + "\u0412\u044b \u0440\u0430\u0441\u043f\u0443\u0441\u0442\u0438\u043b\u0438 \u043f\u0430\u0442\u0438")
+         json -> ChatUtil.send(Formatting.GRAY + "\u0412\u044b \u0440\u0430\u0441\u043f\u0443\u0441\u0442\u0438\u043b\u0438 \u043f\u0430\u0442\u0438")
       );
    }
 
@@ -134,9 +134,9 @@ public class PartyCommand extends Command implements IMinecraft {
          "/party/kick",
          req,
          json -> ChatUtil.send(
-               Formatting.field_1080
+               Formatting.GRAY
                   + "\u0412\u044b \u043a\u0438\u043a\u043d\u0443\u043b\u0438 \u0438\u0433\u0440\u043e\u043a\u0430 "
-                  + Formatting.field_1068
+                  + Formatting.WHITE
                   + target
             )
       );
@@ -147,10 +147,10 @@ public class PartyCommand extends Command implements IMinecraft {
       req.addProperty("player", this.nick());
       PartyApiClient.postAsync("/party/list", req, json -> {
          String[] members = json.get("message").getAsString().split(", ");
-         ChatUtil.send(Formatting.field_1080 + "\u0418\u0433\u0440\u043e\u043a\u0438 \u0432 \u043f\u0430\u0442\u0438:");
+         ChatUtil.send(Formatting.GRAY + "\u0418\u0433\u0440\u043e\u043a\u0438 \u0432 \u043f\u0430\u0442\u0438:");
 
          for (String m : members) {
-            ChatUtil.send(" " + Formatting.field_1068 + m);
+            ChatUtil.send(" " + Formatting.WHITE + m);
          }
       });
    }

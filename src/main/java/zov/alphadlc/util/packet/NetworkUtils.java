@@ -15,7 +15,7 @@ public final class NetworkUtils implements IMinecraft {
    }
 
    public static void sendPacket(Packet<?> packet) {
-      mc.method_1562().method_52787(packet);
+      mc.getNetworkHandler().sendPacket(packet);
    }
 
    @Generated

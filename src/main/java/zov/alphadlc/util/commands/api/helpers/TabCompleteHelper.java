@@ -74,7 +74,7 @@ public class TabCompleteHelper {
    }
 
    public TabCompleteHelper filterPrefixNamespaced(String prefix) {
-      return this.filterPrefix(Identifier.method_60654(prefix).toString());
+      return this.filterPrefix(Identifier.of(prefix).toString());
    }
 
    public String[] build() {

@@ -41,11 +41,11 @@ public class RWHelper extends Module {
    private void onPlayerUpdate(EventPlayerUpdate e) {
       if (this.antipolet.getValue()) {
          if (this.need) {
-            if (!this.mc.field_1724.method_24828() && this.mc.field_1724.method_6118(EquipmentSlot.field_6174).method_7909() == Items.field_8833) {
-               NetworkUtils.sendPacket(new ClientCommandC2SPacket(this.mc.field_1724, Mode.field_12982));
-               this.mc.field_1724.method_23669();
+            if (!this.mc.player.isOnGround() && this.mc.player.getEquippedStack(EquipmentSlot.CHEST).getItem() == Items.ELYTRA) {
+               NetworkUtils.sendPacket(new ClientCommandC2SPacket(this.mc.player, Mode.START_FALL_FLYING));
+               this.mc.player.startGliding();
                if (this.fireworkUse) {
-                  InventoryUtil.swapAndUseHvH(Items.field_8639);
+                  InventoryUtil.swapAndUseHvH(Items.FIREWORK_ROCKET);
                   this.fireworkUse = false;
                }
             } else {

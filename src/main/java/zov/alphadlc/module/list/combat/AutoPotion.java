@@ -47,18 +47,18 @@ public class AutoPotion extends Module {
 
    @Subscribe
    public void onSync(EventPlayerSync e) {
-      if (this.mc.field_1724 != null) {
+      if (this.mc.player != null) {
          this.throwing = this.canThrow();
       }
    }
 
    @Subscribe
    public void onUpdate(EventPlayerUpdate e) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
+      if (this.mc.player != null && this.mc.world != null) {
          if (this.throwing) {
             if (this.timer.isReached(500L)) {
                for (AutoPotion.PotionType type : AutoPotion.PotionType.values()) {
-                  if (type.isSettingEnabled() && !this.mc.field_1724.method_6059(type.getEffect())) {
+                  if (type.isSettingEnabled() && !this.mc.player.hasStatusEffect(type.getEffect())) {
                      int slot = this.findPotionSlot(type.getEffect());
                      if (slot != -1) {
                         this.throwPotion(slot);
@@ -77,37 +77,37 @@ public class AutoPotion extends Module {
    }
 
    private void throwPotion(int slot) {
-      int previousSlot = this.mc.field_1724.method_31548().field_7545;
+      int previousSlot = this.mc.player.getInventory().selectedSlot;
       if (slot < 9) {
-         this.mc.method_1562().method_52787(new UpdateSelectedSlotC2SPacket(slot));
+         this.mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slot));
          this.sendDownwardUse();
-         this.mc.method_1562().method_52787(new UpdateSelectedSlotC2SPacket(previousSlot));
+         this.mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(previousSlot));
       } else {
-         this.mc.field_1761.method_2906(0, slot, previousSlot, SlotActionType.field_7791, this.mc.field_1724);
-         this.mc.method_1562().method_52787(new UpdateSelectedSlotC2SPacket(previousSlot));
+         this.mc.interactionManager.clickSlot(0, slot, previousSlot, SlotActionType.SWAP, this.mc.player);
+         this.mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(previousSlot));
          this.sendDownwardUse();
-         this.mc.field_1761.method_2906(0, slot, previousSlot, SlotActionType.field_7791, this.mc.field_1724);
+         this.mc.interactionManager.clickSlot(0, slot, previousSlot, SlotActionType.SWAP, this.mc.player);
       }
    }
 
    private void sendDownwardUse() {
-      AutoPotionThrowPlan.ServerRotation rotation = AutoPotionThrowPlan.forYaw(this.mc.field_1724.method_36454());
+      AutoPotionThrowPlan.ServerRotation rotation = AutoPotionThrowPlan.forYaw(this.mc.player.getYaw());
       this.mc
-         .method_1562()
-         .method_52787(new LookAndOnGround(rotation.yaw(), rotation.pitch(), this.mc.field_1724.method_24828(), this.mc.field_1724.field_5976));
+         .getNetworkHandler()
+         .sendPacket(new LookAndOnGround(rotation.yaw(), rotation.pitch(), this.mc.player.isOnGround(), this.mc.player.horizontalCollision));
       this.mc
-         .field_1761
-         .method_41931(this.mc.field_1687, sequence -> new PlayerInteractItemC2SPacket(Hand.field_5808, sequence, rotation.yaw(), rotation.pitch()));
+         .interactionManager
+         .sendSequencedPacket(this.mc.world, sequence -> new PlayerInteractItemC2SPacket(Hand.MAIN_HAND, sequence, rotation.yaw(), rotation.pitch()));
    }
 
    private int findPotionSlot(RegistryEntry<StatusEffect> effect) {
       for (int i = 0; i < 45; i++) {
-         ItemStack stack = this.mc.field_1724.method_31548().method_5438(i);
-         if (stack.method_7909() == Items.field_8436) {
-            PotionContentsComponent contents = (PotionContentsComponent)stack.method_57824(DataComponentTypes.field_49651);
+         ItemStack stack = this.mc.player.getInventory().getStack(i);
+         if (stack.getItem() == Items.SPLASH_POTION) {
+            PotionContentsComponent contents = (PotionContentsComponent)stack.get(DataComponentTypes.POTION_CONTENTS);
             if (contents != null) {
-               for (StatusEffectInstance effectInstance : contents.method_57397()) {
-                  if (effectInstance.method_5579().equals(effect)) {
+               for (StatusEffectInstance effectInstance : contents.getEffects()) {
+                  if (effectInstance.getEffectType().equals(effect)) {
                      return i;
                   }
                }
@@ -119,25 +119,25 @@ public class AutoPotion extends Module {
    }
 
    private boolean canThrow() {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
-         boolean onGround = this.mc.field_1724.method_24828()
+      if (this.mc.player != null && this.mc.world != null) {
+         boolean onGround = this.mc.player.isOnGround()
             || this.mc
-               .field_1687
-               .method_8320(
-                  BlockPos.method_49637(this.mc.field_1724.method_23317(), this.mc.field_1724.method_23318() - 0.3, this.mc.field_1724.method_23321())
+               .world
+               .getBlockState(
+                  BlockPos.ofFloored(this.mc.player.getX(), this.mc.player.getY() - 0.3, this.mc.player.getZ())
                )
-               .method_51367();
+               .isSolid();
          if (!onGround) {
             return false;
-         } else if (this.mc.field_1724.method_6101()) {
+         } else if (this.mc.player.isClimbing()) {
             return false;
-         } else if (this.mc.field_1724.method_5765()) {
+         } else if (this.mc.player.hasVehicle()) {
             return false;
-         } else if (this.mc.field_1724.method_31549().field_7479) {
+         } else if (this.mc.player.getAbilities().flying) {
             return false;
-         } else if (!this.mc.field_1724.method_5799() && !this.mc.field_1724.method_5771()) {
+         } else if (!this.mc.player.isTouchingWater() && !this.mc.player.isInLava()) {
             for (AutoPotion.PotionType type : AutoPotion.PotionType.values()) {
-               if (type.isSettingEnabled() && !this.mc.field_1724.method_6059(type.getEffect()) && this.findPotionSlot(type.getEffect()) != -1) {
+               if (type.isSettingEnabled() && !this.mc.player.hasStatusEffect(type.getEffect()) && this.findPotionSlot(type.getEffect()) != -1) {
                   return true;
                }
             }
@@ -166,9 +166,9 @@ public class AutoPotion extends Module {
    }
 
    private static enum PotionType {
-      STRENGTH(StatusEffects.field_5910, "\u0417\u0435\u043b\u044c\u0435 \u0441\u0438\u043b\u044b"),
-      SPEED(StatusEffects.field_5904, "\u0417\u0435\u043b\u044c\u0435 \u0441\u043a\u043e\u0440\u043e\u0441\u0442\u0438"),
-      FIRE_RESISTANCE(StatusEffects.field_5918, "\u0417\u0435\u043b\u044c\u0435 \u043e\u0433\u043d\u0435\u0441\u0442\u043e\u0439\u043a\u043e\u0441\u0442\u0438");
+      STRENGTH(StatusEffects.STRENGTH, "\u0417\u0435\u043b\u044c\u0435 \u0441\u0438\u043b\u044b"),
+      SPEED(StatusEffects.SPEED, "\u0417\u0435\u043b\u044c\u0435 \u0441\u043a\u043e\u0440\u043e\u0441\u0442\u0438"),
+      FIRE_RESISTANCE(StatusEffects.FIRE_RESISTANCE, "\u0417\u0435\u043b\u044c\u0435 \u043e\u0433\u043d\u0435\u0441\u0442\u043e\u0439\u043a\u043e\u0441\u0442\u0438");
 
       private final RegistryEntry<StatusEffect> effect;
       private final String settingName;

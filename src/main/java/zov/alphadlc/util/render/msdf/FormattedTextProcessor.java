@@ -10,24 +10,24 @@ import net.minecraft.text.TextColor;
 public class FormattedTextProcessor {
    public static List<FormattedTextProcessor.TextSegment> processText(Text text, int defaultColor) {
       List<FormattedTextProcessor.TextSegment> segments = new ArrayList<>();
-      text.method_27658((style, string) -> {
+      text.visit((style, string) -> {
          if (!string.isEmpty()) {
             int color = extractColor(style, defaultColor);
-            boolean bold = style.method_10984();
-            boolean italic = style.method_10966();
-            boolean underlined = style.method_10965();
-            boolean strikethrough = style.method_10986();
+            boolean bold = style.isBold();
+            boolean italic = style.isItalic();
+            boolean underlined = style.isUnderlined();
+            boolean strikethrough = style.isStrikethrough();
             segments.add(new FormattedTextProcessor.TextSegment(string, color, bold, italic, underlined, strikethrough));
          }
 
          return Optional.empty();
-      }, Style.field_24360);
+      }, Style.EMPTY);
       return segments;
    }
 
    private static int extractColor(Style style, int defaultColor) {
-      TextColor textColor = style.method_10973();
-      return textColor != null ? textColor.method_27716() | 0xFF000000 : defaultColor;
+      TextColor textColor = style.getColor();
+      return textColor != null ? textColor.getRgb() | 0xFF000000 : defaultColor;
    }
 
    public static record TextSegment(String text, int color, boolean bold, boolean italic, boolean underlined, boolean strikethrough) {

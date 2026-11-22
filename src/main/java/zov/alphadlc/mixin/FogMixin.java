@@ -26,7 +26,7 @@ public class FogMixin {
       Camera camera, FogType fogType, Vector4f color, float viewDistance, boolean thickenFog, float tickDelta, CallbackInfoReturnable<Fog> cir
    ) {
       try {
-         if (camera.method_19334() != CameraSubmersionType.field_27888) {
+         if (camera.getSubmersionType() != CameraSubmersionType.NONE) {
             return;
          }
 
@@ -41,8 +41,8 @@ public class FogMixin {
 
          float edgeEnd = getSafeEdgeEnd(viewDistance);
          if (ambience.isFogEnabled()) {
-            float density = MathHelper.method_15363(ambience.getFogDensity(), 0.0F, 2.0F);
-            float denseShrink = density > 1.0F ? MathHelper.method_16439(density - 1.0F, 1.0F, 0.45F) : 1.0F;
+            float density = MathHelper.clamp(ambience.getFogDensity(), 0.0F, 2.0F);
+            float denseShrink = density > 1.0F ? MathHelper.lerp(density - 1.0F, 1.0F, 0.45F) : 1.0F;
             float fogEnd = Math.max(2.0F, Math.min(ambience.getFogDistance(), edgeEnd) * denseShrink);
             fogEnd = Math.min(fogEnd, edgeEnd);
             float fogStart = fogEnd * (1.0F - Math.min(density, 1.0F));
@@ -56,7 +56,7 @@ public class FogMixin {
    }
 
    private static float getSafeEdgeEnd(float viewDistance) {
-      float edgeBuffer = MathHelper.method_15363(viewDistance * 0.08F, 8.0F, 24.0F);
+      float edgeBuffer = MathHelper.clamp(viewDistance * 0.08F, 8.0F, 24.0F);
       return Math.max(4.0F, viewDistance - edgeBuffer);
    }
 
@@ -64,6 +64,6 @@ public class FogMixin {
       float red = (float)(color >> 16 & 0xFF) / 255.0F;
       float green = (float)(color >> 8 & 0xFF) / 255.0F;
       float blue = (float)(color & 0xFF) / 255.0F;
-      return new Fog(start, end, FogShape.field_36350, red, green, blue, alpha);
+      return new Fog(start, end, FogShape.SPHERE, red, green, blue, alpha);
    }
 }

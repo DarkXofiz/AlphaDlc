@@ -39,7 +39,7 @@ public class ElytraFlight extends Module {
 
    @Subscribe
    private void onStrafe(MoveInputEvent e) {
-      if (this.mc.field_1724 != null && this.mc.field_1724.method_6128()) {
+      if (this.mc.player != null && this.mc.player.isGliding()) {
          if (this.hasInput) {
             if (this.rotationYawOffset != -2.1474836E9F && this.rotationPitchOffset != -2.1474836E9F) {
                RotationComponent.fixMovement(e, this.rotationYawOffset);
@@ -50,32 +50,32 @@ public class ElytraFlight extends Module {
 
    @Subscribe
    private void onUpdate(EventPlayerUpdate e) {
-      if (this.mc.field_1724 != null) {
-         if (!this.mc.field_1724.method_6128() && this.mc.field_1724.method_6118(EquipmentSlot.field_6174).method_7909() == Items.field_8833) {
-            if (this.mc.field_1724.method_24828()) {
-               this.mc.field_1724.method_6043();
+      if (this.mc.player != null) {
+         if (!this.mc.player.isGliding() && this.mc.player.getEquippedStack(EquipmentSlot.CHEST).getItem() == Items.ELYTRA) {
+            if (this.mc.player.isOnGround()) {
+               this.mc.player.jump();
             } else {
-               NetworkUtils.sendPacket(new ClientCommandC2SPacket(this.mc.field_1724, Mode.field_12982));
-               this.mc.field_1724.method_23669();
-               InventoryUtil.swapAndUseHvH(Items.field_8639);
+               NetworkUtils.sendPacket(new ClientCommandC2SPacket(this.mc.player, Mode.START_FALL_FLYING));
+               this.mc.player.startGliding();
+               InventoryUtil.swapAndUseHvH(Items.FIREWORK_ROCKET);
                this.stopWatch.reset();
             }
-         } else if (this.mc.field_1724.method_6128()) {
+         } else if (this.mc.player.isGliding()) {
             KillAura killAura = Instance.get(KillAura.class);
             boolean killauraActive = killAura != null && killAura.isEnabled() && killAura.getTarget() != null;
             if (this.stopWatch.isReached((long)this.fireworkDelay.getValue())) {
-               InventoryUtil.swapAndUseHvH(Items.field_8639);
+               InventoryUtil.swapAndUseHvH(Items.FIREWORK_ROCKET);
                this.stopWatch.reset();
             }
 
-            boolean forward = this.mc.field_1690.field_1894.method_1434();
-            boolean back = this.mc.field_1690.field_1881.method_1434();
-            boolean left = this.mc.field_1690.field_1913.method_1434();
-            boolean right = this.mc.field_1690.field_1849.method_1434();
-            boolean jump = this.mc.field_1690.field_1903.method_1434();
-            boolean sneak = this.mc.field_1690.field_1832.method_1434();
+            boolean forward = this.mc.options.forwardKey.isPressed();
+            boolean back = this.mc.options.backKey.isPressed();
+            boolean left = this.mc.options.leftKey.isPressed();
+            boolean right = this.mc.options.rightKey.isPressed();
+            boolean jump = this.mc.options.jumpKey.isPressed();
+            boolean sneak = this.mc.options.sneakKey.isPressed();
             boolean isMoving = forward || back || left || right;
-            float cameraYaw = this.mc.field_1773.method_19418().method_19330();
+            float cameraYaw = this.mc.gameRenderer.getCamera().getYaw();
             float pitch = 0.0F;
             float yaw;
             if (isMoving) {
@@ -128,25 +128,25 @@ public class ElytraFlight extends Module {
                   vy = -1.0;
                }
 
-               this.mc.field_1724.method_18800(motionX, vy, motionZ);
+               this.mc.player.setVelocity(motionX, vy, motionZ);
             } else if (!killauraActive && !isMoving && (jump || sneak)) {
                double vy = jump ? 1.0 : -1.0;
-               this.mc.field_1724.method_18800(0.0, vy, 0.0);
+               this.mc.player.setVelocity(0.0, vy, 0.0);
             } else if (!killauraActive && !hasAnyInput) {
-               this.mc.field_1724.method_18800(0.0, 0.0, 0.0);
+               this.mc.player.setVelocity(0.0, 0.0, 0.0);
             }
 
             if (hasAnyInput && !killauraActive) {
-               yaw -= (yaw - this.rotation.field_1343) % GCDFixer.getGCDValue();
-               pitch -= (pitch - this.rotation.field_1342) % GCDFixer.getGCDValue();
-               this.rotation = new Vec2f(yaw, MathHelper.method_15363(pitch, -90.0F, 90.0F));
-               this.rotationYawOffset = this.rotation.field_1343;
-               this.rotationPitchOffset = this.rotation.field_1342;
-               RotationComponent.update(new Rotation(this.rotation.field_1343, this.rotation.field_1342), 360.0F, 360.0F, 360.0F, 360.0F, 0, 3, false);
-               this.mc.field_1724.method_36456(this.rotation.field_1343);
-               this.mc.field_1724.method_36457(this.rotation.field_1342);
-               this.mc.field_1724.field_6241 = this.rotation.field_1343;
-               this.mc.field_1724.field_6283 = this.rotation.field_1343;
+               yaw -= (yaw - this.rotation.x) % GCDFixer.getGCDValue();
+               pitch -= (pitch - this.rotation.y) % GCDFixer.getGCDValue();
+               this.rotation = new Vec2f(yaw, MathHelper.clamp(pitch, -90.0F, 90.0F));
+               this.rotationYawOffset = this.rotation.x;
+               this.rotationPitchOffset = this.rotation.y;
+               RotationComponent.update(new Rotation(this.rotation.x, this.rotation.y), 360.0F, 360.0F, 360.0F, 360.0F, 0, 3, false);
+               this.mc.player.setYaw(this.rotation.x);
+               this.mc.player.setPitch(this.rotation.y);
+               this.mc.player.headYaw = this.rotation.x;
+               this.mc.player.bodyYaw = this.rotation.x;
             }
          }
       }
@@ -156,7 +156,7 @@ public class ElytraFlight extends Module {
    public void onEnable() {
       super.onEnable();
       this.stopWatch.reset();
-      this.rotation = new Vec2f(this.mc.field_1724 != null ? this.mc.field_1724.method_36454() : 0.0F, 0.0F);
+      this.rotation = new Vec2f(this.mc.player != null ? this.mc.player.getYaw() : 0.0F, 0.0F);
       this.rotationYawOffset = -2.1474836E9F;
       this.rotationPitchOffset = -2.1474836E9F;
       this.hasInput = false;

@@ -19,7 +19,7 @@ import zov.alphadlc.util.render.renderers.DrawUtil;
 
 public final class GpsRenderer implements IMinecraft {
    private static final GpsRenderer INSTANCE = new GpsRenderer();
-   private static final Identifier GPS_ICON = Identifier.method_60655("mre", "textures/gps.png");
+   private static final Identifier GPS_ICON = Identifier.of("mre", "textures/gps.png");
    private double targetX;
    private double targetZ;
    private boolean enabled;
@@ -40,17 +40,17 @@ public final class GpsRenderer implements IMinecraft {
    @Subscribe
    private void onHud(EventHUD e2) {
       if (this.enabled) {
-         if (MinecraftClient.method_1551().field_1724 != null) {
+         if (MinecraftClient.getInstance().player != null) {
             DrawContext drawContext = e2.getDrawContext();
-            MatrixStack ms = drawContext.method_51448();
-            int sw = mc.method_22683().method_4486();
-            int sh = mc.method_22683().method_4502();
-            Vec3d pos = mc.field_1724.method_19538();
-            double dx = this.targetX - pos.field_1352;
-            double dz = this.targetZ - pos.field_1350;
+            MatrixStack ms = drawContext.getMatrices();
+            int sw = mc.getWindow().getScaledWidth();
+            int sh = mc.getWindow().getScaledHeight();
+            Vec3d pos = mc.player.getPos();
+            double dx = this.targetX - pos.x;
+            double dz = this.targetZ - pos.z;
             int dist = (int)Math.sqrt(dx * dx + dz * dz);
             float angle = (float)(Math.toDegrees(Math.atan2(dz, dx)) - 90.0);
-            float rot = MathHelper.method_15393(angle - mc.field_1724.method_36454());
+            float rot = MathHelper.wrapDegrees(angle - mc.player.getYaw());
             String distTxt = dist + "m";
             int white = ColorProvider.rgba(255, 255, 255, 255.0F);
             double cx = (double)sw / 2.0;
@@ -60,15 +60,15 @@ public final class GpsRenderer implements IMinecraft {
             int iconSize = 16;
             float centerX = (float)cx;
             float centerY = (float)(cy + 22.0);
-            ms.method_22903();
-            ms.method_46416(centerX, centerY, 0.0F);
-            ms.method_22907(RotationAxis.field_40718.rotationDegrees(rot));
-            ms.method_46416((float)(-iconSize) / 2.0F, (float)(-iconSize) / 2.0F, 0.0F);
+            ms.push();
+            ms.translate(centerX, centerY, 0.0F);
+            ms.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(rot));
+            ms.translate((float)(-iconSize) / 2.0F, (float)(-iconSize) / 2.0F, 0.0F);
             RenderSystem.enableBlend();
             RenderSystem.defaultBlendFunc();
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            drawContext.method_25290(RenderLayer::method_62277, GPS_ICON, 0, 0, 0.0F, 0.0F, iconSize, iconSize, iconSize, iconSize);
-            ms.method_22909();
+            drawContext.drawTexture(RenderLayer::getGuiTextured, GPS_ICON, 0, 0, 0.0F, 0.0F, iconSize, iconSize, iconSize, iconSize);
+            ms.pop();
          }
       }
    }

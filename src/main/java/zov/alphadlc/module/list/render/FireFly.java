@@ -56,7 +56,7 @@ public class FireFly extends Module {
    private final Random random = new Random();
    private final Last listener = context -> {
       if (this.isEnabled()) {
-         this.onRender3D(context.matrixStack(), context.camera(), context.tickCounter().method_60637(true));
+         this.onRender3D(context.matrixStack(), context.camera(), context.tickCounter().getTickDelta(true));
       }
    };
    private boolean registered = false;
@@ -79,13 +79,13 @@ public class FireFly extends Module {
 
    @Subscribe
    private void onPlayerTick(EventTick e) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
-         Vec3d playerPos = this.mc.field_1724.method_19538();
+      if (this.mc.player != null && this.mc.world != null) {
+         Vec3d playerPos = this.mc.player.getPos();
          float speedMult = 0.35F;
          float maxSpeed = speedMult * 1.5F;
          int maxTrailLength = this.trailLength.getIntValue();
          this.particles.forEach(p -> p.update(speedMult, maxSpeed, playerPos, maxTrailLength));
-         this.particles.removeIf(p -> p.isDead(playerPos.field_1352, playerPos.field_1351, playerPos.field_1350));
+         this.particles.removeIf(p -> p.isDead(playerPos.x, playerPos.y, playerPos.z));
          int targetCount = (int)this.count.getValue();
 
          while (this.particles.size() > targetCount) {
@@ -111,16 +111,16 @@ public class FireFly extends Module {
       double velY = Math.sin(velocityPitch) * velocitySpeed * 0.5;
       double velZ = Math.cos(velocityYaw) * Math.cos(velocityPitch) * velocitySpeed;
       this.particles
-         .add(new FireFly.FireFlyEntity(playerPos.field_1352 + xOffset, playerPos.field_1351 + yOffset, playerPos.field_1350 + zOffset, velX, velY, velZ));
+         .add(new FireFly.FireFlyEntity(playerPos.x + xOffset, playerPos.y + yOffset, playerPos.z + zOffset, velX, velY, velZ));
    }
 
    private void onRender3D(MatrixStack stack, Camera camera, float tickDelta) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null && !this.particles.isEmpty()) {
-         Vec3d cameraPos = camera.method_19326();
+      if (this.mc.player != null && this.mc.world != null && !this.particles.isEmpty()) {
+         Vec3d cameraPos = camera.getPos();
          int renderColor = this.getRenderColor();
          float configuredTrailAlpha = this.trailAlpha.getFloatValue();
          float configuredFireflySize = this.fireflySize.getFloatValue();
-         RenderSystem.setShader(ShaderProgramKeys.field_53880);
+         RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX_COLOR);
          RenderSystem.setShaderTexture(0, this.spriteTexture());
          RenderSystem.enableBlend();
          RenderSystem.disableCull();
@@ -128,9 +128,9 @@ public class FireFly extends Module {
          RenderSystem.blendFuncSeparate(770, 1, 1, 0);
          RenderSystem.enableDepthTest();
          BufferBuilder buffer = null;
-         stack.method_22903();
-         stack.method_22904(-cameraPos.field_1352, -cameraPos.field_1351, -cameraPos.field_1350);
-         Matrix4f globalMatrix = stack.method_23760().method_23761();
+         stack.push();
+         stack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
+         Matrix4f globalMatrix = stack.peek().getPositionMatrix();
 
          for (FireFly.FireFlyEntity particle : this.particles) {
             float lifeAlpha = particle.getLifeAlpha();
@@ -155,54 +155,54 @@ public class FireFly extends Module {
                   float alpha1 = (1.0F - t1) * (1.0F - t1) * lifeAlpha * configuredTrailAlpha;
                   float alpha2 = (1.0F - t2) * (1.0F - t2) * lifeAlpha * configuredTrailAlpha;
                   if (!(alpha1 <= 0.01F) || !(alpha2 <= 0.01F)) {
-                     Vec3d dir = current.method_1020(next);
-                     if (!(dir.method_1027() < 1.0E-4)) {
-                        Vec3d camToCur = cameraPos.method_1020(current);
-                        Vec3d cross1 = dir.method_1036(camToCur);
-                        if (!(cross1.method_1027() < 1.0E-4)) {
-                           Vec3d right1 = cross1.method_1029().method_1021((double)w1);
-                           Vec3d camToNext = cameraPos.method_1020(next);
-                           Vec3d cross2 = dir.method_1036(camToNext);
-                           if (!(cross2.method_1027() < 1.0E-4)) {
-                              Vec3d right2 = cross2.method_1029().method_1021((double)w2);
+                     Vec3d dir = current.subtract(next);
+                     if (!(dir.lengthSquared() < 1.0E-4)) {
+                        Vec3d camToCur = cameraPos.subtract(current);
+                        Vec3d cross1 = dir.crossProduct(camToCur);
+                        if (!(cross1.lengthSquared() < 1.0E-4)) {
+                           Vec3d right1 = cross1.normalize().multiply((double)w1);
+                           Vec3d camToNext = cameraPos.subtract(next);
+                           Vec3d cross2 = dir.crossProduct(camToNext);
+                           if (!(cross2.lengthSquared() < 1.0E-4)) {
+                              Vec3d right2 = cross2.normalize().multiply((double)w2);
                               int c1 = ColorProvider.setAlpha(renderColor, (int)(alpha1 * 255.0F));
                               int c2 = ColorProvider.setAlpha(renderColor, (int)(alpha2 * 255.0F));
                               if (buffer == null) {
-                                 buffer = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1575);
+                                 buffer = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
                               }
 
-                              buffer.method_22918(
+                              buffer.vertex(
                                     globalMatrix,
-                                    (float)(current.field_1352 + right1.field_1352),
-                                    (float)(current.field_1351 + right1.field_1351),
-                                    (float)(current.field_1350 + right1.field_1350)
+                                    (float)(current.x + right1.x),
+                                    (float)(current.y + right1.y),
+                                    (float)(current.z + right1.z)
                                  )
-                                 .method_22913(0.0F, t1)
-                                 .method_39415(c1);
-                              buffer.method_22918(
+                                 .texture(0.0F, t1)
+                                 .color(c1);
+                              buffer.vertex(
                                     globalMatrix,
-                                    (float)(current.field_1352 - right1.field_1352),
-                                    (float)(current.field_1351 - right1.field_1351),
-                                    (float)(current.field_1350 - right1.field_1350)
+                                    (float)(current.x - right1.x),
+                                    (float)(current.y - right1.y),
+                                    (float)(current.z - right1.z)
                                  )
-                                 .method_22913(1.0F, t1)
-                                 .method_39415(c1);
-                              buffer.method_22918(
+                                 .texture(1.0F, t1)
+                                 .color(c1);
+                              buffer.vertex(
                                     globalMatrix,
-                                    (float)(next.field_1352 - right2.field_1352),
-                                    (float)(next.field_1351 - right2.field_1351),
-                                    (float)(next.field_1350 - right2.field_1350)
+                                    (float)(next.x - right2.x),
+                                    (float)(next.y - right2.y),
+                                    (float)(next.z - right2.z)
                                  )
-                                 .method_22913(1.0F, t2)
-                                 .method_39415(c2);
-                              buffer.method_22918(
+                                 .texture(1.0F, t2)
+                                 .color(c2);
+                              buffer.vertex(
                                     globalMatrix,
-                                    (float)(next.field_1352 + right2.field_1352),
-                                    (float)(next.field_1351 + right2.field_1351),
-                                    (float)(next.field_1350 + right2.field_1350)
+                                    (float)(next.x + right2.x),
+                                    (float)(next.y + right2.y),
+                                    (float)(next.z + right2.z)
                                  )
-                                 .method_22913(0.0F, t2)
-                                 .method_39415(c2);
+                                 .texture(0.0F, t2)
+                                 .color(c2);
                            }
                         }
                      }
@@ -211,7 +211,7 @@ public class FireFly extends Module {
             }
          }
 
-         stack.method_22909();
+         stack.pop();
 
          for (FireFly.FireFlyEntity particlex : this.particles) {
             float lifeAlpha = particlex.getLifeAlpha();
@@ -222,26 +222,26 @@ public class FireFly extends Module {
                   double px = particlex.getInterpolatedX(tickDelta);
                   double py = particlex.getInterpolatedY(tickDelta);
                   double pz = particlex.getInterpolatedZ(tickDelta);
-                  stack.method_22903();
-                  stack.method_22904(px - cameraPos.field_1352, py - cameraPos.field_1351, pz - cameraPos.field_1350);
-                  stack.method_22907(RotationAxis.field_40716.rotationDegrees(-camera.method_19330()));
-                  stack.method_22907(RotationAxis.field_40714.rotationDegrees(camera.method_19329()));
-                  Matrix4f localMatrix = stack.method_23760().method_23761();
+                  stack.push();
+                  stack.translate(px - cameraPos.x, py - cameraPos.y, pz - cameraPos.z);
+                  stack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-camera.getYaw()));
+                  stack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(camera.getPitch()));
+                  Matrix4f localMatrix = stack.peek().getPositionMatrix();
                   if (buffer == null) {
-                     buffer = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1575);
+                     buffer = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
                   }
 
                   this.drawQuad(buffer, localMatrix, 0.35F * configuredFireflySize, renderColor, finalAlpha * 0.6F);
                   this.drawQuad(buffer, localMatrix, 0.22F * configuredFireflySize, renderColor, finalAlpha);
                   this.drawQuad(buffer, localMatrix, 0.1F * configuredFireflySize, -1, finalAlpha);
-                  stack.method_22909();
+                  stack.pop();
                }
             }
          }
 
          if (buffer != null) {
-            BuiltBuffer builtBuffer = buffer.method_60800();
-            BufferRenderer.method_43433(builtBuffer);
+            BuiltBuffer builtBuffer = buffer.end();
+            BufferRenderer.drawWithGlobalProgram(builtBuffer);
          }
 
          RenderSystem.depthMask(true);
@@ -258,10 +258,10 @@ public class FireFly extends Module {
    private void drawQuad(BufferBuilder buffer, Matrix4f matrix, float size, int color, float alphaMod) {
       if (!(alphaMod <= 0.01F)) {
          int finalColor = ColorProvider.setAlpha(color, (int)(alphaMod * 255.0F));
-         buffer.method_22918(matrix, -size, -size, 0.0F).method_22913(0.0F, 0.0F).method_39415(finalColor);
-         buffer.method_22918(matrix, -size, size, 0.0F).method_22913(0.0F, 1.0F).method_39415(finalColor);
-         buffer.method_22918(matrix, size, size, 0.0F).method_22913(1.0F, 1.0F).method_39415(finalColor);
-         buffer.method_22918(matrix, size, -size, 0.0F).method_22913(1.0F, 0.0F).method_39415(finalColor);
+         buffer.vertex(matrix, -size, -size, 0.0F).texture(0.0F, 0.0F).color(finalColor);
+         buffer.vertex(matrix, -size, size, 0.0F).texture(0.0F, 1.0F).color(finalColor);
+         buffer.vertex(matrix, size, size, 0.0F).texture(1.0F, 1.0F).color(finalColor);
+         buffer.vertex(matrix, size, -size, 0.0F).texture(1.0F, 0.0F).color(finalColor);
       }
    }
 
@@ -279,7 +279,7 @@ public class FireFly extends Module {
          case "Glowstar" -> "glowstar";
          default -> "glow";
       };
-      return Identifier.method_60655("mre", "images/" + name + ".png");
+      return Identifier.of("mre", "images/" + name + ".png");
    }
 
    private static class FireFlyEntity {
@@ -331,9 +331,9 @@ public class FireFly extends Module {
             this.lastDirectionChange = System.currentTimeMillis();
          }
 
-         double dx = playerPos.field_1352 - this.x;
-         double dy = playerPos.field_1351 + 1.0 - this.y;
-         double dz = playerPos.field_1350 - this.z;
+         double dx = playerPos.x - this.x;
+         double dy = playerPos.y + 1.0 - this.y;
+         double dz = playerPos.z - this.z;
          double distToPlayer = Math.sqrt(dx * dx + dy * dy + dz * dz);
          if (distToPlayer > 35.0) {
             this.targetVelX += dx / distToPlayer * (double)speedMult * 0.15;
@@ -349,9 +349,9 @@ public class FireFly extends Module {
          this.velX = this.velX + (this.random.nextDouble() - 0.5) * wobble;
          this.velY = this.velY + (this.random.nextDouble() - 0.5) * wobble;
          this.velZ = this.velZ + (this.random.nextDouble() - 0.5) * wobble;
-         this.velX = MathHelper.method_15350(this.velX, (double)(-maxSpeed), (double)maxSpeed);
-         this.velY = MathHelper.method_15350(this.velY, (double)(-maxSpeed), (double)maxSpeed);
-         this.velZ = MathHelper.method_15350(this.velZ, (double)(-maxSpeed), (double)maxSpeed);
+         this.velX = MathHelper.clamp(this.velX, (double)(-maxSpeed), (double)maxSpeed);
+         this.velY = MathHelper.clamp(this.velY, (double)(-maxSpeed), (double)maxSpeed);
+         this.velZ = MathHelper.clamp(this.velZ, (double)(-maxSpeed), (double)maxSpeed);
          this.x = this.x + this.velX;
          this.y = this.y + this.velY;
          this.z = this.z + this.velZ;
@@ -370,15 +370,15 @@ public class FireFly extends Module {
       }
 
       double getInterpolatedX(float tickDelta) {
-         return MathHelper.method_16436((double)tickDelta, this.prevX, this.x);
+         return MathHelper.lerp((double)tickDelta, this.prevX, this.x);
       }
 
       double getInterpolatedY(float tickDelta) {
-         return MathHelper.method_16436((double)tickDelta, this.prevY, this.y);
+         return MathHelper.lerp((double)tickDelta, this.prevY, this.y);
       }
 
       double getInterpolatedZ(float tickDelta) {
-         return MathHelper.method_16436((double)tickDelta, this.prevZ, this.z);
+         return MathHelper.lerp((double)tickDelta, this.prevZ, this.z);
       }
 
       int getPulseAlpha() {

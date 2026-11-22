@@ -28,7 +28,7 @@ public record BuiltMutableText(
    MsdfFont font, Text text, float size, float thickness, int color, float smoothness, float spacing, int outlineColor, float outlineThickness, int alpha
 ) implements IRenderer {
    private static final ShaderProgramKey MSDF_FONT_SHADER_KEY = new ShaderProgramKey(
-      ResourceProvider.getShaderIdentifier("msdf_font"), VertexFormats.field_1575, Defines.field_53930
+      ResourceProvider.getShaderIdentifier("msdf_font"), VertexFormats.POSITION_TEXTURE_COLOR, Defines.EMPTY
    );
 
    public List<MsdfFont.ColoredGlyph> parseTextToColoredGlyphs(Text text) {
@@ -38,9 +38,9 @@ public record BuiltMutableText(
    }
 
    private void parseTextRecursivePreservingColors(Text text, int currentColor, List<MsdfFont.ColoredGlyph> result) {
-      Style style = text.method_10866();
-      int color = style.method_10973() != null
-         ? ColorProvider.setAlpha(style.method_10973().method_27716(), this.alpha) | ColorProvider.setAlpha(-16777216, this.alpha)
+      Style style = text.getStyle();
+      int color = style.getColor() != null
+         ? ColorProvider.setAlpha(style.getColor().getRgb(), this.alpha) | ColorProvider.setAlpha(-16777216, this.alpha)
          : ColorProvider.setAlpha(currentColor, this.alpha);
       String content = extractContent(text);
       int length = content.length();
@@ -50,10 +50,10 @@ public record BuiltMutableText(
          char c = content.charAt(i);
          if (c == 167 && i + 1 < length) {
             char code = Character.toLowerCase(content.charAt(i + 1));
-            Formatting formatting = Formatting.method_544(code);
-            if (formatting != null && formatting.method_543()) {
-               color = ColorProvider.setAlpha(formatting.method_532(), this.alpha) | ColorProvider.setAlpha(-16777216, this.alpha);
-            } else if (formatting == Formatting.field_1070) {
+            Formatting formatting = Formatting.byCode(code);
+            if (formatting != null && formatting.isColor()) {
+               color = ColorProvider.setAlpha(formatting.getColorValue(), this.alpha) | ColorProvider.setAlpha(-16777216, this.alpha);
+            } else if (formatting == Formatting.RESET) {
                color = ColorProvider.setAlpha(currentColor, this.alpha);
             }
 
@@ -64,19 +64,19 @@ public record BuiltMutableText(
          }
       }
 
-      for (Text sibling : text.method_10855()) {
+      for (Text sibling : text.getSiblings()) {
          this.parseTextRecursivePreservingColors(sibling, color, result);
       }
    }
 
    private static String extractContent(Text text) {
-      TextContent content = text.method_10851();
+      TextContent content = text.getContent();
       if (content instanceof Literal literal) {
          return literal.comp_737();
       } else if (content instanceof TranslatableTextContent translatable) {
-         return translatable.method_11022();
+         return translatable.getKey();
       } else {
-         return content instanceof KeybindTextContent keybind ? keybind.method_10901() : "";
+         return content instanceof KeybindTextContent keybind ? keybind.getKey() : "";
       }
    }
 
@@ -90,17 +90,17 @@ public record BuiltMutableText(
          RenderSystem.setShaderTexture(0, this.font.getTextureId());
          boolean outlineEnabled = this.outlineThickness > 0.0F;
          ShaderProgram shader = RenderSystem.setShader(MSDF_FONT_SHADER_KEY);
-         shader.method_34582("Range").method_1251(this.font.getAtlas().range());
-         shader.method_34582("Thickness").method_1251(this.thickness);
-         shader.method_34582("Smoothness").method_1251(this.smoothness);
-         shader.method_34582("Outline").method_35649(outlineEnabled ? 1 : 0);
+         shader.getUniform("Range").set(this.font.getAtlas().range());
+         shader.getUniform("Thickness").set(this.thickness);
+         shader.getUniform("Smoothness").set(this.smoothness);
+         shader.getUniform("Outline").set(outlineEnabled ? 1 : 0);
          if (outlineEnabled) {
-            shader.method_34582("OutlineThickness").method_1251(this.outlineThickness);
+            shader.getUniform("OutlineThickness").set(this.outlineThickness);
             float[] outlineComponents = ColorProvider.normalize(this.outlineColor);
-            shader.method_34582("OutlineColor").method_35657(outlineComponents[0], outlineComponents[1], outlineComponents[2], outlineComponents[3]);
+            shader.getUniform("OutlineColor").set(outlineComponents[0], outlineComponents[1], outlineComponents[2], outlineComponents[3]);
          }
 
-         BufferBuilder builder = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1575);
+         BufferBuilder builder = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
          this.font
             .applyGlyphs(
                matrix,
@@ -113,8 +113,8 @@ public record BuiltMutableText(
                y + this.font.getMetrics().baselineHeight() * this.size,
                z
             );
-         if (builder.field_1556) {
-            BufferRenderer.method_43433(builder.method_60800());
+         if (builder.building) {
+            BufferRenderer.drawWithGlobalProgram(builder.end());
          }
 
          RenderSystem.setShaderTexture(0, 0);

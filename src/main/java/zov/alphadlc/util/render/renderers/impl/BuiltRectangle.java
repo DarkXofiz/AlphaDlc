@@ -18,7 +18,7 @@ import zov.alphadlc.util.render.renderers.IRenderer;
 
 public record BuiltRectangle(SizeState size, QuadRadiusState radius, QuadColorState color, float smoothness) implements IRenderer {
    private static final ShaderProgramKey RECTANGLE_SHADER_KEY = new ShaderProgramKey(
-      ResourceProvider.getShaderIdentifier("rectangle"), VertexFormats.field_1576, Defines.field_53930
+      ResourceProvider.getShaderIdentifier("rectangle"), VertexFormats.POSITION_COLOR, Defines.EMPTY
    );
 
    @Override
@@ -29,15 +29,15 @@ public record BuiltRectangle(SizeState size, QuadRadiusState radius, QuadColorSt
       float width = this.size.width();
       float height = this.size.height();
       ShaderProgram shader = RenderSystem.setShader(RECTANGLE_SHADER_KEY);
-      shader.method_34582("Size").method_1255(width, height);
-      shader.method_34582("Radius").method_35657(this.radius.radius1(), this.radius.radius2(), this.radius.radius3(), this.radius.radius4());
-      shader.method_34582("Smoothness").method_1251(this.smoothness);
-      BufferBuilder builder = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1576);
-      builder.method_22918(matrix, x, y, z).method_39415(this.color.color1());
-      builder.method_22918(matrix, x, y + height, z).method_39415(this.color.color2());
-      builder.method_22918(matrix, x + width, y + height, z).method_39415(this.color.color3());
-      builder.method_22918(matrix, x + width, y, z).method_39415(this.color.color4());
-      BufferRenderer.method_43433(builder.method_60800());
+      shader.getUniform("Size").set(width, height);
+      shader.getUniform("Radius").set(this.radius.radius1(), this.radius.radius2(), this.radius.radius3(), this.radius.radius4());
+      shader.getUniform("Smoothness").set(this.smoothness);
+      BufferBuilder builder = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+      builder.vertex(matrix, x, y, z).color(this.color.color1());
+      builder.vertex(matrix, x, y + height, z).color(this.color.color2());
+      builder.vertex(matrix, x + width, y + height, z).color(this.color.color3());
+      builder.vertex(matrix, x + width, y, z).color(this.color.color4());
+      BufferRenderer.drawWithGlobalProgram(builder.end());
       RenderSystem.enableCull();
       RenderSystem.disableBlend();
    }

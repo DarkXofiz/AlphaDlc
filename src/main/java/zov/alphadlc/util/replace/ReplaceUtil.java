@@ -14,7 +14,7 @@ import net.minecraft.util.math.ColorHelper;
 public class ReplaceUtil {
    public static Text replace(Text input, String target, String replacement) {
       if (input != null && target != null && replacement != null) {
-         MutableText result = Text.method_43473().method_10862(input.method_10866());
+         MutableText result = Text.empty().setStyle(input.getStyle());
          appendReplaced(result, input, target, replacement);
          return result;
       } else {
@@ -23,27 +23,27 @@ public class ReplaceUtil {
    }
 
    private static void appendReplaced(MutableText result, Text current, String target, String replacement) {
-      TextContent content = current.method_10851();
-      Style style = current.method_10866();
+      TextContent content = current.getContent();
+      Style style = current.getStyle();
       if (content instanceof Literal literal) {
          Pattern pattern = Pattern.compile(Pattern.quote(target), 2);
          String replaced = pattern.matcher(literal.comp_737()).replaceAll(replacement);
-         result.method_10852(Text.method_43470(replaced).method_10862(style));
+         result.append(Text.literal(replaced).setStyle(style));
       } else if (!(content instanceof Literal)) {
          String str = content.toString();
          if (!str.isEmpty()) {
-            result.method_10852(MutableText.method_43477(content).method_10862(style));
+            result.append(MutableText.of(content).setStyle(style));
          }
       }
 
-      for (Text sibling : current.method_10855()) {
+      for (Text sibling : current.getSiblings()) {
          appendReplaced(result, sibling, target, replacement);
       }
    }
 
    public static Text replaceWithFormatted(Text input, String target, Formatting color, String label) {
       if (input != null && target != null) {
-         MutableText result = Text.method_43473().method_10862(input.method_10866());
+         MutableText result = Text.empty().setStyle(input.getStyle());
          appendReplacedFormatted(result, input, target, color, label);
          return result;
       } else {
@@ -52,29 +52,29 @@ public class ReplaceUtil {
    }
 
    private static void appendReplacedFormatted(MutableText result, Text current, String target, Formatting color, String label) {
-      TextContent content = current.method_10851();
-      Style style = current.method_10866();
+      TextContent content = current.getContent();
+      Style style = current.getStyle();
       if (content instanceof Literal literal) {
          String s = literal.comp_737();
          String[] parts = s.split(Pattern.quote(target), -1);
 
          for (int i = 0; i < parts.length; i++) {
             if (!parts[i].isEmpty()) {
-               result.method_10852(Text.method_43470(parts[i]).method_10862(style));
+               result.append(Text.literal(parts[i]).setStyle(style));
             }
 
             if (i < parts.length - 1) {
-               result.method_10852(buildGradientLabel(label, color));
+               result.append(buildGradientLabel(label, color));
             }
          }
       } else if (content != null && !(content instanceof Literal)) {
          String str = content.toString();
          if (!str.isEmpty()) {
-            result.method_10852(MutableText.method_43477(content).method_10862(style));
+            result.append(MutableText.of(content).setStyle(style));
          }
       }
 
-      for (Text sibling : current.method_10855()) {
+      for (Text sibling : current.getSiblings()) {
          appendReplacedFormatted(result, sibling, target, color, label);
       }
    }
@@ -87,7 +87,7 @@ public class ReplaceUtil {
       int er = (int)((double)tr * 0.6);
       int eg = (int)((double)tg * 0.6);
       int eb = (int)((double)tb * 0.6);
-      MutableText result = Text.method_43473();
+      MutableText result = Text.empty();
       int len = label.length();
 
       for (int i = 0; i < len; i++) {
@@ -96,7 +96,7 @@ public class ReplaceUtil {
          int g = tg + (int)((float)(eg - tg) * t);
          int b = tb + (int)((float)(eb - tb) * t);
          int rgb = r << 16 | g << 8 | b;
-         result.method_10852(Text.method_43470(String.valueOf(label.charAt(i))).method_10862(Style.field_24360.method_36139(ColorHelper.method_61334(rgb))));
+         result.append(Text.literal(String.valueOf(label.charAt(i))).setStyle(Style.EMPTY.withColor(ColorHelper.fullAlpha(rgb))));
       }
 
       return result;
@@ -104,22 +104,22 @@ public class ReplaceUtil {
 
    private static int formattingToRgb(Formatting formatting) {
       return switch (formatting) {
-         case field_1074 -> 0;
-         case field_1058 -> 170;
-         case field_1077 -> 43520;
-         case field_1062 -> 43690;
-         case field_1079 -> 11141120;
-         case field_1064 -> 11141290;
-         case field_1065 -> 16755200;
-         case field_1080 -> 11184810;
-         case field_1063 -> 5592405;
-         case field_1078 -> 5592575;
-         case field_1060 -> 5635925;
-         case field_1075 -> 5636095;
-         case field_1061 -> 16733525;
-         case field_1076 -> 16733695;
-         case field_1054 -> 16777045;
-         case field_1068 -> 16777215;
+         case BLACK -> 0;
+         case DARK_BLUE -> 170;
+         case DARK_GREEN -> 43520;
+         case DARK_AQUA -> 43690;
+         case DARK_RED -> 11141120;
+         case DARK_PURPLE -> 11141290;
+         case GOLD -> 16755200;
+         case GRAY -> 11184810;
+         case DARK_GRAY -> 5592405;
+         case BLUE -> 5592575;
+         case GREEN -> 5635925;
+         case AQUA -> 5636095;
+         case RED -> 16733525;
+         case LIGHT_PURPLE -> 16733695;
+         case YELLOW -> 16777045;
+         case WHITE -> 16777215;
          default -> 16777215;
       };
    }
@@ -133,13 +133,13 @@ public class ReplaceUtil {
             return input;
          } else {
             full = full.replaceAll("(?i)" + Pattern.quote(target), replacement);
-            MutableText out = Text.method_43473();
+            MutableText out = Text.empty();
             List<ReplaceUtil.StyledChar> styledChars = flatten(input);
             int index = 0;
 
             for (int i = 0; i < full.length(); i++) {
-               Style style = index < styledChars.size() ? styledChars.get(index).style : Style.field_24360;
-               out.method_10852(Text.method_43470(String.valueOf(full.charAt(i))).method_10862(style));
+               Style style = index < styledChars.size() ? styledChars.get(index).style : Style.EMPTY;
+               out.append(Text.literal(String.valueOf(full.charAt(i))).setStyle(style));
                index++;
             }
 
@@ -155,8 +155,8 @@ public class ReplaceUtil {
    }
 
    private static void collect(Text text, List<ReplaceUtil.StyledChar> list) {
-      Style style = text.method_10866();
-      if (text.method_10851() instanceof Literal literal) {
+      Style style = text.getStyle();
+      if (text.getContent() instanceof Literal literal) {
          String s = literal.comp_737();
 
          for (int i = 0; i < s.length(); i++) {
@@ -164,66 +164,66 @@ public class ReplaceUtil {
          }
       }
 
-      for (Text sibling : text.method_10855()) {
+      for (Text sibling : text.getSiblings()) {
          collect(sibling, list);
       }
    }
 
    public static Text trimText(Text text, int length) {
       List<ReplaceUtil.StyledChar> chars = flatten(text);
-      MutableText result = Text.method_43473();
+      MutableText result = Text.empty();
 
       for (int i = 0; i < Math.min(length, chars.size()); i++) {
-         result.method_10852(Text.method_43470(String.valueOf(chars.get(i).c())).method_10862(chars.get(i).style()));
+         result.append(Text.literal(String.valueOf(chars.get(i).c())).setStyle(chars.get(i).style()));
       }
 
       return result;
    }
 
    public static String replaceSymbols(String string) {
-      return string.replaceAll("\ua517", Formatting.field_1078 + "MODER")
-         .replaceAll("\ua525", Formatting.field_1078 + "ST.MODER")
-         .replaceAll("\ua521", Formatting.field_1076 + "MODER+")
-         .replaceAll("\ua500", Formatting.field_1080 + "\u0418\u0413\u0420\u041e\u041a")
-         .replaceAll("\ua509", Formatting.field_1054 + "HELPER")
+      return string.replaceAll("\ua517", Formatting.BLUE + "MODER")
+         .replaceAll("\ua525", Formatting.BLUE + "ST.MODER")
+         .replaceAll("\ua521", Formatting.LIGHT_PURPLE + "MODER+")
+         .replaceAll("\ua500", Formatting.GRAY + "\u0418\u0413\u0420\u041e\u041a")
+         .replaceAll("\ua509", Formatting.YELLOW + "HELPER")
          .replaceAll("\u25c6", "@")
          .replaceAll("\u2503", "|")
-         .replaceAll("\ua533", Formatting.field_1075 + "ML.ADMIN")
-         .replaceAll("\ua505", Formatting.field_1061 + "Y" + Formatting.field_1068 + "T")
-         .replaceAll("\ua502", Formatting.field_1065 + "GOD")
-         .replaceAll("\ua538", Formatting.field_1065 + "GOD")
-         .replaceAll("\ua560", Formatting.field_1054 + "D.HELPER")
-         .replaceAll("\ua544", Formatting.field_1061 + "VAMPIRE")
-         .replaceAll("\ua516", Formatting.field_1075 + "OVERLORD")
-         .replaceAll("\ua548", Formatting.field_1060 + "COBRA")
-         .replaceAll("\ua528", Formatting.field_1076 + "DRAGON")
-         .replaceAll("\ua524", Formatting.field_1061 + "IMPERATOR")
-         .replaceAll("\ua520", Formatting.field_1065 + "MAGISTER")
-         .replaceAll("\ua504", Formatting.field_1078 + "HERO")
-         .replaceAll("\ua512", Formatting.field_1060 + "AVENGER")
-         .replaceAll("\ua552", Formatting.field_1068 + "RABBIT")
-         .replaceAll("\ua508", Formatting.field_1054 + "TITAN")
-         .replaceAll("\ua540", Formatting.field_1077 + "HYDRA")
-         .replaceAll("\ua536", Formatting.field_1065 + "TIGER")
-         .replaceAll("\ua532", Formatting.field_1064 + "BULL")
-         .replaceAll("\ua556", Formatting.field_1074 + "BUNNY")
-         .replaceAll("\ua557\ua558", Formatting.field_1054 + "SPONSOR")
-         .replaceAll("\ua549", Formatting.field_1065 + "PEGAS")
-         .replaceAll("\ua546", Formatting.field_1065 + "PEGAS")
-         .replaceAll("\ua553", Formatting.field_1063 + "GHOST")
-         .replaceAll("\ua506", Formatting.field_1080 + "D.MODER")
-         .replaceAll("\ua530", Formatting.field_1080 + "D.ML.ADMIN")
-         .replaceAll("\ua510", Formatting.field_1058 + "D.GL.MODER")
-         .replaceAll("\ua514", Formatting.field_1080 + "D.GL.MODER")
-         .replaceAll("\ua522", Formatting.field_1080 + "D.ST.MODER")
-         .replaceAll("\ua561", Formatting.field_1065 + "ST.HELPER")
-         .replaceAll("\ua545", Formatting.field_1064 + "MEDIA+")
-         .replaceAll("\ua513", Formatting.field_1078 + "ML.MODER")
-         .replaceAll("\ua529", Formatting.field_1064 + "GL.MODER")
-         .replaceAll("\ua557", Formatting.field_1079 + "D.ADMIN")
-         .replaceAll("\ua518", Formatting.field_1078 + "D.ST.MODER")
-         .replaceAll("\ua526", Formatting.field_1078 + "D.ML.ADMIN")
-         .replaceAll("\ua501", Formatting.field_1064 + "MEDIA")
+         .replaceAll("\ua533", Formatting.AQUA + "ML.ADMIN")
+         .replaceAll("\ua505", Formatting.RED + "Y" + Formatting.WHITE + "T")
+         .replaceAll("\ua502", Formatting.GOLD + "GOD")
+         .replaceAll("\ua538", Formatting.GOLD + "GOD")
+         .replaceAll("\ua560", Formatting.YELLOW + "D.HELPER")
+         .replaceAll("\ua544", Formatting.RED + "VAMPIRE")
+         .replaceAll("\ua516", Formatting.AQUA + "OVERLORD")
+         .replaceAll("\ua548", Formatting.GREEN + "COBRA")
+         .replaceAll("\ua528", Formatting.LIGHT_PURPLE + "DRAGON")
+         .replaceAll("\ua524", Formatting.RED + "IMPERATOR")
+         .replaceAll("\ua520", Formatting.GOLD + "MAGISTER")
+         .replaceAll("\ua504", Formatting.BLUE + "HERO")
+         .replaceAll("\ua512", Formatting.GREEN + "AVENGER")
+         .replaceAll("\ua552", Formatting.WHITE + "RABBIT")
+         .replaceAll("\ua508", Formatting.YELLOW + "TITAN")
+         .replaceAll("\ua540", Formatting.DARK_GREEN + "HYDRA")
+         .replaceAll("\ua536", Formatting.GOLD + "TIGER")
+         .replaceAll("\ua532", Formatting.DARK_PURPLE + "BULL")
+         .replaceAll("\ua556", Formatting.BLACK + "BUNNY")
+         .replaceAll("\ua557\ua558", Formatting.YELLOW + "SPONSOR")
+         .replaceAll("\ua549", Formatting.GOLD + "PEGAS")
+         .replaceAll("\ua546", Formatting.GOLD + "PEGAS")
+         .replaceAll("\ua553", Formatting.DARK_GRAY + "GHOST")
+         .replaceAll("\ua506", Formatting.GRAY + "D.MODER")
+         .replaceAll("\ua530", Formatting.GRAY + "D.ML.ADMIN")
+         .replaceAll("\ua510", Formatting.DARK_BLUE + "D.GL.MODER")
+         .replaceAll("\ua514", Formatting.GRAY + "D.GL.MODER")
+         .replaceAll("\ua522", Formatting.GRAY + "D.ST.MODER")
+         .replaceAll("\ua561", Formatting.GOLD + "ST.HELPER")
+         .replaceAll("\ua545", Formatting.DARK_PURPLE + "MEDIA+")
+         .replaceAll("\ua513", Formatting.BLUE + "ML.MODER")
+         .replaceAll("\ua529", Formatting.DARK_PURPLE + "GL.MODER")
+         .replaceAll("\ua557", Formatting.DARK_RED + "D.ADMIN")
+         .replaceAll("\ua518", Formatting.BLUE + "D.ST.MODER")
+         .replaceAll("\ua526", Formatting.BLUE + "D.ML.ADMIN")
+         .replaceAll("\ua501", Formatting.DARK_PURPLE + "MEDIA")
          .replaceAll("\ud83d\udd25", "@")
          .replaceAll("\u1d00", "A")
          .replaceAll("\u0299", "B")
@@ -255,23 +255,23 @@ public class ReplaceUtil {
 
    public static Text replaceSymbols(Text text) {
       if (text.getString().contains("\ua517")) {
-         text = replaceWithFormatted(text, "\ua517", Formatting.field_1078, "MODER");
+         text = replaceWithFormatted(text, "\ua517", Formatting.BLUE, "MODER");
       }
 
       if (text.getString().contains("\ua525")) {
-         text = replaceWithFormatted(text, "\ua525", Formatting.field_1078, "ST.MODER");
+         text = replaceWithFormatted(text, "\ua525", Formatting.BLUE, "ST.MODER");
       }
 
       if (text.getString().contains("\ua521")) {
-         text = replaceWithFormatted(text, "\ua521", Formatting.field_1076, "MODER+");
+         text = replaceWithFormatted(text, "\ua521", Formatting.LIGHT_PURPLE, "MODER+");
       }
 
       if (text.getString().contains("\ua500")) {
-         text = replaceWithFormatted(text, "\ua500", Formatting.field_1080, "\u0418\u0413\u0420\u041e\u041a");
+         text = replaceWithFormatted(text, "\ua500", Formatting.GRAY, "\u0418\u0413\u0420\u041e\u041a");
       }
 
       if (text.getString().contains("\ua509")) {
-         text = replaceWithFormatted(text, "\ua509", Formatting.field_1054, "HELPER");
+         text = replaceWithFormatted(text, "\ua509", Formatting.YELLOW, "HELPER");
       }
 
       if (text.getString().contains("\u25c6")) {
@@ -283,147 +283,147 @@ public class ReplaceUtil {
       }
 
       if (text.getString().contains("\ua533")) {
-         text = replaceWithFormatted(text, "\ua533", Formatting.field_1075, "ML.ADMIN");
+         text = replaceWithFormatted(text, "\ua533", Formatting.AQUA, "ML.ADMIN");
       }
 
       if (text.getString().contains("\ua505")) {
-         text = replaceWithFormatted(text, "\ua505", Formatting.field_1061, "YT");
+         text = replaceWithFormatted(text, "\ua505", Formatting.RED, "YT");
       }
 
       if (text.getString().contains("\ua502")) {
-         text = replaceWithFormatted(text, "\ua502", Formatting.field_1065, "GOD");
+         text = replaceWithFormatted(text, "\ua502", Formatting.GOLD, "GOD");
       }
 
       if (text.getString().contains("\ua538")) {
-         text = replaceWithFormatted(text, "\ua538", Formatting.field_1065, "GOD");
+         text = replaceWithFormatted(text, "\ua538", Formatting.GOLD, "GOD");
       }
 
       if (text.getString().contains("\ua560")) {
-         text = replaceWithFormatted(text, "\ua560", Formatting.field_1054, "D.HELPER");
+         text = replaceWithFormatted(text, "\ua560", Formatting.YELLOW, "D.HELPER");
       }
 
       if (text.getString().contains("\ua544")) {
-         text = replaceWithFormatted(text, "\ua544", Formatting.field_1061, "VAMPIRE");
+         text = replaceWithFormatted(text, "\ua544", Formatting.RED, "VAMPIRE");
       }
 
       if (text.getString().contains("\ua516")) {
-         text = replaceWithFormatted(text, "\ua516", Formatting.field_1075, "OVERLORD");
+         text = replaceWithFormatted(text, "\ua516", Formatting.AQUA, "OVERLORD");
       }
 
       if (text.getString().contains("\ua548")) {
-         text = replaceWithFormatted(text, "\ua548", Formatting.field_1060, "COBRA");
+         text = replaceWithFormatted(text, "\ua548", Formatting.GREEN, "COBRA");
       }
 
       if (text.getString().contains("\ua528")) {
-         text = replaceWithFormatted(text, "\ua528", Formatting.field_1076, "DRAGON");
+         text = replaceWithFormatted(text, "\ua528", Formatting.LIGHT_PURPLE, "DRAGON");
       }
 
       if (text.getString().contains("\ua524")) {
-         text = replaceWithFormatted(text, "\ua524", Formatting.field_1061, "IMPERATOR");
+         text = replaceWithFormatted(text, "\ua524", Formatting.RED, "IMPERATOR");
       }
 
       if (text.getString().contains("\ua520")) {
-         text = replaceWithFormatted(text, "\ua520", Formatting.field_1065, "MAGISTER");
+         text = replaceWithFormatted(text, "\ua520", Formatting.GOLD, "MAGISTER");
       }
 
       if (text.getString().contains("\ua504")) {
-         text = replaceWithFormatted(text, "\ua504", Formatting.field_1078, "HERO");
+         text = replaceWithFormatted(text, "\ua504", Formatting.BLUE, "HERO");
       }
 
       if (text.getString().contains("\ua512")) {
-         text = replaceWithFormatted(text, "\ua512", Formatting.field_1060, "AVENGER");
+         text = replaceWithFormatted(text, "\ua512", Formatting.GREEN, "AVENGER");
       }
 
       if (text.getString().contains("\ua552")) {
-         text = replaceWithFormatted(text, "\ua552", Formatting.field_1068, "RABBIT");
+         text = replaceWithFormatted(text, "\ua552", Formatting.WHITE, "RABBIT");
       }
 
       if (text.getString().contains("\ua508")) {
-         text = replaceWithFormatted(text, "\ua508", Formatting.field_1054, "TITAN");
+         text = replaceWithFormatted(text, "\ua508", Formatting.YELLOW, "TITAN");
       }
 
       if (text.getString().contains("\ua540")) {
-         text = replaceWithFormatted(text, "\ua540", Formatting.field_1077, "HYDRA");
+         text = replaceWithFormatted(text, "\ua540", Formatting.DARK_GREEN, "HYDRA");
       }
 
       if (text.getString().contains("\ua536")) {
-         text = replaceWithFormatted(text, "\ua536", Formatting.field_1065, "TIGER");
+         text = replaceWithFormatted(text, "\ua536", Formatting.GOLD, "TIGER");
       }
 
       if (text.getString().contains("\ua532")) {
-         text = replaceWithFormatted(text, "\ua532", Formatting.field_1064, "BULL");
+         text = replaceWithFormatted(text, "\ua532", Formatting.DARK_PURPLE, "BULL");
       }
 
       if (text.getString().contains("\ua556")) {
-         text = replaceWithFormatted(text, "\ua556", Formatting.field_1080, "BUNNY");
+         text = replaceWithFormatted(text, "\ua556", Formatting.GRAY, "BUNNY");
       }
 
       if (text.getString().contains("\ua557\ua558")) {
-         text = replaceWithFormatted(text, "\ua557\ua558", Formatting.field_1054, "SPONSOR");
+         text = replaceWithFormatted(text, "\ua557\ua558", Formatting.YELLOW, "SPONSOR");
       }
 
       if (text.getString().contains("\ua549")) {
-         text = replaceWithFormatted(text, "\ua549", Formatting.field_1065, "PEGAS");
+         text = replaceWithFormatted(text, "\ua549", Formatting.GOLD, "PEGAS");
       }
 
       if (text.getString().contains("\ua546")) {
-         text = replaceWithFormatted(text, "\ua546", Formatting.field_1065, "PEGAS");
+         text = replaceWithFormatted(text, "\ua546", Formatting.GOLD, "PEGAS");
       }
 
       if (text.getString().contains("\ua553")) {
-         text = replaceWithFormatted(text, "\ua553", Formatting.field_1063, "GHOST");
+         text = replaceWithFormatted(text, "\ua553", Formatting.DARK_GRAY, "GHOST");
       }
 
       if (text.getString().contains("\ua506")) {
-         text = replaceWithFormatted(text, "\ua506", Formatting.field_1080, "D.MODER");
+         text = replaceWithFormatted(text, "\ua506", Formatting.GRAY, "D.MODER");
       }
 
       if (text.getString().contains("\ua530")) {
-         text = replaceWithFormatted(text, "\ua530", Formatting.field_1080, "D.ML.ADMIN");
+         text = replaceWithFormatted(text, "\ua530", Formatting.GRAY, "D.ML.ADMIN");
       }
 
       if (text.getString().contains("\ua510")) {
-         text = replaceWithFormatted(text, "\ua510", Formatting.field_1058, "D.GL.MODER");
+         text = replaceWithFormatted(text, "\ua510", Formatting.DARK_BLUE, "D.GL.MODER");
       }
 
       if (text.getString().contains("\ua514")) {
-         text = replaceWithFormatted(text, "\ua514", Formatting.field_1080, "D.GL.MODER");
+         text = replaceWithFormatted(text, "\ua514", Formatting.GRAY, "D.GL.MODER");
       }
 
       if (text.getString().contains("\ua522")) {
-         text = replaceWithFormatted(text, "\ua522", Formatting.field_1080, "D.ST.MODER");
+         text = replaceWithFormatted(text, "\ua522", Formatting.GRAY, "D.ST.MODER");
       }
 
       if (text.getString().contains("\ua561")) {
-         text = replaceWithFormatted(text, "\ua561", Formatting.field_1065, "ST.HELPER");
+         text = replaceWithFormatted(text, "\ua561", Formatting.GOLD, "ST.HELPER");
       }
 
       if (text.getString().contains("\ua545")) {
-         text = replaceWithFormatted(text, "\ua545", Formatting.field_1064, "MEDIA+");
+         text = replaceWithFormatted(text, "\ua545", Formatting.DARK_PURPLE, "MEDIA+");
       }
 
       if (text.getString().contains("\ua513")) {
-         text = replaceWithFormatted(text, "\ua513", Formatting.field_1078, "ML.MODER");
+         text = replaceWithFormatted(text, "\ua513", Formatting.BLUE, "ML.MODER");
       }
 
       if (text.getString().contains("\ua529")) {
-         text = replaceWithFormatted(text, "\ua529", Formatting.field_1064, "GL.MODER");
+         text = replaceWithFormatted(text, "\ua529", Formatting.DARK_PURPLE, "GL.MODER");
       }
 
       if (text.getString().contains("\ua557")) {
-         text = replaceWithFormatted(text, "\ua557", Formatting.field_1079, "D.ADMIN");
+         text = replaceWithFormatted(text, "\ua557", Formatting.DARK_RED, "D.ADMIN");
       }
 
       if (text.getString().contains("\ua518")) {
-         text = replaceWithFormatted(text, "\ua518", Formatting.field_1078, "D.ST.MODER");
+         text = replaceWithFormatted(text, "\ua518", Formatting.BLUE, "D.ST.MODER");
       }
 
       if (text.getString().contains("\ua526")) {
-         text = replaceWithFormatted(text, "\ua526", Formatting.field_1078, "D.ML.ADMIN");
+         text = replaceWithFormatted(text, "\ua526", Formatting.BLUE, "D.ML.ADMIN");
       }
 
       if (text.getString().contains("\ua501")) {
-         text = replaceWithFormatted(text, "\ua501", Formatting.field_1064, "MEDIA");
+         text = replaceWithFormatted(text, "\ua501", Formatting.DARK_PURPLE, "MEDIA");
       }
 
       if (text.getString().contains("\ud83d\udd25")) {

@@ -21,7 +21,7 @@ public class BlockMixin {
       at = {@At("HEAD")}
    )
    public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack, CallbackInfo ci) {
-      if (itemStack.method_7909() == Items.field_8281) {
+      if (itemStack.getItem() == Items.OBSIDIAN) {
          new EventObsidianPlace(pos).post();
       }
    }

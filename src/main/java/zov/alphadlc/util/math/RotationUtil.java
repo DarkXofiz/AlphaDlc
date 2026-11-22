@@ -12,19 +12,19 @@ import zov.alphadlc.util.rotation.Rotation;
 public final class RotationUtil implements IMinecraft {
    public static Vec2f calculate(Vec3d fromVec, Vec3d toVec) {
       double TO_DEGREES = 180.0 / Math.PI;
-      Vec3d diff = toVec.method_1020(fromVec);
-      double distance = Math.hypot(diff.field_1352, diff.field_1350);
-      float yaw = (float)(MathHelper.method_15349(diff.field_1350, diff.field_1352) * (180.0 / Math.PI)) - 90.0F;
-      float pitch = (float)(-(MathHelper.method_15349(diff.field_1351, distance) * (180.0 / Math.PI)));
+      Vec3d diff = toVec.subtract(fromVec);
+      double distance = Math.hypot(diff.x, diff.z);
+      float yaw = (float)(MathHelper.atan2(diff.z, diff.x) * (180.0 / Math.PI)) - 90.0F;
+      float pitch = (float)(-(MathHelper.atan2(diff.y, distance) * (180.0 / Math.PI)));
       return new Vec2f(yaw, pitch);
    }
 
    public static Vec2f calculate(Entity entity) {
-      return calculate(entity.method_19538().method_1031(0.0, (double)entity.method_18381(entity.method_18376()), 0.0));
+      return calculate(entity.getPos().add(0.0, (double)entity.getEyeHeight(entity.getPose()), 0.0));
    }
 
    public static Vec2f calculate(Vec3d toVec) {
-      return calculate(mc.field_1724.method_19538().method_1031(0.0, (double)mc.field_1724.method_18381(mc.field_1724.method_18376()), 0.0), toVec);
+      return calculate(mc.player.getPos().add(0.0, (double)mc.player.getEyeHeight(mc.player.getPose()), 0.0), toVec);
    }
 
    public static float getAngleDifference(float dir, float yaw) {
@@ -33,29 +33,29 @@ public final class RotationUtil implements IMinecraft {
    }
 
    public static Vec3d getEyesPos(Entity entity) {
-      return entity.method_19538().method_1031(0.0, (double)entity.method_18381(entity.method_18376()), 0.0);
+      return entity.getPos().add(0.0, (double)entity.getEyeHeight(entity.getPose()), 0.0);
    }
 
    public static float[] calculateAngle(Vec3d to) {
-      return calculateAngle(getEyesPos(mc.field_1724), to);
+      return calculateAngle(getEyesPos(mc.player), to);
    }
 
    public static float[] calculateAngle(Vec3d from, Vec3d to) {
-      double difX = to.field_1352 - from.field_1352;
-      double difY = (to.field_1351 - from.field_1351) * -1.0;
-      double difZ = to.field_1350 - from.field_1350;
-      double dist = (double)MathHelper.method_15355((float)(difX * difX + difZ * difZ));
-      float yD = (float)MathHelper.method_15338(Math.toDegrees(Math.atan2(difZ, difX)) - 90.0);
-      float pD = (float)MathHelper.method_15350(MathHelper.method_15338(Math.toDegrees(Math.atan2(difY, dist))), -90.0, 90.0);
+      double difX = to.x - from.x;
+      double difY = (to.y - from.y) * -1.0;
+      double difZ = to.z - from.z;
+      double dist = (double)MathHelper.sqrt((float)(difX * difX + difZ * difZ));
+      float yD = (float)MathHelper.wrapDegrees(Math.toDegrees(Math.atan2(difZ, difX)) - 90.0);
+      float pD = (float)MathHelper.clamp(MathHelper.wrapDegrees(Math.toDegrees(Math.atan2(difY, dist))), -90.0, 90.0);
       return new float[]{yD, pD};
    }
 
    public static Vector3f getDirectionVector(float yaw, float pitch) {
       float yawRadians = (float)Math.toRadians((double)yaw);
       float pitchRadians = (float)Math.toRadians((double)pitch);
-      float x = -MathHelper.method_15362(pitchRadians) * MathHelper.method_15374(yawRadians);
-      float y = -MathHelper.method_15374(pitchRadians);
-      float z = MathHelper.method_15362(pitchRadians) * MathHelper.method_15362(yawRadians);
+      float x = -MathHelper.cos(pitchRadians) * MathHelper.sin(yawRadians);
+      float y = -MathHelper.sin(pitchRadians);
+      float z = MathHelper.cos(pitchRadians) * MathHelper.cos(yawRadians);
       return new Vector3f(x, y, z);
    }
 
@@ -63,15 +63,15 @@ public final class RotationUtil implements IMinecraft {
       Vector3f cameraDirection = getDirectionVector(cameraYaw, cameraPitch);
       Vector3f targetDirection = getDirectionVector(targetYaw, targetPitch);
       float dotProduct = cameraDirection.dot(targetDirection);
-      dotProduct = MathHelper.method_15363(dotProduct, -1.0F, 1.0F);
+      dotProduct = MathHelper.clamp(dotProduct, -1.0F, 1.0F);
       float angleRadians = (float)Math.acos((double)dotProduct);
       return (float)Math.toDegrees((double)angleRadians);
    }
 
    public static Rotation fromVec3d(Vec3d vector) {
       return new Rotation(
-         (float)MathHelper.method_15338(Math.toDegrees(Math.atan2(vector.field_1350, vector.field_1352)) - 90.0),
-         (float)MathHelper.method_15338(Math.toDegrees(-Math.atan2(vector.field_1351, Math.hypot(vector.field_1352, vector.field_1350))))
+         (float)MathHelper.wrapDegrees(Math.toDegrees(Math.atan2(vector.z, vector.x)) - 90.0),
+         (float)MathHelper.wrapDegrees(Math.toDegrees(-Math.atan2(vector.y, Math.hypot(vector.x, vector.z))))
       );
    }
 

@@ -39,7 +39,7 @@ public final class MsdfFont {
    }
 
    public int getTextureId() {
-      return this.texture.method_4624();
+      return this.texture.getGlId();
    }
 
    public void applyGlyphs(
@@ -165,18 +165,18 @@ public final class MsdfFont {
       }
 
       public MsdfFont.Builder data(String dataFileName) {
-         this.dataIdentifer = Identifier.method_60655("mre", "fonts/" + dataFileName + ".json");
+         this.dataIdentifer = Identifier.of("mre", "fonts/" + dataFileName + ".json");
          return this;
       }
 
       public MsdfFont.Builder atlas(String atlasFileName) {
-         this.atlasIdentifier = Identifier.method_60655("mre", "fonts/" + atlasFileName + ".png");
+         this.atlasIdentifier = Identifier.of("mre", "fonts/" + atlasFileName + ".png");
          return this;
       }
 
       public MsdfFont build() {
          FontData data = ResourceProvider.fromJsonToInstance(this.dataIdentifer, FontData.class);
-         AbstractTexture texture = MinecraftClient.method_1551().method_1531().method_4619(this.atlasIdentifier);
+         AbstractTexture texture = MinecraftClient.getInstance().getTextureManager().getTexture(this.atlasIdentifier);
          if (data == null) {
             throw new RuntimeException(
                "Failed to read font data file: "
@@ -184,7 +184,7 @@ public final class MsdfFont {
                   + "; Are you sure this is json file? Try to check the correctness of its syntax."
             );
          } else {
-            RenderSystem.recordRenderCall(() -> texture.method_4527(true, false));
+            RenderSystem.recordRenderCall(() -> texture.setFilter(true, false));
             float aWidth = data.atlas().width();
             float aHeight = data.atlas().height();
             Map<Integer, MsdfGlyph> glyphs = data.glyphs()

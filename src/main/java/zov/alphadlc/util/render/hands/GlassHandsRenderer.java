@@ -30,7 +30,7 @@ import zov.alphadlc.util.render.providers.ResourceProvider;
 public class GlassHandsRenderer {
    private static final float EPSILON = 0.001F;
    private static GlassHandsRenderer instance;
-   private static final MinecraftClient mc = MinecraftClient.method_1551();
+   private static final MinecraftClient mc = MinecraftClient.getInstance();
    private static final ShaderProgramKey KEY_MASK_DIFF = key("glass_hands_mask_diff");
    private static final ShaderProgramKey KEY_GLOW = key("glass_hands_glow");
    private static final ShaderProgramKey KEY_OVERLAY = key("glass_hands_overlay");
@@ -95,7 +95,7 @@ public class GlassHandsRenderer {
    private String previousMode = "";
 
    private static ShaderProgramKey key(String name) {
-      return new ShaderProgramKey(ResourceProvider.getShaderIdentifier(name), VertexFormats.field_1575, Defines.field_53930);
+      return new ShaderProgramKey(ResourceProvider.getShaderIdentifier(name), VertexFormats.POSITION_TEXTURE_COLOR, Defines.EMPTY);
    }
 
    public static GlassHandsRenderer getInstance() {
@@ -140,20 +140,20 @@ public class GlassHandsRenderer {
             if (!this.isEffectEnabled(module)) {
                this.invalidateState();
             } else {
-               ShaderProgram maskShader = mc.method_62887().method_62947(KEY_MASK_DIFF);
+               ShaderProgram maskShader = mc.getShaderLoader().getOrCreateProgram(KEY_MASK_DIFF);
                if (maskShader == null) {
                   this.invalidateState();
                } else {
-                  this.maskBuffer.method_1236(0.0F, 0.0F, 0.0F, 0.0F);
-                  this.maskBuffer.method_1230();
-                  this.maskBuffer.method_1235(false);
+                  this.maskBuffer.setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
+                  this.maskBuffer.clear();
+                  this.maskBuffer.beginWrite(false);
                   RenderSystem.disableDepthTest();
                   RenderSystem.disableBlend();
                   RenderSystem.setShader(KEY_MASK_DIFF);
-                  RenderSystem.setShaderTexture(0, this.beforeBuffer.method_30277());
-                  RenderSystem.setShaderTexture(1, this.afterBuffer.method_30277());
-                  int beforeDepth = this.beforeBuffer.method_30278();
-                  int afterDepth = this.afterBuffer.method_30278();
+                  RenderSystem.setShaderTexture(0, this.beforeBuffer.getColorAttachment());
+                  RenderSystem.setShaderTexture(1, this.afterBuffer.getColorAttachment());
+                  int beforeDepth = this.beforeBuffer.getDepthAttachment();
+                  int afterDepth = this.afterBuffer.getDepthAttachment();
                   if (beforeDepth != 0 && beforeDepth != this.configuredBeforeDepthTex) {
                      this.configureDepthTexture(beforeDepth);
                      this.configuredBeforeDepthTex = beforeDepth;
@@ -221,17 +221,17 @@ public class GlassHandsRenderer {
                         blurredMaskTex = this.runKawaseBloom(iterations);
                      }
 
-                     mc.method_1522().method_1235(true);
+                     mc.getFramebuffer().beginWrite(true);
                      RenderSystem.enableBlend();
                      RenderSystem.colorMask(true, true, true, false);
                      RenderSystem.disableDepthTest();
                      if (hasGlow) {
-                        ShaderProgram glowShader = mc.method_62887().method_62947(KEY_GLOW);
+                        ShaderProgram glowShader = mc.getShaderLoader().getOrCreateProgram(KEY_GLOW);
                         if (glowShader != null) {
                            RenderSystem.blendFuncSeparate(SrcFactor.SRC_ALPHA, DstFactor.ONE, SrcFactor.ZERO, DstFactor.ONE);
                            RenderSystem.setShader(KEY_GLOW);
                            RenderSystem.setShaderTexture(0, blurredMaskTex);
-                           RenderSystem.setShaderTexture(1, this.maskBuffer.method_30277());
+                           RenderSystem.setShaderTexture(1, this.maskBuffer.getColorAttachment());
                            int effectiveColor1 = color1;
                            int effectiveColor2 = color2;
                            if (module.mode.is("\u0421\u0432\u0435\u0447\u0435\u043d\u0438\u0435") && module.glowItemColor.getValue()) {
@@ -248,11 +248,11 @@ public class GlassHandsRenderer {
                      }
 
                      if (hasFill) {
-                        ShaderProgram overlayShader = mc.method_62887().method_62947(KEY_OVERLAY);
+                        ShaderProgram overlayShader = mc.getShaderLoader().getOrCreateProgram(KEY_OVERLAY);
                         if (overlayShader != null) {
                            RenderSystem.blendFuncSeparate(SrcFactor.SRC_ALPHA, DstFactor.ONE_MINUS_SRC_ALPHA, SrcFactor.ZERO, DstFactor.ONE);
                            RenderSystem.setShader(KEY_OVERLAY);
-                           RenderSystem.setShaderTexture(0, this.maskBuffer.method_30277());
+                           RenderSystem.setShaderTexture(0, this.maskBuffer.getColorAttachment());
                            int effectiveColor = color1;
                            if (module.mode.is("\u0421\u0432\u0435\u0447\u0435\u043d\u0438\u0435") && module.glowItemColor.getValue()) {
                               effectiveColor = this.getHeldItemColor();
@@ -284,24 +284,24 @@ public class GlassHandsRenderer {
 
    private void renderBlurMode(GlassHands module) {
       int iterations = Math.max(1, Math.min(8, (int)module.blurStrength.getFloatValue()));
-      int blurredBgTex = this.runKawaseBloomFrom(this.beforeBuffer.method_30277(), iterations);
+      int blurredBgTex = this.runKawaseBloomFrom(this.beforeBuffer.getColorAttachment(), iterations);
       int color1 = module.blurRainbow.getValue() ? this.rainbowColors(module.blurRainbowSpeed.getFloatValue())[0] : ColorProvider.getThemeColor();
       float tint = module.blurTint.getFloatValue();
-      mc.method_1522().method_1235(false);
+      mc.getFramebuffer().beginWrite(false);
       RenderSystem.disableDepthTest();
       RenderSystem.enableBlend();
-      ShaderProgram sh = mc.method_62887().method_62947(KEY_BLUR_HANDS);
+      ShaderProgram sh = mc.getShaderLoader().getOrCreateProgram(KEY_BLUR_HANDS);
       if (sh != null) {
          RenderSystem.blendFuncSeparate(SrcFactor.SRC_ALPHA, DstFactor.ONE_MINUS_SRC_ALPHA, SrcFactor.ZERO, DstFactor.ONE);
          RenderSystem.setShader(KEY_BLUR_HANDS);
-         RenderSystem.setShaderTexture(0, this.beforeBuffer.method_30277());
-         RenderSystem.setShaderTexture(1, this.maskBuffer.method_30277());
+         RenderSystem.setShaderTexture(0, this.beforeBuffer.getColorAttachment());
+         RenderSystem.setShaderTexture(1, this.maskBuffer.getColorAttachment());
          this.setUniform(sh, "tintColor", this.rf(color1), this.gf(color1), this.bf(color1));
          this.setUniform(sh, "tintStrength", 0.0F);
          this.drawFullscreenQuad();
          RenderSystem.setShader(KEY_BLUR_HANDS);
          RenderSystem.setShaderTexture(0, blurredBgTex);
-         RenderSystem.setShaderTexture(1, this.maskBuffer.method_30277());
+         RenderSystem.setShaderTexture(1, this.maskBuffer.getColorAttachment());
          this.setUniform(sh, "tintColor", this.rf(color1), this.gf(color1), this.bf(color1));
          this.setUniform(sh, "tintStrength", tint);
          this.drawFullscreenQuad();
@@ -311,16 +311,16 @@ public class GlassHandsRenderer {
    }
 
    private void renderOutlineMode(GlassHands module, int color1, int color2) {
-      mc.method_1522().method_1235(true);
+      mc.getFramebuffer().beginWrite(true);
       RenderSystem.enableBlend();
       RenderSystem.colorMask(true, true, true, false);
       RenderSystem.disableDepthTest();
-      ShaderProgram glowShader = mc.method_62887().method_62947(KEY_GLOW);
+      ShaderProgram glowShader = mc.getShaderLoader().getOrCreateProgram(KEY_GLOW);
       if (glowShader != null) {
          RenderSystem.blendFuncSeparate(SrcFactor.SRC_ALPHA, DstFactor.ONE, SrcFactor.ZERO, DstFactor.ONE);
          RenderSystem.setShader(KEY_GLOW);
-         RenderSystem.setShaderTexture(0, this.maskBuffer.method_30277());
-         RenderSystem.setShaderTexture(1, this.maskBuffer.method_30277());
+         RenderSystem.setShaderTexture(0, this.maskBuffer.getColorAttachment());
+         RenderSystem.setShaderTexture(1, this.maskBuffer.getColorAttachment());
          this.setUniform(glowShader, "color", this.rf(color1), this.gf(color1), this.bf(color1));
          this.setUniform(glowShader, "color2", this.rf(color2), this.gf(color2), this.bf(color2));
          this.setUniform(glowShader, "exposure", 1.0F);
@@ -331,19 +331,19 @@ public class GlassHandsRenderer {
    }
 
    private void renderTrailMode(GlassHands module, int color1, int color2) {
-      ShaderProgram shader = mc.method_62887().method_62947(KEY_TRAIL);
+      ShaderProgram shader = mc.getShaderLoader().getOrCreateProgram(KEY_TRAIL);
       if (shader != null) {
          int iterations = Math.max(3, Math.min(10, (int)module.trailBlur.getFloatValue()));
          int blurredMaskTex = this.runKawaseBloom(iterations);
-         mc.method_1522().method_1235(false);
+         mc.getFramebuffer().beginWrite(false);
          RenderSystem.disableDepthTest();
          RenderSystem.enableBlend();
          RenderSystem.blendFuncSeparate(SrcFactor.SRC_ALPHA, DstFactor.ONE, SrcFactor.ZERO, DstFactor.ONE);
          RenderSystem.setShader(KEY_TRAIL);
-         RenderSystem.setShaderTexture(0, this.maskBuffer.method_30277());
+         RenderSystem.setShaderTexture(0, this.maskBuffer.getColorAttachment());
          RenderSystem.setShaderTexture(1, blurredMaskTex);
-         int fw = Math.max(1, mc.method_22683().method_4489());
-         int fh = Math.max(1, mc.method_22683().method_4506());
+         int fw = Math.max(1, mc.getWindow().getFramebufferWidth());
+         int fh = Math.max(1, mc.getWindow().getFramebufferHeight());
          this.setUniform(shader, "texelSize", 1.0F / (float)fw, 1.0F / (float)fh);
          this.setUniform(shader, "color", this.rf(color1), this.gf(color1), this.bf(color1));
          this.setUniform(shader, "color2", this.rf(color2), this.gf(color2), this.bf(color2));
@@ -363,18 +363,18 @@ public class GlassHandsRenderer {
    }
 
    private int getHeldItemColor() {
-      if (mc.field_1724 == null) {
+      if (mc.player == null) {
          return ColorProvider.getThemeColor();
       } else {
-         ItemStack stack = mc.field_1724.method_6047();
-         if (stack.method_7960()) {
-            stack = mc.field_1724.method_6079();
+         ItemStack stack = mc.player.getMainHandStack();
+         if (stack.isEmpty()) {
+            stack = mc.player.getOffHandStack();
          }
 
-         if (stack.method_7960()) {
+         if (stack.isEmpty()) {
             return ColorProvider.getThemeColor();
          } else {
-            Item item = stack.method_7909();
+            Item item = stack.getItem();
             String path = item.toString().toLowerCase();
             if (path.contains("diamond")) {
                return 5627360;
@@ -408,11 +408,11 @@ public class GlassHandsRenderer {
    }
 
    private void renderTrailMotionMode(GlassHands module, int color1, int color2) {
-      ShaderProgram accumShader = mc.method_62887().method_62947(KEY_TRAIL_ACCUMULATE);
+      ShaderProgram accumShader = mc.getShaderLoader().getOrCreateProgram(KEY_TRAIL_ACCUMULATE);
       if (accumShader != null && this.trailBuffer != null) {
          this.smoothTime += 0.016F;
-         float currentYaw = mc.field_1724 != null ? mc.field_1724.method_36454() : 0.0F;
-         float currentPitch = mc.field_1724 != null ? mc.field_1724.method_36455() : 0.0F;
+         float currentYaw = mc.player != null ? mc.player.getYaw() : 0.0F;
+         float currentPitch = mc.player != null ? mc.player.getPitch() : 0.0F;
          float deltaYaw = currentYaw - this.prevYaw;
          float deltaPitch = currentPitch - this.prevPitch;
          this.prevYaw = currentYaw;
@@ -429,21 +429,21 @@ public class GlassHandsRenderer {
          this.smoothDeltaYaw = this.smoothDeltaYaw * 0.85F + deltaYaw * 0.15F;
          this.smoothDeltaPitch = this.smoothDeltaPitch * 0.85F + deltaPitch * 0.15F;
          this.slashPulse = Math.max(0.0F, this.slashPulse - 0.045F);
-         int fw = Math.max(1, mc.method_22683().method_4489());
-         int fh = Math.max(1, mc.method_22683().method_4506());
+         int fw = Math.max(1, mc.getWindow().getFramebufferWidth());
+         int fh = Math.max(1, mc.getWindow().getFramebufferHeight());
          float cameraInfluence = module.trailCamera.getFloatValue();
          float camX = this.smoothDeltaYaw * -3.5E-4F * cameraInfluence;
          float camY = this.smoothDeltaPitch * 3.5E-4F * cameraInfluence;
          Framebuffer tempBuffer = new SimpleFramebuffer(fw, fh, false);
-         tempBuffer.method_1236(0.0F, 0.0F, 0.0F, 0.0F);
-         tempBuffer.method_1230();
-         tempBuffer.method_1235(false);
+         tempBuffer.setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
+         tempBuffer.clear();
+         tempBuffer.beginWrite(false);
          RenderSystem.disableDepthTest();
          RenderSystem.disableBlend();
          RenderSystem.setShader(KEY_TRAIL_ACCUMULATE);
-         RenderSystem.setShaderTexture(0, this.trailBuffer.method_30277());
-         RenderSystem.setShaderTexture(1, this.afterBuffer.method_30277());
-         RenderSystem.setShaderTexture(2, this.maskBuffer.method_30277());
+         RenderSystem.setShaderTexture(0, this.trailBuffer.getColorAttachment());
+         RenderSystem.setShaderTexture(1, this.afterBuffer.getColorAttachment());
+         RenderSystem.setShaderTexture(2, this.maskBuffer.getColorAttachment());
          this.setUniform(accumShader, "resolution", (float)fw, (float)fh, this.smoothTime, module.trailIntensityM.getFloatValue());
          this.setUniform(accumShader, "glowColor", this.rf(color1), this.gf(color1), this.bf(color1), 1.0F);
          this.setUniform(
@@ -459,17 +459,17 @@ public class GlassHandsRenderer {
          );
          this.setUniform(accumShader, "reserved", this.slashPulse, this.slashDirection, camX, camY);
          this.drawFullscreenQuad();
-         GL30.glBindFramebuffer(36008, tempBuffer.field_1476);
-         GL30.glBindFramebuffer(36009, this.trailBuffer.field_1476);
+         GL30.glBindFramebuffer(36008, tempBuffer.fbo);
+         GL30.glBindFramebuffer(36009, this.trailBuffer.fbo);
          GL30.glBlitFramebuffer(0, 0, fw, fh, 0, 0, fw, fh, 16384, 9728);
-         tempBuffer.method_1238();
-         mc.method_1522().method_1235(false);
+         tempBuffer.delete();
+         mc.getFramebuffer().beginWrite(false);
          RenderSystem.disableDepthTest();
          RenderSystem.enableBlend();
          RenderSystem.blendFuncSeparate(SrcFactor.SRC_ALPHA, DstFactor.ONE_MINUS_SRC_ALPHA, SrcFactor.ZERO, DstFactor.ONE);
-         RenderSystem.setShaderTexture(0, this.trailBuffer.method_30277());
+         RenderSystem.setShaderTexture(0, this.trailBuffer.getColorAttachment());
          RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-         RenderSystem.setShader(ShaderProgramKeys.field_53879);
+         RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
          this.drawFullscreenQuad();
          this.restoreCompositeState();
       }
@@ -480,37 +480,37 @@ public class GlassHandsRenderer {
       if (this.bloomBuffers.isEmpty()) {
          return sourceTex;
       } else {
-         ShaderProgram downShader = mc.method_62887().method_62947(KEY_KAWASE_DOWN);
-         ShaderProgram upShader = mc.method_62887().method_62947(KEY_KAWASE_UP);
+         ShaderProgram downShader = mc.getShaderLoader().getOrCreateProgram(KEY_KAWASE_DOWN);
+         ShaderProgram upShader = mc.getShaderLoader().getOrCreateProgram(KEY_KAWASE_UP);
          if (downShader != null && upShader != null) {
             int currentTex = sourceTex;
 
             for (int i = 0; i < iterations; i++) {
                Framebuffer dst = this.bloomBuffers.get(i);
-               dst.method_1236(0.0F, 0.0F, 0.0F, 0.0F);
-               dst.method_1230();
-               dst.method_1235(true);
+               dst.setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
+               dst.clear();
+               dst.beginWrite(true);
                RenderSystem.setShader(KEY_KAWASE_DOWN);
                RenderSystem.setShaderTexture(0, currentTex);
-               this.setKawaseUniforms(downShader, dst.field_1482, dst.field_1481, 1.0F + (float)i);
+               this.setKawaseUniforms(downShader, dst.textureWidth, dst.textureHeight, 1.0F + (float)i);
                this.drawFullscreenQuad();
-               currentTex = dst.method_30277();
+               currentTex = dst.getColorAttachment();
             }
 
             for (int i = iterations - 1; i >= 1; i--) {
                Framebuffer dst = this.bloomBuffers.get(i - 1);
-               dst.method_1236(0.0F, 0.0F, 0.0F, 0.0F);
-               dst.method_1230();
-               dst.method_1235(true);
+               dst.setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
+               dst.clear();
+               dst.beginWrite(true);
                RenderSystem.setShader(KEY_KAWASE_UP);
                RenderSystem.setShaderTexture(0, currentTex);
-               this.setKawaseUniforms(upShader, dst.field_1482, dst.field_1481, 1.0F + (float)i);
+               this.setKawaseUniforms(upShader, dst.textureWidth, dst.textureHeight, 1.0F + (float)i);
                this.setUniform(upShader, "color", 1.0F, 1.0F, 1.0F);
                this.drawFullscreenQuad();
-               currentTex = dst.method_30277();
+               currentTex = dst.getColorAttachment();
             }
 
-            mc.method_1522().method_1235(true);
+            mc.getFramebuffer().beginWrite(true);
             return currentTex;
          } else {
             return sourceTex;
@@ -519,16 +519,16 @@ public class GlassHandsRenderer {
    }
 
    private void renderPrettyMode(GlassHands module, int color1, int color2, float glowValue, float fillValue, float alphaValue, float outlineValue) {
-      ShaderProgram shader = mc.method_62887().method_62947(KEY_PRETTY);
+      ShaderProgram shader = mc.getShaderLoader().getOrCreateProgram(KEY_PRETTY);
       if (shader != null) {
-         mc.method_1522().method_1235(false);
+         mc.getFramebuffer().beginWrite(false);
          RenderSystem.enableBlend();
          RenderSystem.defaultBlendFunc();
          RenderSystem.disableDepthTest();
          RenderSystem.setShader(KEY_PRETTY);
-         RenderSystem.setShaderTexture(0, this.maskBuffer.method_30277());
-         int fw = Math.max(1, mc.method_22683().method_4489());
-         int fh = Math.max(1, mc.method_22683().method_4506());
+         RenderSystem.setShaderTexture(0, this.maskBuffer.getColorAttachment());
+         int fw = Math.max(1, mc.getWindow().getFramebufferWidth());
+         int fh = Math.max(1, mc.getWindow().getFramebufferHeight());
          this.setUniform(shader, "texelSize", 1.0F / (float)fw, 1.0F / (float)fh);
          this.setUniform(shader, "color", this.rf(color1), this.gf(color1), this.bf(color1));
          this.setUniform(shader, "color2", this.rf(color2), this.gf(color2), this.bf(color2));
@@ -547,14 +547,14 @@ public class GlassHandsRenderer {
    }
 
    private int runKawaseBloom(int iterations) {
-      return this.runKawaseBloomFrom(this.maskBuffer.method_30277(), iterations);
+      return this.runKawaseBloomFrom(this.maskBuffer.getColorAttachment(), iterations);
    }
 
    private void copyMainFramebuffer(Framebuffer target) {
       int currentFbo = GL11.glGetInteger(36006);
-      int sourceFbo = currentFbo != 0 ? currentFbo : mc.method_1522().field_1476;
+      int sourceFbo = currentFbo != 0 ? currentFbo : mc.getFramebuffer().fbo;
       GL30.glBindFramebuffer(36008, sourceFbo);
-      GL30.glBindFramebuffer(36009, target.field_1476);
+      GL30.glBindFramebuffer(36009, target.fbo);
       GL30.glBlitFramebuffer(0, 0, this.width, this.height, 0, 0, this.width, this.height, 16640, 9728);
       GL30.glBindFramebuffer(36160, currentFbo);
    }
@@ -568,8 +568,8 @@ public class GlassHandsRenderer {
    }
 
    private void ensureBuffers() {
-      int w = mc.method_22683().method_4489();
-      int h = mc.method_22683().method_4506();
+      int w = mc.getWindow().getFramebufferWidth();
+      int h = mc.getWindow().getFramebufferHeight();
       if (w != this.width || h != this.height || this.beforeBuffer == null || this.afterBuffer == null || this.maskBuffer == null || this.trailBuffer == null) {
          this.deleteBuffers();
          this.beforeBuffer = new SimpleFramebuffer(w, h, true);
@@ -585,63 +585,63 @@ public class GlassHandsRenderer {
 
    private void deleteBuffers() {
       if (this.beforeBuffer != null) {
-         this.beforeBuffer.method_1238();
+         this.beforeBuffer.delete();
          this.beforeBuffer = null;
       }
 
       if (this.afterBuffer != null) {
-         this.afterBuffer.method_1238();
+         this.afterBuffer.delete();
          this.afterBuffer = null;
       }
 
       if (this.maskBuffer != null) {
-         this.maskBuffer.method_1238();
+         this.maskBuffer.delete();
          this.maskBuffer = null;
       }
 
       if (this.trailBuffer != null) {
-         this.trailBuffer.method_1238();
+         this.trailBuffer.delete();
          this.trailBuffer = null;
       }
 
       if (this.fillTrailRead != null) {
-         this.fillTrailRead.method_1238();
+         this.fillTrailRead.delete();
          this.fillTrailRead = null;
       }
 
       if (this.fillTrailWrite != null) {
-         this.fillTrailWrite.method_1238();
+         this.fillTrailWrite.delete();
          this.fillTrailWrite = null;
       }
 
       if (this.colorMask != null) {
-         this.colorMask.method_1238();
+         this.colorMask.delete();
          this.colorMask = null;
       }
 
       if (this.waveColorBuf != null) {
-         this.waveColorBuf.method_1238();
+         this.waveColorBuf.delete();
          this.waveColorBuf = null;
       }
 
       if (this.waveTrailRead != null) {
-         this.waveTrailRead.method_1238();
+         this.waveTrailRead.delete();
          this.waveTrailRead = null;
       }
 
       if (this.waveTrailWrite != null) {
-         this.waveTrailWrite.method_1238();
+         this.waveTrailWrite.delete();
          this.waveTrailWrite = null;
       }
 
       for (Framebuffer fb : this.bloomBuffers) {
-         fb.method_1238();
+         fb.delete();
       }
 
       this.bloomBuffers.clear();
 
       for (Framebuffer fb : this.fillBloomBuffers) {
-         fb.method_1238();
+         fb.delete();
       }
 
       this.fillBloomBuffers.clear();
@@ -650,7 +650,7 @@ public class GlassHandsRenderer {
    private void ensureBloomBuffers(int iterations) {
       while (this.bloomBuffers.size() > iterations) {
          int last = this.bloomBuffers.size() - 1;
-         this.bloomBuffers.get(last).method_1238();
+         this.bloomBuffers.get(last).delete();
          this.bloomBuffers.remove(last);
       }
 
@@ -663,8 +663,8 @@ public class GlassHandsRenderer {
             this.bloomBuffers.add(fb);
          } else {
             Framebuffer fb = this.bloomBuffers.get(i);
-            if (fb.field_1482 != w || fb.field_1481 != h) {
-               fb.method_1238();
+            if (fb.textureWidth != w || fb.textureHeight != h) {
+               fb.delete();
                Framebuffer var8 = new SimpleFramebuffer(w, h, false);
                this.setLinearFiltering(var8);
                this.bloomBuffers.set(i, var8);
@@ -674,7 +674,7 @@ public class GlassHandsRenderer {
    }
 
    private void setLinearFiltering(Framebuffer fb) {
-      RenderSystem.bindTexture(fb.method_30277());
+      RenderSystem.bindTexture(fb.getColorAttachment());
       GL11.glTexParameteri(3553, 10241, 9729);
       GL11.glTexParameteri(3553, 10240, 9729);
       RenderSystem.bindTexture(0);
@@ -682,8 +682,8 @@ public class GlassHandsRenderer {
 
    private void clearTrailBuffer(Framebuffer buf) {
       if (buf != null) {
-         buf.method_1236(0.0F, 0.0F, 0.0F, 0.0F);
-         buf.method_1230();
+         buf.setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
+         buf.clear();
       }
    }
 
@@ -699,22 +699,22 @@ public class GlassHandsRenderer {
       RenderSystem.setShaderTexture(1, 0);
       RenderSystem.setShaderTexture(2, 0);
       RenderSystem.setShaderTexture(3, 0);
-      mc.method_1522().method_1235(true);
+      mc.getFramebuffer().beginWrite(true);
    }
 
    private void renderGlassMode(GlassHands module, int color1, int color2) {
       int iterations = 3;
-      int blurredBgTex = this.runKawaseBloomFrom(this.beforeBuffer.method_30277(), iterations);
-      ShaderProgram glassShader = mc.method_62887().method_62947(KEY_GLASS);
+      int blurredBgTex = this.runKawaseBloomFrom(this.beforeBuffer.getColorAttachment(), iterations);
+      ShaderProgram glassShader = mc.getShaderLoader().getOrCreateProgram(KEY_GLASS);
       if (glassShader != null) {
-         mc.method_1522().method_1235(false);
+         mc.getFramebuffer().beginWrite(false);
          RenderSystem.disableDepthTest();
          RenderSystem.enableBlend();
          RenderSystem.blendFuncSeparate(SrcFactor.SRC_ALPHA, DstFactor.ONE_MINUS_SRC_ALPHA, SrcFactor.ZERO, DstFactor.ONE);
          RenderSystem.setShader(KEY_GLASS);
          RenderSystem.setShaderTexture(0, blurredBgTex);
-         RenderSystem.setShaderTexture(1, this.afterBuffer.method_30277());
-         RenderSystem.setShaderTexture(2, this.maskBuffer.method_30277());
+         RenderSystem.setShaderTexture(1, this.afterBuffer.getColorAttachment());
+         RenderSystem.setShaderTexture(2, this.maskBuffer.getColorAttachment());
          this.setUniform(glassShader, "mixFactor", module.glassMixFactor.getFloatValue());
          this.drawFullscreenQuad();
          RenderSystem.defaultBlendFunc();
@@ -742,14 +742,14 @@ public class GlassHandsRenderer {
 
       float[] col1 = new float[]{this.rf(c1), this.gf(c1), this.bf(c1)};
       float[] col2 = new float[]{this.rf(c2), this.gf(c2), this.bf(c2)};
-      ShaderProgram glowShader = mc.method_62887().method_62947(KEY_GLASS_GLOW);
+      ShaderProgram glowShader = mc.getShaderLoader().getOrCreateProgram(KEY_GLASS_GLOW);
       if (glowShader != null) {
-         mc.method_1522().method_1235(false);
+         mc.getFramebuffer().beginWrite(false);
          RenderSystem.enableBlend();
          RenderSystem.blendFuncSeparate(SrcFactor.SRC_ALPHA, DstFactor.ONE, SrcFactor.ZERO, DstFactor.ONE);
          RenderSystem.setShader(KEY_GLASS_GLOW);
          RenderSystem.setShaderTexture(0, glowTex);
-         RenderSystem.setShaderTexture(1, this.maskBuffer.method_30277());
+         RenderSystem.setShaderTexture(1, this.maskBuffer.getColorAttachment());
          this.setUniform(glowShader, "glowColor1", col1[0], col1[1], col1[2]);
          this.setUniform(glowShader, "glowColor2", col2[0], col2[1], col2[2]);
          this.setUniform(glowShader, "exposure", module.glassGlowExposure.getFloatValue());
@@ -759,14 +759,14 @@ public class GlassHandsRenderer {
    }
 
    private void renderPlasmaMode(GlassHands module, int color1, int color2) {
-      ShaderProgram shader = mc.method_62887().method_62947(KEY_PLASMA);
+      ShaderProgram shader = mc.getShaderLoader().getOrCreateProgram(KEY_PLASMA);
       if (shader != null) {
-         mc.method_1522().method_1235(false);
+         mc.getFramebuffer().beginWrite(false);
          RenderSystem.enableBlend();
          RenderSystem.defaultBlendFunc();
          RenderSystem.disableDepthTest();
          RenderSystem.setShader(KEY_PLASMA);
-         RenderSystem.setShaderTexture(0, this.maskBuffer.method_30277());
+         RenderSystem.setShaderTexture(0, this.maskBuffer.getColorAttachment());
          float time = (float)(System.currentTimeMillis() % 100000L) / 1000.0F;
          this.setUniform(shader, "iTime", time * module.plasmaSpeed.getFloatValue());
          this.setUniform(shader, "uColor", this.rf(color1), this.gf(color1), this.bf(color1));
@@ -780,7 +780,7 @@ public class GlassHandsRenderer {
    }
 
    private void renderWaveMode(GlassHands module, int color1, int color2) {
-      ShaderProgram shader = mc.method_62887().method_62947(KEY_WAVE);
+      ShaderProgram shader = mc.getShaderLoader().getOrCreateProgram(KEY_WAVE);
       if (shader != null) {
          if (module.waveRainbow.getValue() && !module.waveAutoColor.getValue()) {
             int[] rb = this.rainbowColors(module.waveRainbowSpeed.getFloatValue());
@@ -789,13 +789,13 @@ public class GlassHandsRenderer {
          }
 
          this.waveColorBuf = this.ensureBuffer(this.waveColorBuf, false, 1);
-         this.waveColorBuf.method_1236(0.0F, 0.0F, 0.0F, 0.0F);
-         this.waveColorBuf.method_1230();
-         this.waveColorBuf.method_1235(false);
+         this.waveColorBuf.setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
+         this.waveColorBuf.clear();
+         this.waveColorBuf.beginWrite(false);
          RenderSystem.disableBlend();
          RenderSystem.disableDepthTest();
          RenderSystem.setShader(KEY_WAVE);
-         RenderSystem.setShaderTexture(0, this.maskBuffer.method_30277());
+         RenderSystem.setShaderTexture(0, this.maskBuffer.getColorAttachment());
          float t = (float)(System.currentTimeMillis() % 100000L) / 1000.0F;
          this.setUniform(shader, "time", t);
          this.setUniform(shader, "color1", this.rf(color1), this.gf(color1), this.bf(color1));
@@ -807,19 +807,19 @@ public class GlassHandsRenderer {
          this.setUniform(shader, "waveGlow", module.waveGlow.getFloatValue());
          this.setUniform(shader, "fillAlpha", 1.0F);
          this.setUniform(shader, "modelVisibility", module.waveModelVisibility.getFloatValue());
-         RenderSystem.setShaderTexture(1, this.afterBuffer.method_30277());
+         RenderSystem.setShaderTexture(1, this.afterBuffer.getColorAttachment());
          this.drawFullscreenQuad();
          if (module.waveGlowEnabled.getValue() && module.waveOuterGlow.getValue()) {
             this.doWaveBloomChain(module, color1, color2);
          }
 
-         mc.method_1522().method_1235(false);
+         mc.getFramebuffer().beginWrite(false);
          RenderSystem.enableBlend();
          RenderSystem.blendFunc(1, 771);
          RenderSystem.disableDepthTest();
          RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, module.waveFillAlpha.getFloatValue());
-         RenderSystem.setShaderTexture(0, this.waveColorBuf.method_30277());
-         RenderSystem.setShader(ShaderProgramKeys.field_53879);
+         RenderSystem.setShaderTexture(0, this.waveColorBuf.getColorAttachment());
+         RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
          this.drawFullscreenQuad();
          RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
          this.restoreCompositeState();
@@ -828,34 +828,34 @@ public class GlassHandsRenderer {
 
    private void doWaveBloomChain(GlassHands module, int color1, int color2) {
       int iter = (int)module.waveGlowRadius.getFloatValue();
-      int bloomSource = module.waveAutoColor.getValue() ? this.waveColorBuf.method_30277() : this.maskBuffer.method_30277();
+      int bloomSource = module.waveAutoColor.getValue() ? this.waveColorBuf.getColorAttachment() : this.maskBuffer.getColorAttachment();
       this.ensureFillBloomBuffers(iter);
-      ShaderProgram downShader = mc.method_62887().method_62947(KEY_KAWASE_DOWN);
-      ShaderProgram upShader = mc.method_62887().method_62947(KEY_KAWASE_UP);
+      ShaderProgram downShader = mc.getShaderLoader().getOrCreateProgram(KEY_KAWASE_DOWN);
+      ShaderProgram upShader = mc.getShaderLoader().getOrCreateProgram(KEY_KAWASE_UP);
       if (downShader != null && upShader != null) {
          int cur = bloomSource;
 
          for (int i = 0; i < iter; i++) {
             Framebuffer b = this.fillBloomBuffers.get(i);
-            b.method_1236(0.0F, 0.0F, 0.0F, 0.0F);
-            b.method_1230();
-            b.method_1235(true);
+            b.setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
+            b.clear();
+            b.beginWrite(true);
             RenderSystem.setShader(KEY_KAWASE_DOWN);
             RenderSystem.setShaderTexture(0, cur);
-            this.setKawaseUniforms(downShader, b.field_1482, b.field_1481, 1.0F + (float)i);
+            this.setKawaseUniforms(downShader, b.textureWidth, b.textureHeight, 1.0F + (float)i);
             this.drawFullscreenQuad();
-            cur = b.method_30277();
+            cur = b.getColorAttachment();
          }
 
          for (int i = iter - 1; i >= 1; i--) {
             Framebuffer b = this.fillBloomBuffers.get(i - 1);
-            b.method_1235(true);
+            b.beginWrite(true);
             RenderSystem.setShader(KEY_KAWASE_UP);
             RenderSystem.setShaderTexture(0, cur);
-            this.setKawaseUniforms(upShader, b.field_1482, b.field_1481, 1.0F + (float)i);
+            this.setKawaseUniforms(upShader, b.textureWidth, b.textureHeight, 1.0F + (float)i);
             this.setUniform(upShader, "color", 1.0F, 1.0F, 1.0F);
             this.drawFullscreenQuad();
-            cur = b.method_30277();
+            cur = b.getColorAttachment();
          }
 
          this.fillLastBloomTex = cur;
@@ -875,14 +875,14 @@ public class GlassHandsRenderer {
             if (module.waveTrailEnabled.getValue()) {
                this.renderWaveTrail(module, cur, c1, c2);
             } else {
-               mc.method_1522().method_1235(true);
+               mc.getFramebuffer().beginWrite(true);
                RenderSystem.enableBlend();
                RenderSystem.blendFunc(770, 1);
-               ShaderProgram glowShader = mc.method_62887().method_62947(KEY_FILL_GLOW);
+               ShaderProgram glowShader = mc.getShaderLoader().getOrCreateProgram(KEY_FILL_GLOW);
                if (glowShader != null) {
                   RenderSystem.setShader(KEY_FILL_GLOW);
                   RenderSystem.setShaderTexture(0, cur);
-                  RenderSystem.setShaderTexture(1, this.maskBuffer.method_30277());
+                  RenderSystem.setShaderTexture(1, this.maskBuffer.getColorAttachment());
                   this.setUniform(glowShader, "glowColor1", c1[0], c1[1], c1[2]);
                   this.setUniform(glowShader, "glowColor2", c2[0], c2[1], c2[2]);
                   this.setUniform(glowShader, "exposure", module.waveGlowExposure.getFloatValue());
@@ -918,7 +918,7 @@ public class GlassHandsRenderer {
       float trailSmooth = 1.0F - (float)Math.exp((double)(-dt * 8.0F));
       this.waveSmoothTrailRise = this.waveSmoothTrailRise + (upDelta - this.waveSmoothTrailRise) * trailSmooth;
       this.waveSmoothTrailSway = this.waveSmoothTrailSway + (swayDelta - this.waveSmoothTrailSway) * trailSmooth;
-      boolean swinging = mc.field_1724 != null && mc.field_1724.field_6251 > 0.0F;
+      boolean swinging = mc.player != null && mc.player.handSwingProgress > 0.0F;
       if (module.waveTrailBurst.getValue() && swinging && !this.waveWasSwinging) {
          this.waveLastSwingMs = now;
       }
@@ -928,27 +928,27 @@ public class GlassHandsRenderer {
       float burst = Math.max(0.0F, 1.0F - burstAge / 0.45F);
       this.waveSmoothBurst = this.waveSmoothBurst + (burst - this.waveSmoothBurst) * (1.0F - (float)Math.exp((double)(-dt * 6.0F)));
       float fadeAdd = this.waveSmoothBurst * module.waveTrailBurstPower.getFloatValue() * 0.012F;
-      this.waveTrailWrite.method_1235(false);
+      this.waveTrailWrite.beginWrite(false);
       GL11.glClearColor(0.0F, 0.0F, 0.0F, 0.0F);
       GL11.glClear(16384);
       RenderSystem.disableBlend();
-      ShaderProgram fadeShader = mc.method_62887().method_62947(KEY_FILL_TRAIL_FADE);
+      ShaderProgram fadeShader = mc.getShaderLoader().getOrCreateProgram(KEY_FILL_TRAIL_FADE);
       if (fadeShader != null) {
          RenderSystem.setShader(KEY_FILL_TRAIL_FADE);
-         RenderSystem.setShaderTexture(0, this.waveTrailRead.method_30277());
+         RenderSystem.setShaderTexture(0, this.waveTrailRead.getColorAttachment());
          this.setUniform(fadeShader, "offset", this.waveSmoothTrailSway, this.waveSmoothTrailRise);
          this.setUniform(fadeShader, "fade", module.waveTrailFade.getFloatValue() + fadeAdd);
          this.setUniform(fadeShader, "t", t);
          this.setUniform(fadeShader, "dt", dt);
          this.setUniform(fadeShader, "turb", module.waveTrailTurb.getFloatValue());
          this.setUniform(fadeShader, "flickAmp", module.waveTrailFlicker.getFloatValue());
-         this.setUniform(fadeShader, "texSize", (float)this.waveTrailRead.field_1482, (float)this.waveTrailRead.field_1481);
+         this.setUniform(fadeShader, "texSize", (float)this.waveTrailRead.textureWidth, (float)this.waveTrailRead.textureHeight);
          this.drawFullscreenQuad();
       }
 
       RenderSystem.enableBlend();
       RenderSystem.blendFunc(1, 771);
-      ShaderProgram colorShader = mc.method_62887().method_62947(KEY_FILL_TRAIL_COLOR);
+      ShaderProgram colorShader = mc.getShaderLoader().getOrCreateProgram(KEY_FILL_TRAIL_COLOR);
       if (colorShader != null) {
          RenderSystem.setShader(KEY_FILL_TRAIL_COLOR);
          RenderSystem.setShaderTexture(0, bloomTex);
@@ -964,18 +964,18 @@ public class GlassHandsRenderer {
          RenderSystem.enableBlend();
          RenderSystem.blendFunc(770, 771);
          RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, module.waveTrailModelAlpha.getFloatValue());
-         RenderSystem.setShaderTexture(0, this.colorMask != null ? this.colorMask.method_30277() : this.waveColorBuf.method_30277());
-         RenderSystem.setShader(ShaderProgramKeys.field_53879);
+         RenderSystem.setShaderTexture(0, this.colorMask != null ? this.colorMask.getColorAttachment() : this.waveColorBuf.getColorAttachment());
+         RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
          this.drawFullscreenQuad();
          RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
       }
 
-      mc.method_1522().method_1235(true);
+      mc.getFramebuffer().beginWrite(true);
       RenderSystem.enableBlend();
       RenderSystem.blendFunc(1, 771);
       RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-      RenderSystem.setShaderTexture(0, this.waveTrailWrite.method_30277());
-      RenderSystem.setShader(ShaderProgramKeys.field_53879);
+      RenderSystem.setShaderTexture(0, this.waveTrailWrite.getColorAttachment());
+      RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
       this.drawFullscreenQuad();
       RenderSystem.defaultBlendFunc();
       Framebuffer tmp = this.waveTrailRead;
@@ -998,15 +998,15 @@ public class GlassHandsRenderer {
    }
 
    private void renderFillColorMode(GlassHands module) {
-      ShaderProgram shader = mc.method_62887().method_62947(KEY_FILL);
+      ShaderProgram shader = mc.getShaderLoader().getOrCreateProgram(KEY_FILL);
       if (shader != null) {
-         mc.method_1522().method_1235(false);
+         mc.getFramebuffer().beginWrite(false);
          RenderSystem.enableBlend();
          RenderSystem.blendFuncSeparate(SrcFactor.SRC_ALPHA, DstFactor.ONE_MINUS_SRC_ALPHA, SrcFactor.ZERO, DstFactor.ONE);
          RenderSystem.disableDepthTest();
          RenderSystem.setShader(KEY_FILL);
-         RenderSystem.setShaderTexture(0, this.afterBuffer.method_30277());
-         RenderSystem.setShaderTexture(1, this.maskBuffer.method_30277());
+         RenderSystem.setShaderTexture(0, this.afterBuffer.getColorAttachment());
+         RenderSystem.setShaderTexture(1, this.maskBuffer.getColorAttachment());
          int fc = module.fillRainbow.getValue() ? this.rainbowColors(module.fillRainbowSpeed.getFloatValue())[0] : module.fillColor.getValue();
          this.setUniform(shader, "fillColor", this.rf(fc), this.gf(fc), this.bf(fc));
          this.setUniform(shader, "fillAlpha", module.fillAlpha.getFloatValue());
@@ -1020,17 +1020,17 @@ public class GlassHandsRenderer {
 
    private void renderFillGlassMode(GlassHands module) {
       int iterations = 3;
-      int blurredBgTex = this.runKawaseBloomFrom(this.beforeBuffer.method_30277(), iterations);
-      ShaderProgram glassShader = mc.method_62887().method_62947(KEY_GLASS);
+      int blurredBgTex = this.runKawaseBloomFrom(this.beforeBuffer.getColorAttachment(), iterations);
+      ShaderProgram glassShader = mc.getShaderLoader().getOrCreateProgram(KEY_GLASS);
       if (glassShader != null) {
-         mc.method_1522().method_1235(false);
+         mc.getFramebuffer().beginWrite(false);
          RenderSystem.disableDepthTest();
          RenderSystem.enableBlend();
          RenderSystem.blendFuncSeparate(SrcFactor.SRC_ALPHA, DstFactor.ONE_MINUS_SRC_ALPHA, SrcFactor.ZERO, DstFactor.ONE);
          RenderSystem.setShader(KEY_GLASS);
          RenderSystem.setShaderTexture(0, blurredBgTex);
-         RenderSystem.setShaderTexture(1, this.afterBuffer.method_30277());
-         RenderSystem.setShaderTexture(2, this.maskBuffer.method_30277());
+         RenderSystem.setShaderTexture(1, this.afterBuffer.getColorAttachment());
+         RenderSystem.setShaderTexture(2, this.maskBuffer.getColorAttachment());
          this.setUniform(glassShader, "mixFactor", module.fillGlassMix.getFloatValue());
          this.drawFullscreenQuad();
          RenderSystem.enableDepthTest();
@@ -1054,48 +1054,48 @@ public class GlassHandsRenderer {
    private void doFillBloomChain(GlassHands module) {
       int iter = (int)module.fillGlowRadius.getFloatValue();
       this.colorMask = this.ensureBuffer(this.colorMask, false, 1);
-      this.colorMask.method_1236(0.0F, 0.0F, 0.0F, 0.0F);
-      this.colorMask.method_1230();
-      this.colorMask.method_1235(false);
+      this.colorMask.setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
+      this.colorMask.clear();
+      this.colorMask.beginWrite(false);
       RenderSystem.disableBlend();
       RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-      RenderSystem.setShaderTexture(0, this.afterBuffer.method_30277());
-      RenderSystem.setShaderTexture(1, this.maskBuffer.method_30277());
-      ShaderProgram colorMaskShader = mc.method_62887()
-         .method_62947(new ShaderProgramKey(ResourceProvider.getShaderIdentifier("glass_hands_color_mask"), VertexFormats.field_1575, Defines.field_53930));
+      RenderSystem.setShaderTexture(0, this.afterBuffer.getColorAttachment());
+      RenderSystem.setShaderTexture(1, this.maskBuffer.getColorAttachment());
+      ShaderProgram colorMaskShader = mc.getShaderLoader()
+         .getOrCreateProgram(new ShaderProgramKey(ResourceProvider.getShaderIdentifier("glass_hands_color_mask"), VertexFormats.POSITION_TEXTURE_COLOR, Defines.EMPTY));
       if (colorMaskShader != null) {
          RenderSystem.setShader(
-            new ShaderProgramKey(ResourceProvider.getShaderIdentifier("glass_hands_color_mask"), VertexFormats.field_1575, Defines.field_53930)
+            new ShaderProgramKey(ResourceProvider.getShaderIdentifier("glass_hands_color_mask"), VertexFormats.POSITION_TEXTURE_COLOR, Defines.EMPTY)
          );
          this.drawFullscreenQuad();
       }
 
-      int cur = this.colorMask.method_30277();
+      int cur = this.colorMask.getColorAttachment();
       this.ensureFillBloomBuffers(iter);
-      ShaderProgram downShader = mc.method_62887().method_62947(KEY_KAWASE_DOWN);
-      ShaderProgram upShader = mc.method_62887().method_62947(KEY_KAWASE_UP);
+      ShaderProgram downShader = mc.getShaderLoader().getOrCreateProgram(KEY_KAWASE_DOWN);
+      ShaderProgram upShader = mc.getShaderLoader().getOrCreateProgram(KEY_KAWASE_UP);
       if (downShader != null && upShader != null) {
          for (int i = 0; i < iter; i++) {
             Framebuffer b = this.fillBloomBuffers.get(i);
-            b.method_1236(0.0F, 0.0F, 0.0F, 0.0F);
-            b.method_1230();
-            b.method_1235(true);
+            b.setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
+            b.clear();
+            b.beginWrite(true);
             RenderSystem.setShader(KEY_KAWASE_DOWN);
             RenderSystem.setShaderTexture(0, cur);
-            this.setKawaseUniforms(downShader, b.field_1482, b.field_1481, 1.0F + (float)i);
+            this.setKawaseUniforms(downShader, b.textureWidth, b.textureHeight, 1.0F + (float)i);
             this.drawFullscreenQuad();
-            cur = b.method_30277();
+            cur = b.getColorAttachment();
          }
 
          for (int i = iter - 1; i >= 1; i--) {
             Framebuffer b = this.fillBloomBuffers.get(i - 1);
-            b.method_1235(true);
+            b.beginWrite(true);
             RenderSystem.setShader(KEY_KAWASE_UP);
             RenderSystem.setShaderTexture(0, cur);
-            this.setKawaseUniforms(upShader, b.field_1482, b.field_1481, 1.0F + (float)i);
+            this.setKawaseUniforms(upShader, b.textureWidth, b.textureHeight, 1.0F + (float)i);
             this.setUniform(upShader, "color", 1.0F, 1.0F, 1.0F);
             this.drawFullscreenQuad();
-            cur = b.method_30277();
+            cur = b.getColorAttachment();
          }
 
          this.fillLastBloomTex = cur;
@@ -1115,14 +1115,14 @@ public class GlassHandsRenderer {
          if (module.fillTrailEnabled.getValue()) {
             this.renderFillTrail(module, cur, c1, c2);
          } else {
-            mc.method_1522().method_1235(true);
+            mc.getFramebuffer().beginWrite(true);
             RenderSystem.enableBlend();
             RenderSystem.blendFunc(770, 1);
-            ShaderProgram glowShader = mc.method_62887().method_62947(KEY_FILL_GLOW);
+            ShaderProgram glowShader = mc.getShaderLoader().getOrCreateProgram(KEY_FILL_GLOW);
             if (glowShader != null) {
                RenderSystem.setShader(KEY_FILL_GLOW);
                RenderSystem.setShaderTexture(0, cur);
-               RenderSystem.setShaderTexture(1, this.maskBuffer.method_30277());
+               RenderSystem.setShaderTexture(1, this.maskBuffer.getColorAttachment());
                this.setUniform(glowShader, "glowColor1", c1[0], c1[1], c1[2]);
                this.setUniform(glowShader, "glowColor2", c2[0], c2[1], c2[2]);
                this.setUniform(glowShader, "exposure", module.fillGlowExposure.getFloatValue());
@@ -1139,52 +1139,52 @@ public class GlassHandsRenderer {
    private void doSmallBlurForFillAuto(GlassHands module) {
       int iter = 3;
       this.colorMask = this.ensureBuffer(this.colorMask, false, 1);
-      this.colorMask.method_1236(0.0F, 0.0F, 0.0F, 0.0F);
-      this.colorMask.method_1230();
-      this.colorMask.method_1235(false);
+      this.colorMask.setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
+      this.colorMask.clear();
+      this.colorMask.beginWrite(false);
       RenderSystem.disableBlend();
       RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-      RenderSystem.setShaderTexture(0, this.afterBuffer.method_30277());
-      RenderSystem.setShaderTexture(1, this.maskBuffer.method_30277());
-      ShaderProgram colorMaskShader = mc.method_62887()
-         .method_62947(new ShaderProgramKey(ResourceProvider.getShaderIdentifier("glass_hands_color_mask"), VertexFormats.field_1575, Defines.field_53930));
+      RenderSystem.setShaderTexture(0, this.afterBuffer.getColorAttachment());
+      RenderSystem.setShaderTexture(1, this.maskBuffer.getColorAttachment());
+      ShaderProgram colorMaskShader = mc.getShaderLoader()
+         .getOrCreateProgram(new ShaderProgramKey(ResourceProvider.getShaderIdentifier("glass_hands_color_mask"), VertexFormats.POSITION_TEXTURE_COLOR, Defines.EMPTY));
       if (colorMaskShader != null) {
          RenderSystem.setShader(
-            new ShaderProgramKey(ResourceProvider.getShaderIdentifier("glass_hands_color_mask"), VertexFormats.field_1575, Defines.field_53930)
+            new ShaderProgramKey(ResourceProvider.getShaderIdentifier("glass_hands_color_mask"), VertexFormats.POSITION_TEXTURE_COLOR, Defines.EMPTY)
          );
          this.drawFullscreenQuad();
       }
 
       this.ensureFillBloomBuffers(iter);
-      int cur = this.colorMask.method_30277();
-      ShaderProgram downShader = mc.method_62887().method_62947(KEY_KAWASE_DOWN);
-      ShaderProgram upShader = mc.method_62887().method_62947(KEY_KAWASE_UP);
+      int cur = this.colorMask.getColorAttachment();
+      ShaderProgram downShader = mc.getShaderLoader().getOrCreateProgram(KEY_KAWASE_DOWN);
+      ShaderProgram upShader = mc.getShaderLoader().getOrCreateProgram(KEY_KAWASE_UP);
       if (downShader != null && upShader != null) {
          for (int i = 0; i < iter; i++) {
             Framebuffer b = this.fillBloomBuffers.get(i);
-            b.method_1236(0.0F, 0.0F, 0.0F, 0.0F);
-            b.method_1230();
-            b.method_1235(true);
+            b.setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
+            b.clear();
+            b.beginWrite(true);
             RenderSystem.setShader(KEY_KAWASE_DOWN);
             RenderSystem.setShaderTexture(0, cur);
-            this.setKawaseUniforms(downShader, b.field_1482, b.field_1481, 1.0F + (float)i);
+            this.setKawaseUniforms(downShader, b.textureWidth, b.textureHeight, 1.0F + (float)i);
             this.drawFullscreenQuad();
-            cur = b.method_30277();
+            cur = b.getColorAttachment();
          }
 
          for (int i = iter - 1; i >= 1; i--) {
             Framebuffer b = this.fillBloomBuffers.get(i - 1);
-            b.method_1235(true);
+            b.beginWrite(true);
             RenderSystem.setShader(KEY_KAWASE_UP);
             RenderSystem.setShaderTexture(0, cur);
-            this.setKawaseUniforms(upShader, b.field_1482, b.field_1481, 1.0F + (float)i);
+            this.setKawaseUniforms(upShader, b.textureWidth, b.textureHeight, 1.0F + (float)i);
             this.setUniform(upShader, "color", 1.0F, 1.0F, 1.0F);
             this.drawFullscreenQuad();
-            cur = b.method_30277();
+            cur = b.getColorAttachment();
          }
 
          this.fillLastBloomTex = cur;
-         mc.method_1522().method_1235(true);
+         mc.getFramebuffer().beginWrite(true);
       }
    }
 
@@ -1209,7 +1209,7 @@ public class GlassHandsRenderer {
       float trailSmooth = 1.0F - (float)Math.exp((double)(-dt * 8.0F));
       this.fillSmoothTrailRise = this.fillSmoothTrailRise + (upDelta - this.fillSmoothTrailRise) * trailSmooth;
       this.fillSmoothTrailSway = this.fillSmoothTrailSway + (swayDelta - this.fillSmoothTrailSway) * trailSmooth;
-      boolean swinging = mc.field_1724 != null && mc.field_1724.field_6251 > 0.0F;
+      boolean swinging = mc.player != null && mc.player.handSwingProgress > 0.0F;
       if (module.fillTrailBurst.getValue() && swinging && !this.fillWasSwinging) {
          this.fillLastSwingMs = now;
       }
@@ -1219,27 +1219,27 @@ public class GlassHandsRenderer {
       float burst = Math.max(0.0F, 1.0F - burstAge / 0.45F);
       this.fillSmoothBurst = this.fillSmoothBurst + (burst - this.fillSmoothBurst) * (1.0F - (float)Math.exp((double)(-dt * 6.0F)));
       float fadeAdd = this.fillSmoothBurst * module.fillTrailBurstPower.getFloatValue() * 0.012F;
-      this.fillTrailWrite.method_1235(false);
+      this.fillTrailWrite.beginWrite(false);
       GL11.glClearColor(0.0F, 0.0F, 0.0F, 0.0F);
       GL11.glClear(16384);
       RenderSystem.disableBlend();
-      ShaderProgram trailFadeShader = mc.method_62887().method_62947(KEY_FILL_TRAIL_FADE);
+      ShaderProgram trailFadeShader = mc.getShaderLoader().getOrCreateProgram(KEY_FILL_TRAIL_FADE);
       if (trailFadeShader != null) {
          RenderSystem.setShader(KEY_FILL_TRAIL_FADE);
-         RenderSystem.setShaderTexture(0, this.fillTrailRead.method_30277());
+         RenderSystem.setShaderTexture(0, this.fillTrailRead.getColorAttachment());
          this.setUniform(trailFadeShader, "offset", this.fillSmoothTrailSway, this.fillSmoothTrailRise);
          this.setUniform(trailFadeShader, "fade", module.fillTrailFade.getFloatValue() + fadeAdd);
          this.setUniform(trailFadeShader, "t", t);
          this.setUniform(trailFadeShader, "dt", dt);
          this.setUniform(trailFadeShader, "turb", module.fillTrailTurb.getFloatValue());
          this.setUniform(trailFadeShader, "flickAmp", module.fillTrailFlicker.getFloatValue());
-         this.setUniform(trailFadeShader, "texSize", (float)this.fillTrailRead.field_1482, (float)this.fillTrailRead.field_1481);
+         this.setUniform(trailFadeShader, "texSize", (float)this.fillTrailRead.textureWidth, (float)this.fillTrailRead.textureHeight);
          this.drawFullscreenQuad();
       }
 
       RenderSystem.enableBlend();
       RenderSystem.blendFunc(1, 771);
-      ShaderProgram trailColorShader = mc.method_62887().method_62947(KEY_FILL_TRAIL_COLOR);
+      ShaderProgram trailColorShader = mc.getShaderLoader().getOrCreateProgram(KEY_FILL_TRAIL_COLOR);
       if (trailColorShader != null) {
          RenderSystem.setShader(KEY_FILL_TRAIL_COLOR);
          RenderSystem.setShaderTexture(0, bloomTex);
@@ -1257,22 +1257,22 @@ public class GlassHandsRenderer {
          float modelAlpha = module.fillTrailModelAlpha.getFloatValue();
          RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, modelAlpha);
          if (this.colorMask != null) {
-            RenderSystem.setShaderTexture(0, this.colorMask.method_30277());
+            RenderSystem.setShaderTexture(0, this.colorMask.getColorAttachment());
          } else {
-            RenderSystem.setShaderTexture(0, this.afterBuffer.method_30277());
+            RenderSystem.setShaderTexture(0, this.afterBuffer.getColorAttachment());
          }
 
-         RenderSystem.setShader(ShaderProgramKeys.field_53879);
+         RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
          this.drawFullscreenQuad();
          RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
       }
 
-      mc.method_1522().method_1235(true);
+      mc.getFramebuffer().beginWrite(true);
       RenderSystem.enableBlend();
       RenderSystem.blendFunc(1, 771);
       RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-      RenderSystem.setShaderTexture(0, this.fillTrailWrite.method_30277());
-      RenderSystem.setShader(ShaderProgramKeys.field_53879);
+      RenderSystem.setShaderTexture(0, this.fillTrailWrite.getColorAttachment());
+      RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
       this.drawFullscreenQuad();
       RenderSystem.defaultBlendFunc();
       Framebuffer tmp = this.fillTrailRead;
@@ -1286,19 +1286,19 @@ public class GlassHandsRenderer {
       int oc = module.fillOutlineColor.getValue();
       Color col = new Color(oc, true);
       float a = (float)col.getAlpha() / 255.0F;
-      ShaderProgram outlineShader = mc.method_62887().method_62947(KEY_FILL_OUTLINE);
+      ShaderProgram outlineShader = mc.getShaderLoader().getOrCreateProgram(KEY_FILL_OUTLINE);
       if (outlineShader != null) {
-         mc.method_1522().method_1235(false);
+         mc.getFramebuffer().beginWrite(false);
          RenderSystem.enableBlend();
          RenderSystem.blendFuncSeparate(SrcFactor.SRC_ALPHA, DstFactor.ONE_MINUS_SRC_ALPHA, SrcFactor.ZERO, DstFactor.ONE);
          RenderSystem.setShader(KEY_FILL_OUTLINE);
-         RenderSystem.setShaderTexture(0, this.maskBuffer.method_30277());
+         RenderSystem.setShaderTexture(0, this.maskBuffer.getColorAttachment());
          if (auto) {
             RenderSystem.setShaderTexture(1, this.fillLastBloomTex);
          }
 
-         int fw = Math.max(1, mc.method_22683().method_4489());
-         int fh = Math.max(1, mc.method_22683().method_4506());
+         int fw = Math.max(1, mc.getWindow().getFramebufferWidth());
+         int fh = Math.max(1, mc.getWindow().getFramebufferHeight());
          this.setUniform(outlineShader, "colorMode", (float)colorMode);
          this.setUniform(outlineShader, "width", module.fillOutlineWidth.getFloatValue());
          this.setUniform(outlineShader, "texelSize", 1.0F / (float)fw, 1.0F / (float)fh);
@@ -1322,15 +1322,15 @@ public class GlassHandsRenderer {
    }
 
    private Framebuffer ensureBuffer(Framebuffer buf, boolean depth, int divisor) {
-      int fw = mc.method_22683().method_4489();
-      int fh = mc.method_22683().method_4506();
+      int fw = mc.getWindow().getFramebufferWidth();
+      int fh = mc.getWindow().getFramebufferHeight();
       int w = Math.max(2, fw / divisor);
       int h = Math.max(2, fh / divisor);
       if (buf == null) {
          buf = new SimpleFramebuffer(w, h, depth);
          this.setLinearFiltering(buf);
-      } else if (buf.field_1482 != w || buf.field_1481 != h) {
-         buf.method_1238();
+      } else if (buf.textureWidth != w || buf.textureHeight != h) {
+         buf.delete();
          buf = new SimpleFramebuffer(w, h, depth);
          this.setLinearFiltering(buf);
       }
@@ -1339,10 +1339,10 @@ public class GlassHandsRenderer {
    }
 
    private void ensureFillBloomBuffers(int n) {
-      int fw = mc.method_22683().method_4489();
-      int fh = mc.method_22683().method_4506();
+      int fw = mc.getWindow().getFramebufferWidth();
+      int fh = mc.getWindow().getFramebufferHeight();
       if (this.fillBloomBuffers.size() < n) {
-         this.fillBloomBuffers.forEach(Framebuffer::method_1238);
+         this.fillBloomBuffers.forEach(Framebuffer::delete);
          this.fillBloomBuffers.clear();
 
          for (int i = 0; i < n; i++) {
@@ -1356,8 +1356,8 @@ public class GlassHandsRenderer {
          int w = Math.max(2, fw >> i + 1);
          int h = Math.max(2, fh >> i + 1);
          Framebuffer b = this.fillBloomBuffers.get(i);
-         if (b.field_1482 != w || b.field_1481 != h) {
-            b.method_1238();
+         if (b.textureWidth != w || b.textureHeight != h) {
+            b.delete();
             Framebuffer var10 = new SimpleFramebuffer(w, h, false);
             this.setLinearFiltering(var10);
             this.fillBloomBuffers.set(i, var10);
@@ -1392,41 +1392,41 @@ public class GlassHandsRenderer {
    }
 
    private void drawFullscreenQuad() {
-      float sw = (float)Math.max(mc.method_22683().method_4486(), 1);
-      float sh = (float)Math.max(mc.method_22683().method_4502(), 1);
-      BufferBuilder b = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1575);
-      b.method_22912(0.0F, 0.0F, 0.0F).method_22913(0.0F, 1.0F).method_22915(1.0F, 1.0F, 1.0F, 1.0F);
-      b.method_22912(0.0F, sh, 0.0F).method_22913(0.0F, 0.0F).method_22915(1.0F, 1.0F, 1.0F, 1.0F);
-      b.method_22912(sw, sh, 0.0F).method_22913(1.0F, 0.0F).method_22915(1.0F, 1.0F, 1.0F, 1.0F);
-      b.method_22912(sw, 0.0F, 0.0F).method_22913(1.0F, 1.0F).method_22915(1.0F, 1.0F, 1.0F, 1.0F);
-      BufferRenderer.method_43433(b.method_60800());
+      float sw = (float)Math.max(mc.getWindow().getScaledWidth(), 1);
+      float sh = (float)Math.max(mc.getWindow().getScaledHeight(), 1);
+      BufferBuilder b = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
+      b.vertex(0.0F, 0.0F, 0.0F).texture(0.0F, 1.0F).color(1.0F, 1.0F, 1.0F, 1.0F);
+      b.vertex(0.0F, sh, 0.0F).texture(0.0F, 0.0F).color(1.0F, 1.0F, 1.0F, 1.0F);
+      b.vertex(sw, sh, 0.0F).texture(1.0F, 0.0F).color(1.0F, 1.0F, 1.0F, 1.0F);
+      b.vertex(sw, 0.0F, 0.0F).texture(1.0F, 1.0F).color(1.0F, 1.0F, 1.0F, 1.0F);
+      BufferRenderer.drawWithGlobalProgram(b.end());
    }
 
    private void setUniform(ShaderProgram s, String name, float v) {
-      GlUniform u = s.method_34582(name);
+      GlUniform u = s.getUniform(name);
       if (u != null) {
-         u.method_1251(v);
+         u.set(v);
       }
    }
 
    private void setUniform(ShaderProgram s, String name, float x, float y) {
-      GlUniform u = s.method_34582(name);
+      GlUniform u = s.getUniform(name);
       if (u != null) {
-         u.method_1255(x, y);
+         u.set(x, y);
       }
    }
 
    private void setUniform(ShaderProgram s, String name, float x, float y, float z) {
-      GlUniform u = s.method_34582(name);
+      GlUniform u = s.getUniform(name);
       if (u != null) {
-         u.method_1249(x, y, z);
+         u.set(x, y, z);
       }
    }
 
    private void setUniform(ShaderProgram s, String name, float x, float y, float z, float w) {
-      GlUniform u = s.method_34582(name);
+      GlUniform u = s.getUniform(name);
       if (u != null) {
-         u.method_35657(x, y, z, w);
+         u.set(x, y, z, w);
       }
    }
 

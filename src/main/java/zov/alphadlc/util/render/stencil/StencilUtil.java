@@ -9,21 +9,21 @@ import zov.alphadlc.util.IMinecraft;
 
 public class StencilUtil implements IMinecraft {
    public static void checkSetupFBO(Framebuffer fbo) {
-      if (fbo != null && fbo.field_1478) {
-         int depthId = fbo.method_30278();
+      if (fbo != null && fbo.useDepthAttachment) {
+         int depthId = fbo.getDepthAttachment();
          GL11.glBindTexture(3553, depthId);
          int format = GL11.glGetTexLevelParameteri(3553, 0, 4099);
          if (format != 35056) {
-            GL11.glTexImage2D(3553, 0, 35056, fbo.field_1482, fbo.field_1481, 0, 34041, 34042, (ByteBuffer)null);
-            GL30.glBindFramebuffer(36160, fbo.field_1476);
+            GL11.glTexImage2D(3553, 0, 35056, fbo.textureWidth, fbo.textureHeight, 0, 34041, 34042, (ByteBuffer)null);
+            GL30.glBindFramebuffer(36160, fbo.fbo);
             GL30.glFramebufferTexture2D(36160, 33306, 3553, depthId, 0);
-            fbo.method_1235(false);
+            fbo.beginWrite(false);
          }
       }
    }
 
    public static void push() {
-      checkSetupFBO(mc.method_1522());
+      checkSetupFBO(mc.getFramebuffer());
       GL11.glEnable(2960);
       GL11.glClearStencil(0);
       GL11.glClear(1024);

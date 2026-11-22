@@ -10,11 +10,11 @@ public final class NetworkUtils {
    }
 
    public static void sendSilentPacket(Packet<?> packet) {
-      MinecraftClient minecraft = MinecraftClient.method_1551();
-      if (minecraft.field_1724 != null && minecraft.method_1562() != null) {
+      MinecraftClient minecraft = MinecraftClient.getInstance();
+      if (minecraft.player != null && minecraft.getNetworkHandler() != null) {
          try {
             sendingSilent = true;
-            minecraft.method_1562().method_52787(packet);
+            minecraft.getNetworkHandler().sendPacket(packet);
          } finally {
             sendingSilent = false;
          }
@@ -22,9 +22,9 @@ public final class NetworkUtils {
    }
 
    public static void sendPacket(Packet<?> packet) {
-      MinecraftClient minecraft = MinecraftClient.method_1551();
-      if (minecraft.field_1724 != null && minecraft.method_1562() != null) {
-         minecraft.method_1562().method_52787(packet);
+      MinecraftClient minecraft = MinecraftClient.getInstance();
+      if (minecraft.player != null && minecraft.getNetworkHandler() != null) {
+         minecraft.getNetworkHandler().sendPacket(packet);
       }
    }
 

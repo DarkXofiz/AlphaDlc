@@ -128,7 +128,7 @@ public class Trails extends Module {
 
    @Subscribe
    private void onTick(EventTick e) {
-      if (this.isEnabled() && this.mc.field_1724 != null && this.mc.field_1687 != null) {
+      if (this.isEnabled() && this.mc.player != null && this.mc.world != null) {
          if (this.mode.isEnabled("\u041a\u0440\u0430\u0441\u0438\u0432\u044b\u0439")) {
             this.updatePretty();
          } else if (!this.prettyFigs.isEmpty()) {
@@ -149,11 +149,11 @@ public class Trails extends Module {
          }
       }
 
-      boolean shouldShow = this.firstPerson.getValue() || !this.mc.field_1690.method_31044().method_31034();
+      boolean shouldShow = this.firstPerson.getValue() || !this.mc.options.getPerspective().isFirstPerson();
       if (shouldShow) {
-         Vec3d pos = this.mc.field_1724.method_19538();
-         Vec3d vel = this.mc.field_1724.method_18798();
-         double horizontalSpeed = Math.sqrt(vel.field_1352 * vel.field_1352 + vel.field_1350 * vel.field_1350);
+         Vec3d pos = this.mc.player.getPos();
+         Vec3d vel = this.mc.player.getVelocity();
+         double horizontalSpeed = Math.sqrt(vel.x * vel.x + vel.z * vel.z);
          boolean isRunning = horizontalSpeed > 0.01;
          if (isRunning) {
             int spawnPerTick = (int)this.prettyCount.getValue();
@@ -171,7 +171,7 @@ public class Trails extends Module {
    }
 
    private void spawnPretty(Vec3d base) {
-      float yaw = this.mc.field_1724.method_36454();
+      float yaw = this.mc.player.getYaw();
       double yawRad = Math.toRadians((double)yaw);
       double backwardX = Math.sin(yawRad);
       double backwardZ = -Math.cos(yawRad);
@@ -182,8 +182,8 @@ public class Trails extends Module {
       double sideZ = -Math.sin(yawRad) * sideOffset;
       double ox = backwardX * backDist + sideX;
       double oz = backwardZ * backDist + sideZ;
-      double oy = (double)this.mc.field_1724.method_17682() * (0.5 + (this.random.nextDouble() - 0.5) * 0.2 * (double)spreadMultiplier);
-      Vec3d p = base.method_1031(ox, oy, oz);
+      double oy = (double)this.mc.player.getHeight() * (0.5 + (this.random.nextDouble() - 0.5) * 0.2 * (double)spreadMultiplier);
+      Vec3d p = base.add(ox, oy, oz);
       Vec3d vel = new Vec3d((this.random.nextDouble() - 0.5) * 0.02, 0.01 + this.random.nextDouble() * 0.02, (this.random.nextDouble() - 0.5) * 0.02);
       long life = (long)this.prettyLifetime.getValue();
       float rot = this.random.nextFloat() * 360.0F;
@@ -196,10 +196,10 @@ public class Trails extends Module {
 
    private void onRender(WorldRenderContext context) {
       if (this.isEnabled()) {
-         MinecraftClient mc = MinecraftClient.method_1551();
-         if (mc.field_1724 != null && mc.field_1687 != null && mc.field_1724.method_5805()) {
-            float tickDelta = context.tickCounter().method_60637(true);
-            boolean selfVisible = this.firstPerson.getValue() || !mc.field_1690.method_31044().method_31034();
+         MinecraftClient mc = MinecraftClient.getInstance();
+         if (mc.player != null && mc.world != null && mc.player.isAlive()) {
+            float tickDelta = context.tickCounter().getTickDelta(true);
+            boolean selfVisible = this.firstPerson.getValue() || !mc.options.getPerspective().isFirstPerson();
             long currentTime = System.currentTimeMillis();
             boolean entityEnabled = this.mode.isEnabled("Entity Trails");
             boolean pearlEnabled = this.mode.isEnabled("Pearl Trail");
@@ -224,16 +224,16 @@ public class Trails extends Module {
                if (scanNow) {
                   this.lastEntityScan = currentTime;
 
-                  for (Entity entity : mc.field_1687.method_18112()) {
-                     if (entity != null && entity.method_5805() && entity instanceof LivingEntity) {
+                  for (Entity entity : mc.world.getEntities()) {
+                     if (entity != null && entity.isAlive() && entity instanceof LivingEntity) {
                         boolean isTarget = false;
                         Trails.EntityType entityType = null;
-                        if (entity == mc.field_1724) {
+                        if (entity == mc.player) {
                            isTarget = this.targetSelf.getValue() && selfVisible;
                            entityType = Trails.EntityType.SELF;
                         } else if (entity instanceof PlayerEntity) {
                            PlayerEntity player = (PlayerEntity)entity;
-                           boolean isFriend = FriendRepository.isFriend(player.method_5820());
+                           boolean isFriend = FriendRepository.isFriend(player.getNameForScoreboard());
                            if (isFriend) {
                               isTarget = this.targetFriends.getValue();
                               entityType = Trails.EntityType.FRIEND;
@@ -247,25 +247,25 @@ public class Trails extends Module {
                         }
 
                         if (!isTarget) {
-                           this.removeEntityData(entity.method_5628());
+                           this.removeEntityData(entity.getId());
                         } else {
-                           this.entityTypes.put(entity.method_5628(), entityType);
-                           Vec3d currentPos = entity.method_30950(tickDelta);
-                           long lastTime = this.lastPointTimes.getOrDefault(entity.method_5628(), 0L);
+                           this.entityTypes.put(entity.getId(), entityType);
+                           Vec3d currentPos = entity.getLerpedPos(tickDelta);
+                           long lastTime = this.lastPointTimes.getOrDefault(entity.getId(), 0L);
                            boolean shouldAddPoint = currentTime - lastTime >= 15L;
                            if (shouldAddPoint) {
-                              Vec3d lastPos = this.lastPositions.get(entity.method_5628());
+                              Vec3d lastPos = this.lastPositions.get(entity.getId());
                               if (lastPos != null) {
-                                 double distanceMoved = lastPos.method_1022(currentPos);
-                                 Deque<Trails.Point> existing = this.entityPoints.get(entity.method_5628());
+                                 double distanceMoved = lastPos.distanceTo(currentPos);
+                                 Deque<Trails.Point> existing = this.entityPoints.get(entity.getId());
                                  shouldAddPoint = distanceMoved > 0.01 || existing == null || existing.isEmpty();
                               }
 
                               if (shouldAddPoint) {
-                                 Deque<Trails.Point> points = this.entityPoints.computeIfAbsent(entity.method_5628(), k -> new ArrayDeque<>());
+                                 Deque<Trails.Point> points = this.entityPoints.computeIfAbsent(entity.getId(), k -> new ArrayDeque<>());
                                  points.addFirst(new Trails.Point(currentPos, currentTime));
-                                 this.lastPointTimes.put(entity.method_5628(), currentTime);
-                                 this.lastPositions.put(entity.method_5628(), currentPos);
+                                 this.lastPointTimes.put(entity.getId(), currentTime);
+                                 this.lastPositions.put(entity.getId(), currentPos);
                               }
                            }
                         }
@@ -277,8 +277,8 @@ public class Trails extends Module {
 
                while (iterator.hasNext()) {
                   Entry<Integer, Deque<Trails.Point>> entry = iterator.next();
-                  Entity entityx = mc.field_1687.method_8469(entry.getKey());
-                  if (entityx != null && entityx.method_5805()) {
+                  Entity entityx = mc.world.getEntityById(entry.getKey());
+                  if (entityx != null && entityx.isAlive()) {
                      Deque<Trails.Point> points = entry.getValue();
                      points.removeIf(point -> (float)(currentTime - point.timestamp) > (float)this.duration.getValue());
                      if (points.isEmpty()) {
@@ -294,10 +294,10 @@ public class Trails extends Module {
                for (Entry<Integer, Deque<Trails.Point>> entry : this.entityPoints.entrySet()) {
                   Deque<Trails.Point> points = entry.getValue();
                   if (points.size() >= 2) {
-                     Entity entityx = mc.field_1687.method_8469(entry.getKey());
-                     if (entityx != null && entityx.method_5805()) {
+                     Entity entityx = mc.world.getEntityById(entry.getKey());
+                     if (entityx != null && entityx.isAlive()) {
                         Trails.EntityType entityTypex = this.entityTypes.get(entry.getKey());
-                        this.renderTrail(points, context, currentTime, entityx.method_17682(), entityTypex);
+                        this.renderTrail(points, context, currentTime, entityx.getHeight(), entityTypex);
                      }
                   }
                }
@@ -313,20 +313,20 @@ public class Trails extends Module {
    private void renderPretty(WorldRenderContext context, float tickDelta) {
       if (!this.prettyFigs.isEmpty()) {
          Camera camera = context.camera();
-         Vec3d camPos = camera.method_19326();
+         Vec3d camPos = camera.getPos();
          MatrixStack stack = context.matrixStack();
          boolean glow = this.prettyGlow.getValue();
          float lineLength = this.prettyLineLength.getFloatValue();
          float lineWidth = 0.05F;
          long now = System.currentTimeMillis();
-         RenderSystem.setShader(ShaderProgramKeys.field_53880);
+         RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX_COLOR);
          RenderSystem.enableBlend();
          RenderSystem.blendFunc(SrcFactor.SRC_ALPHA, DstFactor.ONE);
          RenderSystem.disableCull();
          RenderSystem.enableDepthTest();
          RenderSystem.depthMask(false);
-         RenderSystem.setShaderTexture(0, Identifier.method_60655("mre", "images/glow.png"));
-         BufferBuilder buffer = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1575);
+         RenderSystem.setShaderTexture(0, Identifier.of("mre", "images/glow.png"));
+         BufferBuilder buffer = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
          boolean hasAnyQuads = false;
 
          for (Trails.PrettyFig f : this.prettyFigs) {
@@ -334,18 +334,18 @@ public class Trails extends Module {
             if (!(life >= 1.0F)) {
                float alpha = life < 0.2F ? life * 5.0F : 1.0F - (life - 0.2F) / 0.8F;
                if (!(alpha <= 0.01F)) {
-                  double px = MathHelper.method_16436((double)tickDelta, f.prevX, f.x) - camPos.field_1352;
-                  double py = MathHelper.method_16436((double)tickDelta, f.prevY, f.y) - camPos.field_1351;
-                  double pz = MathHelper.method_16436((double)tickDelta, f.prevZ, f.z) - camPos.field_1350;
+                  double px = MathHelper.lerp((double)tickDelta, f.prevX, f.x) - camPos.x;
+                  double py = MathHelper.lerp((double)tickDelta, f.prevY, f.y) - camPos.y;
+                  double pz = MathHelper.lerp((double)tickDelta, f.prevZ, f.z) - camPos.z;
                   float r = (float)ColorProvider.red(f.color) / 255.0F;
                   float g = (float)ColorProvider.green(f.color) / 255.0F;
                   float b = (float)ColorProvider.blue(f.color) / 255.0F;
-                  stack.method_22903();
-                  stack.method_22904(px, py, pz);
-                  stack.method_22907(RotationAxis.field_40716.rotationDegrees(-camera.method_19330()));
-                  stack.method_22907(RotationAxis.field_40714.rotationDegrees(camera.method_19329()));
-                  stack.method_22907(RotationAxis.field_40718.rotationDegrees(f.rotation + f.rotSpeed * tickDelta));
-                  Matrix4f m = stack.method_23760().method_23761();
+                  stack.push();
+                  stack.translate(px, py, pz);
+                  stack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-camera.getYaw()));
+                  stack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(camera.getPitch()));
+                  stack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(f.rotation + f.rotSpeed * tickDelta));
+                  Matrix4f m = stack.peek().getPositionMatrix();
                   if (glow) {
                      float glowSize = lineWidth * 4.0F;
                      float glowHeight = lineLength * 1.5F;
@@ -355,13 +355,13 @@ public class Trails extends Module {
 
                   this.putLineQuad(buffer, m, lineWidth, lineLength, r, g, b, alpha);
                   hasAnyQuads = true;
-                  stack.method_22909();
+                  stack.pop();
                }
             }
          }
 
          if (hasAnyQuads) {
-            BufferRenderer.method_43433(buffer.method_60800());
+            BufferRenderer.drawWithGlobalProgram(buffer.end());
          }
 
          RenderSystem.depthMask(true);
@@ -377,25 +377,25 @@ public class Trails extends Module {
       int ri = (int)(r * 255.0F);
       int gi = (int)(g * 255.0F);
       int bi = (int)(b * 255.0F);
-      int ai = (int)(MathHelper.method_15363(alpha, 0.0F, 1.0F) * 255.0F);
+      int ai = (int)(MathHelper.clamp(alpha, 0.0F, 1.0F) * 255.0F);
       float halfWidth = width / 2.0F;
       float halfHeight = height / 2.0F;
-      buffer.method_22918(m, -halfWidth, halfHeight, 0.0F).method_22913(0.0F, 0.0F).method_1336(ri, gi, bi, ai);
-      buffer.method_22918(m, halfWidth, halfHeight, 0.0F).method_22913(1.0F, 0.0F).method_1336(ri, gi, bi, ai);
-      buffer.method_22918(m, halfWidth, -halfHeight, 0.0F).method_22913(1.0F, 1.0F).method_1336(ri, gi, bi, ai);
-      buffer.method_22918(m, -halfWidth, -halfHeight, 0.0F).method_22913(0.0F, 1.0F).method_1336(ri, gi, bi, ai);
+      buffer.vertex(m, -halfWidth, halfHeight, 0.0F).texture(0.0F, 0.0F).color(ri, gi, bi, ai);
+      buffer.vertex(m, halfWidth, halfHeight, 0.0F).texture(1.0F, 0.0F).color(ri, gi, bi, ai);
+      buffer.vertex(m, halfWidth, -halfHeight, 0.0F).texture(1.0F, 1.0F).color(ri, gi, bi, ai);
+      buffer.vertex(m, -halfWidth, -halfHeight, 0.0F).texture(0.0F, 1.0F).color(ri, gi, bi, ai);
    }
 
    private void renderPearlTrails(WorldRenderContext context, float tickDelta, long now) {
       int color = 0xFF000000 | ColorProvider.getColorClient() & 16777215;
 
-      for (Entity entity : MinecraftClient.method_1551().field_1687.method_18112()) {
-         if (entity instanceof EnderPearlEntity pearl && pearl.method_5805()) {
-            Vec3d position = pearl.method_30950(tickDelta);
-            Vec3d velocity = pearl.method_18798();
+      for (Entity entity : MinecraftClient.getInstance().world.getEntities()) {
+         if (entity instanceof EnderPearlEntity pearl && pearl.isAlive()) {
+            Vec3d position = pearl.getLerpedPos(tickDelta);
+            Vec3d velocity = pearl.getVelocity();
 
             for (int i = 0; i < 4; i++) {
-               Vec3d framePosition = position.method_1020(velocity.method_1021((double)i * 0.45));
+               Vec3d framePosition = position.subtract(velocity.multiply((double)i * 0.45));
                long frameAge = (now + (long)i * 120L) % 600L;
                MasEffectRenderer.render(
                   "pearl_trail", context.matrixStack(), context.camera(), framePosition, frameAge, 600L, 0.32F * (1.0F - (float)i * 0.14F), color
@@ -407,18 +407,18 @@ public class Trails extends Module {
 
    private void renderTrail(Deque<Trails.Point> points, WorldRenderContext context, long currentTime, float entityHeight, Trails.EntityType entityType) {
       MatrixStack matrixStack = context.matrixStack();
-      Vec3d camPos = context.camera().method_19326();
+      Vec3d camPos = context.camera().getPos();
       RenderSystem.enableBlend();
       RenderSystem.blendFunc(SrcFactor.SRC_ALPHA, DstFactor.ONE_MINUS_SRC_ALPHA);
       RenderSystem.disableCull();
       RenderSystem.enableDepthTest();
       RenderSystem.depthMask(false);
-      RenderSystem.setShader(ShaderProgramKeys.field_53876);
-      Tessellator tessellator = Tessellator.method_1348();
-      matrixStack.method_22903();
-      matrixStack.method_22904(-camPos.field_1352, -camPos.field_1351, -camPos.field_1350);
-      Matrix4f matrix = matrixStack.method_23760().method_23761();
-      BufferBuilder buffer = tessellator.method_60827(DrawMode.field_27380, VertexFormats.field_1576);
+      RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
+      Tessellator tessellator = Tessellator.getInstance();
+      matrixStack.push();
+      matrixStack.translate(-camPos.x, -camPos.y, -camPos.z);
+      Matrix4f matrix = matrixStack.peek().getPositionMatrix();
+      BufferBuilder buffer = tessellator.begin(DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR);
       int index = 0;
 
       for (Trails.Point point : points) {
@@ -428,15 +428,15 @@ public class Trails extends Module {
          float r = (float)(color >> 16 & 0xFF) / 255.0F;
          float g = (float)(color >> 8 & 0xFF) / 255.0F;
          float b = (float)(color & 0xFF) / 255.0F;
-         buffer.method_22918(matrix, (float)point.pos.field_1352, (float)point.pos.field_1351, (float)point.pos.field_1350).method_22915(r, g, b, alpha);
-         buffer.method_22918(matrix, (float)point.pos.field_1352, (float)(point.pos.field_1351 + (double)entityHeight - 0.1), (float)point.pos.field_1350)
-            .method_22915(r, g, b, alpha);
+         buffer.vertex(matrix, (float)point.pos.x, (float)point.pos.y, (float)point.pos.z).color(r, g, b, alpha);
+         buffer.vertex(matrix, (float)point.pos.x, (float)(point.pos.y + (double)entityHeight - 0.1), (float)point.pos.z)
+            .color(r, g, b, alpha);
          index++;
       }
 
-      BufferRenderer.method_43433(buffer.method_60800());
+      BufferRenderer.drawWithGlobalProgram(buffer.end());
       RenderSystem.lineWidth((float)this.lineWidth.getValue());
-      BufferBuilder bufferLineBottom = tessellator.method_60827(DrawMode.field_29345, VertexFormats.field_1576);
+      BufferBuilder bufferLineBottom = tessellator.begin(DrawMode.DEBUG_LINE_STRIP, VertexFormats.POSITION_COLOR);
       index = 0;
 
       for (Trails.Point point : points) {
@@ -446,13 +446,13 @@ public class Trails extends Module {
          float r = (float)(color >> 16 & 0xFF) / 255.0F;
          float g = (float)(color >> 8 & 0xFF) / 255.0F;
          float b = (float)(color & 0xFF) / 255.0F;
-         bufferLineBottom.method_22918(matrix, (float)point.pos.field_1352, (float)point.pos.field_1351, (float)point.pos.field_1350)
-            .method_22915(r, g, b, alpha);
+         bufferLineBottom.vertex(matrix, (float)point.pos.x, (float)point.pos.y, (float)point.pos.z)
+            .color(r, g, b, alpha);
          index++;
       }
 
-      BufferRenderer.method_43433(bufferLineBottom.method_60800());
-      BufferBuilder bufferLineTop = tessellator.method_60827(DrawMode.field_29345, VertexFormats.field_1576);
+      BufferRenderer.drawWithGlobalProgram(bufferLineBottom.end());
+      BufferBuilder bufferLineTop = tessellator.begin(DrawMode.DEBUG_LINE_STRIP, VertexFormats.POSITION_COLOR);
       index = 0;
 
       for (Trails.Point point : points) {
@@ -462,15 +462,15 @@ public class Trails extends Module {
          float r = (float)(color >> 16 & 0xFF) / 255.0F;
          float g = (float)(color >> 8 & 0xFF) / 255.0F;
          float b = (float)(color & 0xFF) / 255.0F;
-         bufferLineTop.method_22918(
-               matrix, (float)point.pos.field_1352, (float)(point.pos.field_1351 + (double)entityHeight - 0.1), (float)point.pos.field_1350
+         bufferLineTop.vertex(
+               matrix, (float)point.pos.x, (float)(point.pos.y + (double)entityHeight - 0.1), (float)point.pos.z
             )
-            .method_22915(r, g, b, alpha);
+            .color(r, g, b, alpha);
          index++;
       }
 
-      BufferRenderer.method_43433(bufferLineTop.method_60800());
-      matrixStack.method_22909();
+      BufferRenderer.drawWithGlobalProgram(bufferLineTop.end());
+      matrixStack.pop();
       RenderSystem.enableCull();
       RenderSystem.depthMask(true);
       RenderSystem.disableBlend();
@@ -539,15 +539,15 @@ public class Trails extends Module {
       final int color;
 
       PrettyFig(Vec3d pos, Vec3d vel, long lifeMs, float rotation, float rotSpeed, int color) {
-         this.x = pos.field_1352;
-         this.y = pos.field_1351;
-         this.z = pos.field_1350;
+         this.x = pos.x;
+         this.y = pos.y;
+         this.z = pos.z;
          this.prevX = this.x;
          this.prevY = this.y;
          this.prevZ = this.z;
-         this.vx = vel.field_1352;
-         this.vy = vel.field_1351;
-         this.vz = vel.field_1350;
+         this.vx = vel.x;
+         this.vy = vel.y;
+         this.vz = vel.z;
          this.lifeMs = lifeMs;
          this.rotation = rotation;
          this.rotSpeed = rotSpeed;

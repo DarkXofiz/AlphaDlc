@@ -19,7 +19,7 @@ public class NoEntityTrace extends Module {
    @Subscribe
    private void onEntityHitBox(EventEntityHitBox e2) {
       if (e2.getEntity() instanceof LivingEntity entity2) {
-         if (!entity2.method_5767() || this.invisible.getValue()) {
+         if (!entity2.isInvisible() || this.invisible.getValue()) {
             e2.setSize(-0.75F);
          }
       }

@@ -26,17 +26,17 @@ public class AutoTool extends Module {
 
    @Subscribe
    private void onTick(EventPlayerUpdate ignored) {
-      if (this.mc.field_1724 == null || this.mc.field_1724.method_7337()) {
+      if (this.mc.player == null || this.mc.player.isCreative()) {
          this.itemIndex = -1;
-      } else if (!this.mc.field_1724.method_6115()) {
+      } else if (!this.mc.player.isUsingItem()) {
          if (this.isMousePressed()) {
             if (this.oldSlot == -1) {
                this.itemIndex = this.findBestToolSlot();
                if (this.itemIndex != -1) {
                   if (this.itemIndex >= 0 && this.itemIndex <= 8) {
-                     this.oldSlot = this.mc.field_1724.method_31548().field_7545;
-                     this.mc.field_1724.method_31548().field_7545 = this.itemIndex;
-                     this.mc.field_1761.method_2911();
+                     this.oldSlot = this.mc.player.getInventory().selectedSlot;
+                     this.mc.player.getInventory().selectedSlot = this.itemIndex;
+                     this.mc.interactionManager.syncSelectedSlot();
                      this.status = true;
                   } else {
                      String var2 = this.mode.getValue();
@@ -48,7 +48,7 @@ public class AutoTool extends Module {
                            InventoryUtil.swapWithBypassGrim(this::swap);
                            break;
                         case "ReallyWorld":
-                           if (this.mc.field_1724.method_24828()) {
+                           if (this.mc.player.isOnGround()) {
                               InventoryUtil.swapWithBypassPolar(this::swap);
                            } else {
                               InventoryUtil.swapWithBypassGrim(this::swap);
@@ -61,8 +61,8 @@ public class AutoTool extends Module {
             }
          } else if (this.oldSlot != -1) {
             if (this.oldSlot >= 0 && this.oldSlot <= 8) {
-               this.mc.field_1724.method_31548().field_7545 = this.oldSlot;
-               this.mc.field_1761.method_2911();
+               this.mc.player.getInventory().selectedSlot = this.oldSlot;
+               this.mc.interactionManager.syncSelectedSlot();
                this.oldSlot = -1;
                this.status = false;
             } else {
@@ -75,7 +75,7 @@ public class AutoTool extends Module {
                      InventoryUtil.swapWithBypassGrim(this::swapBack);
                      break;
                   case "ReallyWorld":
-                     if (this.mc.field_1724.method_24828()) {
+                     if (this.mc.player.isOnGround()) {
                         InventoryUtil.swapWithBypassPolar(this::swapBack);
                      } else {
                         InventoryUtil.swapWithBypassGrim(this::swapBack);
@@ -89,13 +89,13 @@ public class AutoTool extends Module {
    private void swap() {
       if (this.itemIndex != -1) {
          this.status = true;
-         this.mc.field_1761.method_2906(0, this.itemIndex, this.mc.field_1724.method_31548().field_7545, SlotActionType.field_7791, this.mc.field_1724);
+         this.mc.interactionManager.clickSlot(0, this.itemIndex, this.mc.player.getInventory().selectedSlot, SlotActionType.SWAP, this.mc.player);
       }
    }
 
    private void swapBack() {
       if (this.oldSlot != -1 && this.status) {
-         this.mc.field_1761.method_2906(0, this.oldSlot, this.mc.field_1724.method_31548().field_7545, SlotActionType.field_7791, this.mc.field_1724);
+         this.mc.interactionManager.clickSlot(0, this.oldSlot, this.mc.player.getInventory().selectedSlot, SlotActionType.SWAP, this.mc.player);
          this.oldSlot = -1;
          this.status = false;
       }
@@ -110,15 +110,15 @@ public class AutoTool extends Module {
    }
 
    private int findBestToolSlot() {
-      if (this.mc.field_1765 instanceof BlockHitResult blockHitResult) {
-         BlockPos pos = blockHitResult.method_17777();
-         BlockState state = this.mc.field_1687.method_8320(pos);
+      if (this.mc.crosshairTarget instanceof BlockHitResult blockHitResult) {
+         BlockPos pos = blockHitResult.getBlockPos();
+         BlockState state = this.mc.world.getBlockState(pos);
          int bestSlot = -1;
          float bestSpeed = 1.0F;
 
          for (int slot = 0; slot < 36; slot++) {
-            ItemStack stack = this.mc.field_1724.method_31548().method_5438(slot);
-            float speed = stack.method_7924(state);
+            ItemStack stack = this.mc.player.getInventory().getStack(slot);
+            float speed = stack.getMiningSpeedMultiplier(state);
             if (speed > bestSpeed) {
                bestSpeed = speed;
                bestSlot = slot;
@@ -132,6 +132,6 @@ public class AutoTool extends Module {
    }
 
    private boolean isMousePressed() {
-      return this.mc.field_1765 != null && this.mc.field_1690.field_1886.method_1434();
+      return this.mc.crosshairTarget != null && this.mc.options.attackKey.isPressed();
    }
 }

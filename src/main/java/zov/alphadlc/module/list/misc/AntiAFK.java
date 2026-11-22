@@ -18,10 +18,10 @@ public class AntiAFK extends Module {
 
    @Subscribe
    private void onUpdate(EventPlayerUpdate e) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
+      if (this.mc.player != null && this.mc.world != null) {
          if (this.stopWatch.isReached(10000L)) {
-            this.mc.field_1724.method_6104(Hand.field_5808);
-            this.mc.field_1724.method_6043();
+            this.mc.player.swingHand(Hand.MAIN_HAND);
+            this.mc.player.jump();
             this.stopWatch.reset();
          }
       }

@@ -39,7 +39,7 @@ public class Draggable implements IMinecraft {
    }
 
    public final void onDraw() {
-      if (!(mc.field_1755 instanceof ChatScreen)) {
+      if (!(mc.currentScreen instanceof ChatScreen)) {
          this.updateWobble();
       } else {
          if (this.dragging) {
@@ -47,8 +47,8 @@ public class Draggable implements IMinecraft {
             int mouseY = this.normaliseY();
             this.x = this.roundToHalf((float)mouseX - this.startX);
             this.y = this.roundToHalf((float)mouseY - this.startY);
-            int screenWidth = (int)MathUtil.calc((double)mc.method_22683().method_4486());
-            int screenHeight = (int)MathUtil.calc((double)mc.method_22683().method_4502());
+            int screenWidth = (int)MathUtil.calc((double)mc.getWindow().getScaledWidth());
+            int screenHeight = (int)MathUtil.calc((double)mc.getWindow().getScaledHeight());
             this.x = Math.max(0.0F, Math.min(this.x, (float)screenWidth - this.width));
             this.y = Math.max(0.0F, Math.min(this.y, (float)screenHeight - this.height));
          }
@@ -79,11 +79,11 @@ public class Draggable implements IMinecraft {
    }
 
    public int normaliseX() {
-      return (int)(mc.field_1729.method_1603() / mc.method_22683().method_4495());
+      return (int)(mc.mouse.getX() / mc.getWindow().getScaleFactor());
    }
 
    public int normaliseY() {
-      return (int)(mc.field_1729.method_1604() / mc.method_22683().method_4495());
+      return (int)(mc.mouse.getY() / mc.getWindow().getScaleFactor());
    }
 
    public final void onRelease(int button) {

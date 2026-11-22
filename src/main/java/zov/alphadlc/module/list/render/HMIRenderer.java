@@ -71,16 +71,16 @@ public class HMIRenderer {
    private static final boolean MB3D_COMPAT = false;
 
    private float getEffectivePitch(AbstractClientPlayerEntity player) {
-      float pitch = player.method_36455();
-      if (!player.method_5681() && !player.method_20448() && !player.method_6101()) {
-         boolean nearGround = player.method_24828();
+      float pitch = player.getPitch();
+      if (!player.isSwimming() && !player.isCrawling() && !player.isClimbing()) {
+         boolean nearGround = player.isOnGround();
          if (!nearGround) {
-            double feetY = player.method_23318();
+            double feetY = player.getY();
 
             for (int i = 0; i <= 2; i++) {
-               BlockPos checkPos = BlockPos.method_49637(player.method_23317(), feetY - (double)i, player.method_23321());
-               if (player.method_37908().method_8320(checkPos).method_51367()) {
-                  double dist = feetY - (double)checkPos.method_10264() - 1.0;
+               BlockPos checkPos = BlockPos.ofFloored(player.getX(), feetY - (double)i, player.getZ());
+               if (player.getWorld().getBlockState(checkPos).isSolid()) {
+                  double dist = feetY - (double)checkPos.getY() - 1.0;
                   if (dist <= 1.5) {
                      nearGround = true;
                   }
@@ -92,14 +92,14 @@ public class HMIRenderer {
          if (!nearGround) {
             return pitch;
          } else {
-            for (Entity entity : player.method_37908().method_8335(player, player.method_5829().method_1014(6.0))) {
-               double yDiff = entity.method_23318() - player.method_23318();
+            for (Entity entity : player.getWorld().getOtherEntities(player, player.getBoundingBox().expand(6.0))) {
+               double yDiff = entity.getY() - player.getY();
                if (yDiff < -1.9 || yDiff > 2.5) {
                   return pitch;
                }
             }
 
-            return MathHelper.method_15363(pitch, 35.0F, 48.0F);
+            return MathHelper.clamp(pitch, 35.0F, 48.0F);
          }
       } else {
          return pitch;
@@ -115,7 +115,7 @@ public class HMIRenderer {
       double currentSec = (double)currentTime / 1.0E9;
       deltaTime = currentSec - prevTime;
       prevTime = currentSec;
-      if (MinecraftClient.method_1551().method_1493()) {
+      if (MinecraftClient.getInstance().isPaused()) {
          deltaTime = 0.0;
       } else {
          deltaTime = Math.min(0.05, deltaTime);
@@ -134,12 +134,12 @@ public class HMIRenderer {
 
    private float getAttackDamage(ItemStack stack) {
       float totalDamage = 0.0F;
-      AttributeModifiersComponent modifiers = (AttributeModifiersComponent)stack.method_57824(DataComponentTypes.field_49636);
+      AttributeModifiersComponent modifiers = (AttributeModifiersComponent)stack.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
       if (modifiers == null) {
          return totalDamage;
       } else {
          for (Entry entry : modifiers.comp_2393()) {
-            if (entry.comp_2395().equals(EntityAttributes.field_23721)) {
+            if (entry.comp_2395().equals(EntityAttributes.ATTACK_DAMAGE)) {
                totalDamage += (float)entry.comp_2396().comp_2449();
             }
          }
@@ -149,35 +149,35 @@ public class HMIRenderer {
    }
 
    private void altSwing(MatrixStack matrices, Arm arm, float swingProgress) {
-      int direction = arm == Arm.field_6183 ? 1 : -1;
-      float swingSin = MathHelper.method_15374(swingProgress * (float) Math.PI);
-      matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)direction * (45.0F + swingSin * 0.0F)));
-      matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)direction * -45.0F));
+      int direction = arm == Arm.RIGHT ? 1 : -1;
+      float swingSin = MathHelper.sin(swingProgress * (float) Math.PI);
+      matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)direction * (45.0F + swingSin * 0.0F)));
+      matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)direction * -45.0F));
    }
 
    private boolean isSword(ItemStack stack) {
-      return stack.method_31573(ItemTags.field_42611) ? true : stack.method_7909() instanceof SwordItem;
+      return stack.isIn(ItemTags.SWORDS) ? true : stack.getItem() instanceof SwordItem;
    }
 
    private boolean isTool(ItemStack stack) {
-      return stack.method_31573(ItemTags.field_42612)
-         || stack.method_31573(ItemTags.field_42613)
-         || stack.method_31573(ItemTags.field_42614)
-         || stack.method_31573(ItemTags.field_42615)
+      return stack.isIn(ItemTags.AXES)
+         || stack.isIn(ItemTags.HOES)
+         || stack.isIn(ItemTags.PICKAXES)
+         || stack.isIn(ItemTags.SHOVELS)
          || this.isSword(stack);
    }
 
    private boolean isSmallBlockItem(ItemStack stack) {
-      Block block = Block.method_9503(stack.method_7909());
-      BlockState state = block.method_9564();
-      return stack.method_31574(Items.field_8276)
-         || stack.method_31574(Items.field_8725)
-         || stack.method_31574(Items.field_8865)
-         || stack.method_31574(Items.field_8366)
-         || state.method_26164(BlockTags.field_15490)
-         || state.method_26164(BlockTags.field_15463)
-         || state.method_26164(BlockTags.field_22414)
-         || stack.method_31573(ItemTags.field_15553);
+      Block block = Block.getBlockFromItem(stack.getItem());
+      BlockState state = block.getDefaultState();
+      return stack.isOf(Items.STRING)
+         || stack.isOf(Items.REDSTONE)
+         || stack.isOf(Items.LEVER)
+         || stack.isOf(Items.TRIPWIRE_HOOK)
+         || state.isIn(BlockTags.IMPERMEABLE)
+         || state.isIn(BlockTags.RAILS)
+         || state.isIn(BlockTags.CLIMBABLE)
+         || stack.isIn(ItemTags.DOORS);
    }
 
    public void renderHMI(
@@ -195,42 +195,42 @@ public class HMIRenderer {
       int light
    ) {
       this.updateDeltaTime();
-      boolean useVanillaLike = stack.method_7976() == UseAction.field_8953 || stack.method_7976() == UseAction.field_8951;
+      boolean useVanillaLike = stack.getUseAction() == UseAction.BOW || stack.getUseAction() == UseAction.SPEAR;
       if (useVanillaLike) {
-         boolean bl = hand == Hand.field_5808;
-         Arm arm = bl ? player.method_6068() : player.method_6068().method_5928();
+         boolean bl = hand == Hand.MAIN_HAND;
+         Arm arm = bl ? player.getMainArm() : player.getMainArm().getOpposite();
          float kj = bl ? 1.0F : -1.0F;
-         int l = arm == Arm.field_6183 ? 1 : -1;
-         matrices.method_22903();
+         int l = arm == Arm.RIGHT ? 1 : -1;
+         matrices.push();
          if (this.swingAnimations != null) {
             double vx = this.swingAnimations.hmiPosX.getValue();
             double vy = this.swingAnimations.hmiPosY.getValue();
             double vz = this.swingAnimations.hmiPosZ.getValue();
-            matrices.method_22904(vx * (double)kj, vy, vz);
+            matrices.translate(vx * (double)kj, vy, vz);
          }
 
-         if (player.method_6115() && player.method_6014() > 0 && player.method_6058() == hand) {
-            UseAction useAction = stack.method_7976();
-            if (useAction == UseAction.field_8953) {
-               matrices.method_22903();
-               float m1 = (float)stack.method_7935(player) - ((float)player.method_6014() - tickDelta + 1.0F);
+         if (player.isUsingItem() && player.getItemUseTimeLeft() > 0 && player.getActiveHand() == hand) {
+            UseAction useAction = stack.getUseAction();
+            if (useAction == UseAction.BOW) {
+               matrices.push();
+               float m1 = (float)stack.getMaxUseTime(player) - ((float)player.getItemUseTimeLeft() - tickDelta + 1.0F);
                float f1 = m1 / 20.0F;
                if (f1 > 1.0F) {
                   f1 = 1.0F;
                }
 
                if (f1 > 0.1F) {
-                  float g1 = MathHelper.method_15374((m1 - 0.1F) * 1.3F);
+                  float g1 = MathHelper.sin((m1 - 0.1F) * 1.3F);
                   float j1 = g1 * f1;
-                  matrices.method_46416(j1 * 0.0F, j1 * 0.004F, j1 * 0.0F);
+                  matrices.translate(j1 * 0.0F, j1 * 0.004F, j1 * 0.0F);
                }
 
                acc.invokeApplyItemArmTransform(matrices, arm, equipProgress);
-               matrices.method_46416((float)l * -0.2785682F, 0.18312F, 0.15731531F);
-               matrices.method_22907(RotationAxis.field_40714.rotationDegrees(-13.935F));
-               matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)l * 35.3F));
-               matrices.method_22907(RotationAxis.field_40718.rotationDegrees((float)l * -9.785F));
-               float h = (float)stack.method_7935(player) - ((float)player.method_6014() - tickDelta + 1.0F);
+               matrices.translate((float)l * -0.2785682F, 0.18312F, 0.15731531F);
+               matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-13.935F));
+               matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)l * 35.3F));
+               matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float)l * -9.785F));
+               float h = (float)stack.getMaxUseTime(player) - ((float)player.getItemUseTimeLeft() - tickDelta + 1.0F);
                float g = h / 20.0F;
                g = (g * g + g * 2.0F) / 3.0F;
                if (g > 1.0F) {
@@ -238,47 +238,47 @@ public class HMIRenderer {
                }
 
                if (g > 0.1F) {
-                  float i = MathHelper.method_15374((h - 0.1F) * 1.3F);
+                  float i = MathHelper.sin((h - 0.1F) * 1.3F);
                   float j = g - 0.1F;
                   float k = i * j;
-                  matrices.method_46416(k * 0.0F, k * 0.004F, k * 0.0F);
+                  matrices.translate(k * 0.0F, k * 0.004F, k * 0.0F);
                }
 
-               matrices.method_46416(g * 0.0F, g * 0.0F, g * 0.04F);
-               matrices.method_22905(1.0F, 1.0F, 1.0F + g * 0.2F);
-               matrices.method_22907(RotationAxis.field_40715.rotationDegrees((float)l * 45.0F));
+               matrices.translate(g * 0.0F, g * 0.0F, g * 0.04F);
+               matrices.scale(1.0F, 1.0F, 1.0F + g * 0.2F);
+               matrices.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees((float)l * 45.0F));
                acc.invokeRenderItem(
                   player,
                   stack,
-                  arm == Arm.field_6183 ? ModelTransformationMode.field_4322 : ModelTransformationMode.field_4321,
-                  arm != Arm.field_6183,
+                  arm == Arm.RIGHT ? ModelTransformationMode.FIRST_PERSON_RIGHT_HAND : ModelTransformationMode.FIRST_PERSON_LEFT_HAND,
+                  arm != Arm.RIGHT,
                   matrices,
                   vertexConsumers,
                   light
                );
-               matrices.method_22909();
-            } else if (useAction == UseAction.field_8951) {
+               matrices.pop();
+            } else if (useAction == UseAction.SPEAR) {
                acc.invokeApplyItemArmTransform(matrices, arm, equipProgress);
-               float dt = (float)stack.method_7935(player) - ((float)player.method_6014() - tickDelta + 1.0F);
+               float dt = (float)stack.getMaxUseTime(player) - ((float)player.getItemUseTimeLeft() - tickDelta + 1.0F);
                float f = dt / 10.0F;
                if (f > 1.0F) {
                   f = 1.0F;
                }
 
                if (f > 0.1F) {
-                  float gx = MathHelper.method_15374((dt - 0.1F) * 1.3F);
+                  float gx = MathHelper.sin((dt - 0.1F) * 1.3F);
                   float j = gx * (f - 0.1F);
-                  matrices.method_46416(j * 0.0F, j * 0.004F, j * 0.0F);
+                  matrices.translate(j * 0.0F, j * 0.004F, j * 0.0F);
                }
 
-               matrices.method_46416(0.0F, 0.0F, 0.1F);
-               matrices.method_22907(RotationAxis.field_40714.rotationDegrees(-10.0F));
-               matrices.method_46416(0.0F, 0.0F, -0.1F);
+               matrices.translate(0.0F, 0.0F, 0.1F);
+               matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-10.0F));
+               matrices.translate(0.0F, 0.0F, -0.1F);
                acc.invokeRenderItem(
                   player,
                   stack,
-                  arm == Arm.field_6183 ? ModelTransformationMode.field_4322 : ModelTransformationMode.field_4321,
-                  arm != Arm.field_6183,
+                  arm == Arm.RIGHT ? ModelTransformationMode.FIRST_PERSON_RIGHT_HAND : ModelTransformationMode.FIRST_PERSON_LEFT_HAND,
+                  arm != Arm.RIGHT,
                   matrices,
                   vertexConsumers,
                   light
@@ -287,19 +287,19 @@ public class HMIRenderer {
          } else {
             acc.invokeSwingArm(swingProgress, equipProgress, matrices, bl ? 1 : -1, arm);
             acc.invokeRenderItem(
-               player, stack, bl ? ModelTransformationMode.field_4322 : ModelTransformationMode.field_4321, !bl, matrices, vertexConsumers, light
+               player, stack, bl ? ModelTransformationMode.FIRST_PERSON_RIGHT_HAND : ModelTransformationMode.FIRST_PERSON_LEFT_HAND, !bl, matrices, vertexConsumers, light
             );
          }
 
-         matrices.method_22909();
+         matrices.pop();
       } else {
-         float yaw = player.method_36454();
+         float yaw = player.getYaw();
          double radians = Math.toRadians((double)yaw);
          double forwardX = -Math.sin(radians);
          double forwardZ = Math.cos(radians);
-         Vec3d vel = player.method_18798();
-         double dotProduct = vel.field_1352 * forwardX + vel.field_1350 * forwardZ;
-         double crossProduct = vel.field_1352 * forwardZ - vel.field_1350 * forwardX;
+         Vec3d vel = player.getVelocity();
+         double dotProduct = vel.x * forwardX + vel.z * forwardZ;
+         double crossProduct = vel.x * forwardZ - vel.z * forwardX;
          float effectivePitch = this.getEffectivePitch(player);
          float al = effectivePitch != 0.0F ? 90.0F / effectivePitch / 10.0F : 1.0F;
          if (al > 1.0F) {
@@ -310,8 +310,8 @@ public class HMIRenderer {
             al = 1.0F;
          }
 
-         boolean blx = hand == Hand.field_5808;
-         Arm armx = blx ? player.method_6068() : player.method_6068().method_5928();
+         boolean blx = hand == Hand.MAIN_HAND;
+         Arm armx = blx ? player.getMainArm() : player.getMainArm().getOpposite();
          float kjx = blx ? 1.0F : -1.0F;
          double vx = 0.0;
          double vy = 0.0;
@@ -332,23 +332,23 @@ public class HMIRenderer {
             animSpeed = 8.0;
          }
 
-         matrices.method_22903();
-         matrices.method_22903();
-         matrices.method_22904(vx * (double)kjx, vy, vz);
+         matrices.push();
+         matrices.push();
+         matrices.translate(vx * (double)kjx, vy, vz);
          if (rx != 0.0) {
-            matrices.method_22907(RotationAxis.field_40714.rotationDegrees((float)rx));
+            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees((float)rx));
          }
 
          if (ry != 0.0) {
-            matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)ry * kjx));
+            matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)ry * kjx));
          }
 
          if (rz != 0.0) {
-            matrices.method_22907(RotationAxis.field_40718.rotationDegrees((float)rz * kjx));
+            matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float)rz * kjx));
          }
 
          if (scale != 1.0) {
-            matrices.method_22905((float)scale, (float)scale, (float)scale);
+            matrices.scale((float)scale, (float)scale, (float)scale);
          }
 
          double tt = deltaTime * animSpeed;
@@ -357,27 +357,27 @@ public class HMIRenderer {
             speedMultiplier = (float)(0.5 + this.swingAnimations.speed.getValue() / 10.0 * 2.0);
          }
 
-         if (Block.method_9503(stack.method_7909()) != Blocks.field_10124
+         if (Block.getBlockFromItem(stack.getItem()) != Blocks.AIR
             && (
                !this.isTool(stack)
-                  || stack.method_31573(ItemTags.field_41890)
-                  || stack.method_31573(ItemTags.field_40109)
-                  || stack.method_7976() == UseAction.field_8950
-                  || !stack.method_7923()
+                  || stack.isIn(ItemTags.TRIMMABLE_ARMOR)
+                  || stack.isIn(ItemTags.BOOKSHELF_BOOKS)
+                  || stack.getUseAction() == UseAction.EAT
+                  || !stack.isEnchantable()
             )
-            && stack.method_7976() != UseAction.field_8953
-            && stack.method_7976() != UseAction.field_27079
+            && stack.getUseAction() != UseAction.BOW
+            && stack.getUseAction() != UseAction.SPYGLASS
             && this.getAttackDamage(stack) == 0.0F
-            && stack.method_7976() != UseAction.field_8949
-            && !stack.method_31574(Items.field_23254)
-            && !stack.method_31574(Items.field_8184)
-            && !(stack.method_7909() instanceof FishingRodItem)
-            && !stack.method_31574(Items.field_8868)) {
+            && stack.getUseAction() != UseAction.BLOCK
+            && !stack.isOf(Items.WARPED_FUNGUS_ON_A_STICK)
+            && !stack.isOf(Items.CARROT_ON_A_STICK)
+            && !(stack.getItem() instanceof FishingRodItem)
+            && !stack.isOf(Items.SHEARS)) {
             swingProgress = (float)((double)swingProgress * 0.45 * (double)speedMultiplier);
             if (swingProgress > 1.0F) {
                swingProgress = 0.0F;
             }
-         } else if (!stack.method_31573(ItemTags.field_42615)) {
+         } else if (!stack.isIn(ItemTags.SHOVELS)) {
             swingProgress = (float)((double)swingProgress * 0.45 * (double)speedMultiplier);
             if (swingProgress > 1.0F) {
                swingProgress = 0.0F;
@@ -385,9 +385,9 @@ public class HMIRenderer {
          }
 
          float raw_swing_rot = (double)swingProgress < 0.6
-            ? MathHelper.method_15374(MathHelper.method_15363(swingProgress, 0.0F, 0.12506F) * 12.56F)
-            : MathHelper.method_15374(MathHelper.method_15363(swingProgress, 0.62532F, 0.75038F) * 12.56F);
-         float raw_swing = MathHelper.method_15374(swingProgress * 3.14F);
+            ? MathHelper.sin(MathHelper.clamp(swingProgress, 0.0F, 0.12506F) * 12.56F)
+            : MathHelper.sin(MathHelper.clamp(swingProgress, 0.62532F, 0.75038F) * 12.56F);
+         float raw_swing = MathHelper.sin(swingProgress * 3.14F);
          raw_swing = this.easeInOutBack(raw_swing);
          float swing_rot = raw_swing_rot;
          float swing = raw_swing;
@@ -412,118 +412,118 @@ public class HMIRenderer {
          }
 
          if ((
-               stack.method_31574(Items.field_8287)
-                  || stack.method_31574(Items.field_8803)
-                  || stack.method_31574(Items.field_8449)
-                  || stack.method_31574(Items.field_8543)
-                  || stack.method_31574(Items.field_8634)
-                  || stack.method_7909() instanceof SplashPotionItem
-                  || stack.method_7909() instanceof LingeringPotionItem
+               stack.isOf(Items.EXPERIENCE_BOTTLE)
+                  || stack.isOf(Items.EGG)
+                  || stack.isOf(Items.ENDER_EYE)
+                  || stack.isOf(Items.SNOWBALL)
+                  || stack.isOf(Items.ENDER_PEARL)
+                  || stack.getItem() instanceof SplashPotionItem
+                  || stack.getItem() instanceof LingeringPotionItem
             )
-            && player.method_6079().method_7960()
-            && stack.method_7976() != UseAction.field_8951
-            && !stack.method_31574(Items.field_8814)
-            && !player.method_5681()
-            && !player.method_20448()
-            && !player.method_6101()) {
-            if (player.method_6068() == Arm.field_6182) {
+            && player.getOffHandStack().isEmpty()
+            && stack.getUseAction() != UseAction.SPEAR
+            && !stack.isOf(Items.FIRE_CHARGE)
+            && !player.isSwimming()
+            && !player.isCrawling()
+            && !player.isClimbing()) {
+            if (player.getMainArm() == Arm.LEFT) {
                blx = !blx;
             }
 
             float ll = blx ? 1.0F : -1.0F;
-            matrices.method_22903();
-            matrices.method_22907(RotationAxis.field_40716.rotationDegrees(-25.0F * ll));
-            matrices.method_22907(RotationAxis.field_40714.rotationDegrees(-10.0F));
-            matrices.method_22907(RotationAxis.field_40716.rotationDegrees(25.0F * ll * swing));
-            matrices.method_22907(RotationAxis.field_40714.rotationDegrees(30.0F * swing));
-            matrices.method_22904(-0.15 * (double)ll, 0.1, 0.1);
-            matrices.method_22904(0.0, -0.55 * (double)swing, 0.4 * (double)swing * 3.14F);
-            acc.invokeRenderPlayerArm(matrices, vertexConsumers, light, equipProgress, 0.0F, armx.method_5928());
-            matrices.method_22909();
+            matrices.push();
+            matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-25.0F * ll));
+            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-10.0F));
+            matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(25.0F * ll * swing));
+            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(30.0F * swing));
+            matrices.translate(-0.15 * (double)ll, 0.1, 0.1);
+            matrices.translate(0.0, -0.55 * (double)swing, 0.4 * (double)swing * 3.14F);
+            acc.invokeRenderPlayerArm(matrices, vertexConsumers, light, equipProgress, 0.0F, armx.getOpposite());
+            matrices.pop();
          }
 
          if (this.wasSwinging[handIdx] && this.swingReturnProgress[handIdx] <= 0.0F) {
             this.left = !this.left;
          }
 
-         if (!stack.method_7960()) {
-            if (player.method_6068() == Arm.field_6182) {
+         if (!stack.isEmpty()) {
+            if (player.getMainArm() == Arm.LEFT) {
                blx = !blx;
             }
 
             float ll = blx ? 1.0F : -1.0F;
             if ((
                   this.left
-                     || stack.method_31573(ItemTags.field_42612)
-                     || stack.method_7976() == UseAction.field_8951
-                     || stack.method_7976() == UseAction.field_8949
+                     || stack.isIn(ItemTags.AXES)
+                     || stack.getUseAction() == UseAction.SPEAR
+                     || stack.getUseAction() == UseAction.BLOCK
                )
-               && !stack.method_31573(ItemTags.field_42615)) {
-               if (!this.isSword(stack) && !stack.method_31573(ItemTags.field_42612)) {
-                  if (stack.method_7976() == UseAction.field_8951) {
-                     matrices.method_22904(0.0, 0.0, 0.45 * (double)swing_rot);
-                     matrices.method_22904((double)(-0.25F * kjx * swing), -0.35 * (double)swing_rot, -0.6 * (double)swing);
-                     matrices.method_22904(0.0, 0.1 * (double)swing, 0.0);
-                     matrices.method_22907(RotationAxis.field_40716.rotationDegrees(15.0F * swing_rot * ll));
-                     matrices.method_22907(RotationAxis.field_40718.rotationDegrees(30.0F * swing_rot * ll));
-                  } else if (this.isTool(stack) && stack.method_7976() != UseAction.field_8949 && !stack.method_31573(ItemTags.field_42615)) {
-                     matrices.method_22904(0.1 * (double)ll * (double)swing_rot, 0.1 * (double)swing_rot, (double)(-0.5F * swing));
-                     matrices.method_22907(RotationAxis.field_40713.rotationDegrees(-30.0F * swing_rot));
-                     matrices.method_22907(RotationAxis.field_40718.rotationDegrees(-20.0F * swing_rot * ll));
-                     matrices.method_22907(RotationAxis.field_40713.rotationDegrees(40.0F * swing));
-                  } else if (stack.method_7976() != UseAction.field_8949) {
-                     matrices.method_22904(0.1 * (double)ll * (double)swing_rot, 0.1 * (double)swing_rot, -0.1 * (double)swing);
-                     matrices.method_22907(RotationAxis.field_40713.rotationDegrees(-30.0F * swing_rot));
-                     matrices.method_22907(RotationAxis.field_40718.rotationDegrees(-10.0F * swing_rot * ll));
-                     matrices.method_22907(RotationAxis.field_40713.rotationDegrees(40.0F * swing));
-                     matrices.method_22907(RotationAxis.field_40716.rotationDegrees(10.0F * swing * ll));
+               && !stack.isIn(ItemTags.SHOVELS)) {
+               if (!this.isSword(stack) && !stack.isIn(ItemTags.AXES)) {
+                  if (stack.getUseAction() == UseAction.SPEAR) {
+                     matrices.translate(0.0, 0.0, 0.45 * (double)swing_rot);
+                     matrices.translate((double)(-0.25F * kjx * swing), -0.35 * (double)swing_rot, -0.6 * (double)swing);
+                     matrices.translate(0.0, 0.1 * (double)swing, 0.0);
+                     matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(15.0F * swing_rot * ll));
+                     matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(30.0F * swing_rot * ll));
+                  } else if (this.isTool(stack) && stack.getUseAction() != UseAction.BLOCK && !stack.isIn(ItemTags.SHOVELS)) {
+                     matrices.translate(0.1 * (double)ll * (double)swing_rot, 0.1 * (double)swing_rot, (double)(-0.5F * swing));
+                     matrices.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(-30.0F * swing_rot));
+                     matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(-20.0F * swing_rot * ll));
+                     matrices.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(40.0F * swing));
+                  } else if (stack.getUseAction() != UseAction.BLOCK) {
+                     matrices.translate(0.1 * (double)ll * (double)swing_rot, 0.1 * (double)swing_rot, -0.1 * (double)swing);
+                     matrices.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(-30.0F * swing_rot));
+                     matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(-10.0F * swing_rot * ll));
+                     matrices.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(40.0F * swing));
+                     matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(10.0F * swing * ll));
                   } else {
-                     matrices.method_22904(0.1 * (double)ll * (double)swing_rot, 0.1 * (double)swing_rot, -0.2 * (double)swing);
-                     matrices.method_22907(RotationAxis.field_40713.rotationDegrees(-10.0F * swing_rot));
-                     matrices.method_22907(RotationAxis.field_40718.rotationDegrees(-10.0F * swing_rot * ll));
-                     matrices.method_22907(RotationAxis.field_40713.rotationDegrees(20.0F * swing));
+                     matrices.translate(0.1 * (double)ll * (double)swing_rot, 0.1 * (double)swing_rot, -0.2 * (double)swing);
+                     matrices.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(-10.0F * swing_rot));
+                     matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(-10.0F * swing_rot * ll));
+                     matrices.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(20.0F * swing));
                   }
                } else {
-                  matrices.method_22904(0.8 * (double)ll * (double)swing_rot, 0.3 * (double)swing_rot, (double)(-0.5F * swing));
-                  matrices.method_22907(RotationAxis.field_40716.rotationDegrees(15.0F * swing_rot * ll));
-                  matrices.method_22907(RotationAxis.field_40713.rotationDegrees(-20.0F * swing_rot));
-                  matrices.method_22907(RotationAxis.field_40718.rotationDegrees(-70.0F * swing_rot * ll));
+                  matrices.translate(0.8 * (double)ll * (double)swing_rot, 0.3 * (double)swing_rot, (double)(-0.5F * swing));
+                  matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(15.0F * swing_rot * ll));
+                  matrices.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(-20.0F * swing_rot));
+                  matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(-70.0F * swing_rot * ll));
                   if (this.isSword(stack)) {
-                     matrices.method_22907(RotationAxis.field_40713.rotationDegrees(40.0F * swing));
+                     matrices.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(40.0F * swing));
                   } else {
-                     matrices.method_22907(RotationAxis.field_40713.rotationDegrees(30.0F * swing));
+                     matrices.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(30.0F * swing));
                   }
                }
-            } else if (!stack.method_31573(ItemTags.field_42615)) {
+            } else if (!stack.isIn(ItemTags.SHOVELS)) {
                if (this.isSword(stack)) {
-                  matrices.method_22904(-0.55 * (double)ll * (double)swing_rot, -0.8 * (double)swing_rot, -0.77 * (double)swing);
-                  matrices.method_22907(RotationAxis.field_40716.rotationDegrees(5.0F * swing_rot * ll));
-                  matrices.method_22907(RotationAxis.field_40713.rotationDegrees(-30.0F * swing_rot));
-                  matrices.method_22907(RotationAxis.field_40718.rotationDegrees(70.0F * swing_rot * ll));
-                  matrices.method_22907(RotationAxis.field_40713.rotationDegrees(50.0F * swing));
-               } else if (this.isTool(stack) && !stack.method_31573(ItemTags.field_42615)) {
-                  matrices.method_22904(0.1 * (double)ll * (double)swing_rot, 0.1 * (double)swing_rot, (double)(-0.5F * swing));
-                  matrices.method_22907(RotationAxis.field_40713.rotationDegrees(-30.0F * swing_rot));
-                  matrices.method_22907(RotationAxis.field_40718.rotationDegrees(-20.0F * swing_rot * ll));
-                  matrices.method_22907(RotationAxis.field_40713.rotationDegrees(40.0F * swing));
+                  matrices.translate(-0.55 * (double)ll * (double)swing_rot, -0.8 * (double)swing_rot, -0.77 * (double)swing);
+                  matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(5.0F * swing_rot * ll));
+                  matrices.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(-30.0F * swing_rot));
+                  matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(70.0F * swing_rot * ll));
+                  matrices.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(50.0F * swing));
+               } else if (this.isTool(stack) && !stack.isIn(ItemTags.SHOVELS)) {
+                  matrices.translate(0.1 * (double)ll * (double)swing_rot, 0.1 * (double)swing_rot, (double)(-0.5F * swing));
+                  matrices.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(-30.0F * swing_rot));
+                  matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(-20.0F * swing_rot * ll));
+                  matrices.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(40.0F * swing));
                } else {
-                  matrices.method_22904(0.1 * (double)ll * (double)swing_rot, 0.1 * (double)swing_rot, -0.1 * (double)swing);
-                  matrices.method_22907(RotationAxis.field_40713.rotationDegrees(-30.0F * swing_rot));
-                  matrices.method_22907(RotationAxis.field_40718.rotationDegrees(-10.0F * swing_rot * ll));
-                  matrices.method_22907(RotationAxis.field_40713.rotationDegrees(40.0F * swing));
-                  matrices.method_22907(RotationAxis.field_40716.rotationDegrees(10.0F * swing * ll));
+                  matrices.translate(0.1 * (double)ll * (double)swing_rot, 0.1 * (double)swing_rot, -0.1 * (double)swing);
+                  matrices.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(-30.0F * swing_rot));
+                  matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(-10.0F * swing_rot * ll));
+                  matrices.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(40.0F * swing));
+                  matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(10.0F * swing * ll));
                }
-            } else if (stack.method_31573(ItemTags.field_42615)) {
-               matrices.method_22904(0.0, 0.15 * (double)swing_rot, (double)(-0.25F * swing_rot));
-               matrices.method_22904(0.0, 0.0, -0.2 * (double)swing);
-               matrices.method_22907(RotationAxis.field_40716.rotationDegrees(15.0F * swing_rot));
-               matrices.method_22907(RotationAxis.field_40714.rotationDegrees(-35.0F * swing_rot));
-               matrices.method_22907(RotationAxis.field_40714.rotationDegrees(30.0F * swing));
+            } else if (stack.isIn(ItemTags.SHOVELS)) {
+               matrices.translate(0.0, 0.15 * (double)swing_rot, (double)(-0.25F * swing_rot));
+               matrices.translate(0.0, 0.0, -0.2 * (double)swing);
+               matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(15.0F * swing_rot));
+               matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-35.0F * swing_rot));
+               matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(30.0F * swing));
             }
          }
 
-         if (vel.method_1033() >= 0.08) {
-            this.crawlCount = (float)((double)this.crawlCount + 0.1 * vel.method_1033() * 2.0 * tt);
+         if (vel.length() >= 0.08) {
+            this.crawlCount = (float)((double)this.crawlCount + 0.1 * vel.length() * 2.0 * tt);
             this.directionalCrawlCount = (float)((double)this.directionalCrawlCount + 0.1 * dotProduct * 4.0 * tt);
             this.directionalCrawlCount = (float)(
                (double)this.directionalCrawlCount
@@ -531,49 +531,49 @@ public class HMIRenderer {
             );
          }
 
-         if (vel.field_1351 > 0.0) {
+         if (vel.y > 0.0) {
             this.climbCount = (float)((double)this.climbCount + 0.1 * tt);
          }
 
-         if (vel.field_1351 < 0.0) {
+         if (vel.y < 0.0) {
             this.climbCount = (float)((double)this.climbCount - 0.1 * tt);
          }
 
-         if ((player.method_20448() || player.method_6101() && !player.method_24828() && Math.abs(vel.field_1351) > 0.0)
-            && !player.method_6115()
+         if ((player.isCrawling() || player.isClimbing() && !player.isOnGround() && Math.abs(vel.y) > 0.0)
+            && !player.isUsingItem()
             && swingProgress == 0.0F) {
             this.clCount = (float)((double)this.clCount + 0.1 * tt);
             if (this.clCount > 1.0F) {
                this.clCount = 1.0F;
             }
 
-            if (!stack.method_31574(Items.field_16539) && !stack.method_31574(Items.field_22016)) {
-               matrices.method_22907(RotationAxis.field_40714.rotationDegrees(-20.0F * this.clCount));
+            if (!stack.isOf(Items.LANTERN) && !stack.isOf(Items.SOUL_LANTERN)) {
+               matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-20.0F * this.clCount));
             }
          } else {
             this.clCount = (float)((double)this.clCount * Math.pow(0.88F, tt));
          }
 
          if (swingProgress == 0.0F) {
-            matrices.method_46416(blx ? effectivePitch / 650.0F * this.clCount * -1.0F : effectivePitch / 650.0F * this.clCount, 0.0F, 0.0F);
-            matrices.method_22907(RotationAxis.field_40714.rotationDegrees(effectivePitch * this.clCount));
+            matrices.translate(blx ? effectivePitch / 650.0F * this.clCount * -1.0F : effectivePitch / 650.0F * this.clCount, 0.0F, 0.0F);
+            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(effectivePitch * this.clCount));
          }
 
-         if (!stack.method_31574(Items.field_16539) && !stack.method_31574(Items.field_22016)) {
-            matrices.method_46416(0.0F, 0.0F, effectivePitch / 120.0F * this.clCount);
+         if (!stack.isOf(Items.LANTERN) && !stack.isOf(Items.SOUL_LANTERN)) {
+            matrices.translate(0.0F, 0.0F, effectivePitch / 120.0F * this.clCount);
          } else if (swingProgress == 0.0F) {
-            matrices.method_46416(0.0F, 0.0F, effectivePitch / 80.0F * this.clCount);
+            matrices.translate(0.0F, 0.0F, effectivePitch / 80.0F * this.clCount);
          }
 
-         if (player.method_6101()
-            && !player.method_24828()
-            && !stack.method_31574(Items.field_16539)
-            && !stack.method_31574(Items.field_22016)
-            && !player.method_6115()) {
-            matrices.method_22904(0.0, 0.1, -0.2);
+         if (player.isClimbing()
+            && !player.isOnGround()
+            && !stack.isOf(Items.LANTERN)
+            && !stack.isOf(Items.SOUL_LANTERN)
+            && !player.isUsingItem()) {
+            matrices.translate(0.0, 0.1, -0.2);
          }
 
-         if ((player.method_5799() || player.method_32314()) && !player.method_5681() && !player.method_5869()) {
+         if ((player.isTouchingWater() || player.isFrozen()) && !player.isSwimming() && !player.isSubmergedInWater()) {
             this.inWaterCounter = (float)((double)this.inWaterCounter + 0.1 * tt);
             if (this.inWaterCounter >= 1.0F) {
                this.inWaterCounter = 1.0F;
@@ -582,17 +582,17 @@ public class HMIRenderer {
             this.inWaterCounter = (float)((double)this.inWaterCounter * Math.pow(0.88F, tt));
          }
 
-         float freezingScale = MathHelper.method_15363((float)player.method_32312() / (float)player.method_32315(), 0.0F, 1.0F);
-         if (player.method_32314() && (double)freezingScale > 0.1) {
+         float freezingScale = MathHelper.clamp((float)player.getFrozenTicks() / (float)player.getMinFreezeDamageTicks(), 0.0F, 1.0F);
+         if (player.isFrozen() && (double)freezingScale > 0.1) {
             this.freezeCounter = (float)((double)this.freezeCounter + 0.1 * tt);
          } else {
             this.freezeCounter = (float)((double)this.freezeCounter * Math.pow(0.88F, tt));
          }
 
-         matrices.method_22904(0.0, 0.02 * (double)this.inWaterCounter, 0.0);
-         matrices.method_22907(RotationAxis.field_40718.rotationDegrees(8.0F * kjx * this.inWaterCounter));
-         matrices.method_22907(RotationAxis.field_40714.rotationDegrees(0.3F * MathHelper.method_15374(this.freezeCounter * 5.0F)));
-         if (vel.field_1351 < -0.85 && stack.method_31574(Items.field_49814) && player.method_6047() == stack) {
+         matrices.translate(0.0, 0.02 * (double)this.inWaterCounter, 0.0);
+         matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(8.0F * kjx * this.inWaterCounter));
+         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(0.3F * MathHelper.sin(this.freezeCounter * 5.0F)));
+         if (vel.y < -0.85 && stack.isOf(Items.MACE) && player.getMainHandStack() == stack) {
             this.fallCounter = (float)((double)this.fallCounter + 0.1 * tt);
             if (this.fallCounter >= 1.0F) {
                this.fallCounter = 1.0F;
@@ -602,136 +602,136 @@ public class HMIRenderer {
          }
 
          if (blx) {
-            matrices.method_22907(RotationAxis.field_40714.rotationDegrees(45.0F * this.fallCounter));
-            matrices.method_22904(0.0, -0.2 * (double)this.fallCounter, 0.0);
+            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(45.0F * this.fallCounter));
+            matrices.translate(0.0, -0.2 * (double)this.fallCounter, 0.0);
          }
 
-         this.vertAngleY = (float)((double)this.vertAngleY + vel.field_1351 * 0.015F * tt);
+         this.vertAngleY = (float)((double)this.vertAngleY + vel.y * 0.015F * tt);
          this.vertAngleY = (float)((double)this.vertAngleY - (double)(0.1F * this.vertAngleY) * tt);
          this.vertAngleY = (float)((double)this.vertAngleY * Math.pow(0.88F, tt));
-         this.vertVelocityYSlime = (float)((double)this.vertVelocityYSlime + vel.field_1351 * 0.015F * tt);
+         this.vertVelocityYSlime = (float)((double)this.vertVelocityYSlime + vel.y * 0.015F * tt);
          this.vertVelocityYSlime = (float)((double)this.vertVelocityYSlime - (double)(0.1F * this.vertAngleYSlime) * tt);
          this.vertVelocityYSlime = (float)((double)this.vertVelocityYSlime * Math.pow(0.88F, tt));
          this.vertAngleYSlime = (float)((double)this.vertAngleYSlime + (double)this.vertVelocityYSlime * tt);
-         matrices.method_46416(0.0F, this.vertAngleY * -1.0F, 0.0F);
-         matrices.method_22904(0.0, Math.sin((double)player.field_6012 * 0.1) * 0.007 * (double)kjx, 0.0);
-         matrices.method_22907(RotationAxis.field_40716.rotationDegrees(0.15F * MathHelper.method_15374((float)player.field_6012 * 0.15F) * kjx));
-         if (!stack.method_7960() || player.method_20448() || player.method_6101() && !player.method_24828() || player.method_5681()) {
-            if (player.method_6068() == Arm.field_6182) {
+         matrices.translate(0.0F, this.vertAngleY * -1.0F, 0.0F);
+         matrices.translate(0.0, Math.sin((double)player.age * 0.1) * 0.007 * (double)kjx, 0.0);
+         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(0.15F * MathHelper.sin((float)player.age * 0.15F) * kjx));
+         if (!stack.isEmpty() || player.isCrawling() || player.isClimbing() && !player.isOnGround() || player.isSwimming()) {
+            if (player.getMainArm() == Arm.LEFT) {
                blx = !blx;
             }
 
-            if (stack.method_7976() == UseAction.field_8949) {
-               matrices.method_46416(0.0F, 0.0F, 0.0F);
+            if (stack.getUseAction() == UseAction.BLOCK) {
+               matrices.translate(0.0F, 0.0F, 0.0F);
             } else {
-               matrices.method_22904(0.0, -0.1, 0.1);
+               matrices.translate(0.0, -0.1, 0.1);
             }
          }
 
-         if (stack.method_31574(Items.field_16539) || stack.method_31574(Items.field_22016) || stack.method_31573(ItemTags.field_40108)) {
-            matrices.method_22904(0.0, 0.1, 0.0);
-            if (player.method_5681()) {
-               matrices.method_22904(0.0, -0.1, 0.1);
+         if (stack.isOf(Items.LANTERN) || stack.isOf(Items.SOUL_LANTERN) || stack.isIn(ItemTags.HANGING_SIGNS)) {
+            matrices.translate(0.0, 0.1, 0.0);
+            if (player.isSwimming()) {
+               matrices.translate(0.0, -0.1, 0.1);
             }
          }
 
-         if (player.method_5681() && swingProgress == 0.0F) {
-            double s = (double)((float)player.field_6012 + tickDelta) * 0.1 * 2.0;
+         if (player.isSwimming() && swingProgress == 0.0F) {
+            double s = (double)((float)player.age + tickDelta) * 0.1 * 2.0;
             double handRotation = Math.sin(s) * 1.5;
             double smoothRotation = handRotation * 0.8 + this.previousRotation * 0.2;
-            matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)(blx ? smoothRotation : -smoothRotation)));
-            matrices.method_46416(0.0F, 0.0F, (float)(smoothRotation * 0.2));
-            double k = (double)((float)player.field_6012 + tickDelta) * 0.2;
+            matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)(blx ? smoothRotation : -smoothRotation)));
+            matrices.translate(0.0F, 0.0F, (float)(smoothRotation * 0.2));
+            double k = (double)((float)player.age + tickDelta) * 0.2;
             double a = Math.cos(k);
             double b = a <= 0.0 ? a * 0.5 : a;
-            matrices.method_22907(RotationAxis.field_40715.rotationDegrees((float)(blx ? b * 30.0 : b * -30.0)));
-            matrices.method_46416(0.0F, 0.0F, (float)(a * 0.2));
-            if (stack.method_7960() && !blx && !player.method_5767()) {
+            matrices.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees((float)(blx ? b * 30.0 : b * -30.0)));
+            matrices.translate(0.0F, 0.0F, (float)(a * 0.2));
+            if (stack.isEmpty() && !blx && !player.isInvisible()) {
                float j1 = blx ? 1.0F : -1.0F;
-               matrices.method_22904((double)j1, 0.0 - (double)equipProgress * 0.3, 0.3);
-               matrices.method_22907(RotationAxis.field_40716.rotationDegrees(45.0F * j1));
-               matrices.method_22907(RotationAxis.field_40718.rotationDegrees(-40.0F * j1));
-               matrices.method_22907(RotationAxis.field_40714.rotationDegrees(30.0F));
+               matrices.translate((double)j1, 0.0 - (double)equipProgress * 0.3, 0.3);
+               matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(45.0F * j1));
+               matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(-40.0F * j1));
+               matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(30.0F));
                this.altSwing(matrices, armx, swingProgress);
-               matrices.method_22905(0.9F, 0.9F, 0.9F);
+               matrices.scale(0.9F, 0.9F, 0.9F);
                acc.invokeRenderPlayerArm(matrices, vertexConsumers, light, 0.0F, 0.0F, armx);
             }
 
             this.previousRotation = smoothRotation;
          }
 
-         if ((player.method_6101() && !player.method_24828() || player.method_20448() && swingProgress == 0.0F) && !player.method_6115()) {
-            double s = (double)((float)player.field_6012 + tickDelta) * 0.1;
-            float hx = MathHelper.method_15362((float)s * 2.0F);
+         if ((player.isClimbing() && !player.isOnGround() || player.isCrawling() && swingProgress == 0.0F) && !player.isUsingItem()) {
+            double s = (double)((float)player.age + tickDelta) * 0.1;
+            float hx = MathHelper.cos((float)s * 2.0F);
             float j = blx ? 1.0F : -1.0F;
-            if (player.method_6101()) {
-               if (!stack.method_31574(Items.field_16539) && !stack.method_31574(Items.field_22016)) {
-                  matrices.method_22907(RotationAxis.field_40714.rotationDegrees(20.0F * hx * j));
+            if (player.isClimbing()) {
+               if (!stack.isOf(Items.LANTERN) && !stack.isOf(Items.SOUL_LANTERN)) {
+                  matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(20.0F * hx * j));
                } else {
-                  matrices.method_22907(RotationAxis.field_40714.rotationDegrees(1.0F * hx * j));
+                  matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(1.0F * hx * j));
                }
             }
 
-            if (player.method_20448() && !player.method_6115() && swingProgress == 0.0F) {
-               float timeValue = ((float)player.field_6012 + tickDelta) * 0.4F;
-               float lx = MathHelper.method_15374(timeValue * this.mouseHolding);
-               float dtx = MathHelper.method_15362(timeValue * this.mouseHolding);
-               if (stack.method_31574(Items.field_16539) || stack.method_31574(Items.field_22016)) {
+            if (player.isCrawling() && !player.isUsingItem() && swingProgress == 0.0F) {
+               float timeValue = ((float)player.age + tickDelta) * 0.4F;
+               float lx = MathHelper.sin(timeValue * this.mouseHolding);
+               float dtx = MathHelper.cos(timeValue * this.mouseHolding);
+               if (stack.isOf(Items.LANTERN) || stack.isOf(Items.SOUL_LANTERN)) {
                   lx *= 0.14F;
                   dtx *= 0.14F;
                }
 
-               matrices.method_22904(0.2 * (double)lx, 0.3 * (double)lx * (double)j, -0.2 * (double)lx * (double)j * (double)al);
-               matrices.method_22907(RotationAxis.field_40716.rotationDegrees(25.0F * lx));
-               matrices.method_22907(RotationAxis.field_40714.rotationDegrees(MathHelper.method_15363(20.0F * dtx * j, 0.0F, 20.0F)));
+               matrices.translate(0.2 * (double)lx, 0.3 * (double)lx * (double)j, -0.2 * (double)lx * (double)j * (double)al);
+               matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(25.0F * lx));
+               matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(MathHelper.clamp(20.0F * dtx * j, 0.0F, 20.0F)));
             }
 
-            if (stack.method_7960() && !blx && !player.method_5767() && (!player.method_24828() && player.method_6101() || player.method_20448())) {
+            if (stack.isEmpty() && !blx && !player.isInvisible() && (!player.isOnGround() && player.isClimbing() || player.isCrawling())) {
                float lx = blx ? 1.0F : -1.0F;
-               matrices.method_22904((double)lx, 0.0 - (double)equipProgress * 0.3, 0.3);
-               matrices.method_22907(RotationAxis.field_40716.rotationDegrees(45.0F * lx));
-               matrices.method_22907(RotationAxis.field_40718.rotationDegrees(-40.0F * lx));
-               matrices.method_22907(RotationAxis.field_40714.rotationDegrees(30.0F));
+               matrices.translate((double)lx, 0.0 - (double)equipProgress * 0.3, 0.3);
+               matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(45.0F * lx));
+               matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(-40.0F * lx));
+               matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(30.0F));
                this.altSwing(matrices, armx, swingProgress);
-               matrices.method_22905(0.9F, 0.9F, 0.9F);
+               matrices.scale(0.9F, 0.9F, 0.9F);
                acc.invokeRenderPlayerArm(matrices, vertexConsumers, light, 0.0F, 0.0F, armx);
             }
          }
 
-         if (stack.method_7960()) {
-            if (blx && !player.method_5767()) {
+         if (stack.isEmpty()) {
+            if (blx && !player.isInvisible()) {
                float ll = blx ? 1.0F : -1.0F;
-               if ((player.method_24828() || !player.method_6101()) && !player.method_5681() && !player.method_20448()) {
-                  if (player.method_6068() == Arm.field_6182) {
+               if ((player.isOnGround() || !player.isClimbing()) && !player.isSwimming() && !player.isCrawling()) {
+                  if (player.getMainArm() == Arm.LEFT) {
                      blx = !blx;
                   }
 
-                  matrices.method_22904(0.0, 0.2 * (double)swing_rot, 0.15 * (double)swing_rot);
-                  matrices.method_22904(0.1 * (double)ll * (double)swing, 0.15 * (double)swing, -0.45 * (double)swing);
-                  matrices.method_22907(RotationAxis.field_40716.rotationDegrees(35.0F * swing * ll));
-                  matrices.method_22907(RotationAxis.field_40714.rotationDegrees(-30.0F * swing));
-                  matrices.method_22907(RotationAxis.field_40716.rotationDegrees(-10.0F * swing_rot * ll));
-                  matrices.method_22907(RotationAxis.field_40714.rotationDegrees(10.0F * swing_rot));
+                  matrices.translate(0.0, 0.2 * (double)swing_rot, 0.15 * (double)swing_rot);
+                  matrices.translate(0.1 * (double)ll * (double)swing, 0.15 * (double)swing, -0.45 * (double)swing);
+                  matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(35.0F * swing * ll));
+                  matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-30.0F * swing));
+                  matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-10.0F * swing_rot * ll));
+                  matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(10.0F * swing_rot));
                   acc.invokeRenderPlayerArm(matrices, vertexConsumers, light, 0.0F, 0.0F, armx);
                } else {
-                  matrices.method_22904((double)ll, 0.0 - (double)equipProgress * 0.3, 0.3);
-                  matrices.method_22907(RotationAxis.field_40716.rotationDegrees(45.0F * ll));
-                  matrices.method_22907(RotationAxis.field_40718.rotationDegrees(-40.0F * ll));
-                  matrices.method_22907(RotationAxis.field_40714.rotationDegrees(30.0F));
+                  matrices.translate((double)ll, 0.0 - (double)equipProgress * 0.3, 0.3);
+                  matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(45.0F * ll));
+                  matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(-40.0F * ll));
+                  matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(30.0F));
                   this.altSwing(matrices, armx, swingProgress);
-                  matrices.method_22905(0.9F, 0.9F, 0.9F);
+                  matrices.scale(0.9F, 0.9F, 0.9F);
                   acc.invokeRenderPlayerArm(matrices, vertexConsumers, light, 0.0F, 0.0F, armx);
                }
             }
-         } else if (stack.method_57826(DataComponentTypes.field_49646)) {
-            if (blx && acc.getOffHand().method_7960()) {
-               matrices.method_22904(0.0, 0.1, 0.0);
+         } else if (stack.contains(DataComponentTypes.MAP_ID)) {
+            if (blx && acc.getOffHand().isEmpty()) {
+               matrices.translate(0.0, 0.1, 0.0);
                acc.invokeRenderTwoHandedMap(matrices, vertexConsumers, light, pitch, equipProgress, swingProgress);
             } else {
-               matrices.method_46416(blx ? -0.1F : 0.1F, 0.1F, 0.0F);
+               matrices.translate(blx ? -0.1F : 0.1F, 0.1F, 0.0F);
                acc.invokeRenderOneHandedMap(matrices, vertexConsumers, light, equipProgress, armx, swingProgress, stack);
             }
-         } else if (stack.method_7976() == UseAction.field_8947) {
+         } else if (stack.getUseAction() == UseAction.CROSSBOW) {
             this.renderCrossbow(acc, player, tickDelta, pitch, hand, swingProgress, stack, equipProgress, matrices, vertexConsumers, light, blx, armx, kjx);
          } else {
             this.renderGeneralItem(
@@ -739,9 +739,9 @@ public class HMIRenderer {
             );
          }
 
-         matrices.method_22909();
-         matrices.method_22909();
-         this.isAttacking = MinecraftClient.method_1551().field_1690.field_1886.method_1434();
+         matrices.pop();
+         matrices.pop();
+         this.isAttacking = MinecraftClient.getInstance().options.attackKey.isPressed();
       }
    }
 
@@ -761,75 +761,75 @@ public class HMIRenderer {
       Arm arm,
       float kj
    ) {
-      matrices.method_22903();
-      boolean bl2 = arm == Arm.field_6183;
+      matrices.push();
+      boolean bl2 = arm == Arm.RIGHT;
       int i = bl2 ? 1 : -1;
-      if (player.method_6115() && player.method_6014() > 0 && player.method_6058() == hand) {
+      if (player.isUsingItem() && player.getItemUseTimeLeft() > 0 && player.getActiveHand() == hand) {
          acc.invokeApplyItemArmTransform(matrices, arm, equipProgress);
-         matrices.method_46416((float)i * -0.4785682F, -0.24387F, 0.05731531F);
-         matrices.method_22907(RotationAxis.field_40714.rotationDegrees(-11.935F));
-         matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)i * 65.3F));
-         matrices.method_22907(RotationAxis.field_40718.rotationDegrees((float)i * 9.785F));
-         float f = (float)stack.method_7935(player) - ((float)player.method_6014() - tickDelta + 1.0F);
-         float g = f / (float)CrossbowItem.method_7775(stack, player);
+         matrices.translate((float)i * -0.4785682F, -0.24387F, 0.05731531F);
+         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-11.935F));
+         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)i * 65.3F));
+         matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float)i * 9.785F));
+         float f = (float)stack.getMaxUseTime(player) - ((float)player.getItemUseTimeLeft() - tickDelta + 1.0F);
+         float g = f / (float)CrossbowItem.getPullTime(stack, player);
          if (g > 1.0F) {
             g = 1.0F;
          }
 
          if (g > 0.1F) {
-            float h = MathHelper.method_15374((f - 0.1F) * 1.3F);
+            float h = MathHelper.sin((f - 0.1F) * 1.3F);
             float yawDelta = h * (g - 0.1F);
-            matrices.method_46416(yawDelta * 0.0F, yawDelta * 0.004F, yawDelta * 0.0F);
+            matrices.translate(yawDelta * 0.0F, yawDelta * 0.004F, yawDelta * 0.0F);
          }
 
-         matrices.method_46416(g * 0.0F, g * 0.0F, g * 0.04F);
-         matrices.method_22905(1.0F, 1.0F, 1.0F);
-         matrices.method_22907(RotationAxis.field_40715.rotationDegrees((float)i * 45.0F));
+         matrices.translate(g * 0.0F, g * 0.0F, g * 0.04F);
+         matrices.scale(1.0F, 1.0F, 1.0F);
+         matrices.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees((float)i * 45.0F));
       } else {
          acc.invokeSwingArm(swingProgress, equipProgress, matrices, i, arm);
-         if (CrossbowItem.method_7781(stack) && swingProgress < 0.001F && bl) {
-            matrices.method_46416((float)i * -0.341864F, 0.0F, 0.0F);
-            matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)i * 10.0F));
+         if (CrossbowItem.isCharged(stack) && swingProgress < 0.001F && bl) {
+            matrices.translate((float)i * -0.341864F, 0.0F, 0.0F);
+            matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)i * 10.0F));
          }
       }
 
       float yawDelta = bl ? 1.0F : -1.0F;
-      matrices.method_46416(0.0F, 0.0F, -1.0F);
-      matrices.method_22904(-0.45 * (double)i, 0.45, 1.7);
-      matrices.method_22904((double)yawDelta, 0.0 - (double)equipProgress * 0.3, 0.3);
-      matrices.method_22907(RotationAxis.field_40716.rotationDegrees(45.0F * yawDelta));
-      matrices.method_22907(RotationAxis.field_40718.rotationDegrees(-40.0F * yawDelta));
-      matrices.method_22907(RotationAxis.field_40714.rotationDegrees(30.0F));
+      matrices.translate(0.0F, 0.0F, -1.0F);
+      matrices.translate(-0.45 * (double)i, 0.45, 1.7);
+      matrices.translate((double)yawDelta, 0.0 - (double)equipProgress * 0.3, 0.3);
+      matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(45.0F * yawDelta));
+      matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(-40.0F * yawDelta));
+      matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(30.0F));
       this.altSwing(matrices, arm, swingProgress);
-      matrices.method_22905(0.9F, 0.9F, 0.9F);
+      matrices.scale(0.9F, 0.9F, 0.9F);
       acc.invokeRenderPlayerArm(matrices, vertexConsumers, light, 0.0F, 0.0F, arm);
-      matrices.method_22904((double)(-0.25F * (float)i), 1.25, 0.05);
-      matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)(-90 * i)));
-      matrices.method_22907(RotationAxis.field_40714.rotationDegrees(77.0F));
-      matrices.method_22907(RotationAxis.field_40718.rotationDegrees((float)(85 * i)));
-      matrices.method_22905(1.2F, 1.2F, 1.2F);
-      matrices.method_22907(RotationAxis.field_40714.rotationDegrees(-10.0F));
-      matrices.method_22904(0.0, -0.15, 0.15);
-      acc.invokeRenderItem(player, stack, bl2 ? ModelTransformationMode.field_4322 : ModelTransformationMode.field_4321, !bl2, matrices, vertexConsumers, light);
-      matrices.method_22909();
-      if (player.method_6115() && player.method_6014() > 0 && player.method_6058() == hand) {
-         float fx = (float)stack.method_7935(player) - ((float)player.method_6014() - tickDelta + 1.0F);
-         float gx = fx / (float)CrossbowItem.method_7775(stack, player);
+      matrices.translate((double)(-0.25F * (float)i), 1.25, 0.05);
+      matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)(-90 * i)));
+      matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(77.0F));
+      matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float)(85 * i)));
+      matrices.scale(1.2F, 1.2F, 1.2F);
+      matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-10.0F));
+      matrices.translate(0.0, -0.15, 0.15);
+      acc.invokeRenderItem(player, stack, bl2 ? ModelTransformationMode.FIRST_PERSON_RIGHT_HAND : ModelTransformationMode.FIRST_PERSON_LEFT_HAND, !bl2, matrices, vertexConsumers, light);
+      matrices.pop();
+      if (player.isUsingItem() && player.getItemUseTimeLeft() > 0 && player.getActiveHand() == hand) {
+         float fx = (float)stack.getMaxUseTime(player) - ((float)player.getItemUseTimeLeft() - tickDelta + 1.0F);
+         float gx = fx / (float)CrossbowItem.getPullTime(stack, player);
          if (gx > 1.0F) {
             gx = 1.0F;
          }
 
          if (gx > 0.1F) {
-            float h = MathHelper.method_15374((fx - 0.1F) * 1.3F);
+            float h = MathHelper.sin((fx - 0.1F) * 1.3F);
             float k = h * (gx - 0.1F);
-            matrices.method_46416(k * 0.0F, k * 0.004F, k * 0.0F);
+            matrices.translate(k * 0.0F, k * 0.004F, k * 0.0F);
          }
 
-         matrices.method_22907(RotationAxis.field_40715.rotationDegrees((double)gx <= 0.2 ? 75.0F * gx * 5.0F * (float)i : (float)(75 * i)));
-         matrices.method_22907(RotationAxis.field_40713.rotationDegrees(10.0F * gx * 1.5F));
-         matrices.method_22904(-0.37 * (double)i, 0.0, 0.6);
-         matrices.method_22904(0.15 * (double)gx * (double)i, 0.0, 0.0);
-         acc.invokeRenderPlayerArm(matrices, vertexConsumers, light, equipProgress, swingProgress, arm.method_5928());
+         matrices.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees((double)gx <= 0.2 ? 75.0F * gx * 5.0F * (float)i : (float)(75 * i)));
+         matrices.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(10.0F * gx * 1.5F));
+         matrices.translate(-0.37 * (double)i, 0.0, 0.6);
+         matrices.translate(0.15 * (double)gx * (double)i, 0.0, 0.0);
+         acc.invokeRenderPlayerArm(matrices, vertexConsumers, light, equipProgress, swingProgress, arm.getOpposite());
       }
    }
 
@@ -852,151 +852,151 @@ public class HMIRenderer {
       float swing,
       float swing_rot
    ) {
-      boolean bl2 = arm == Arm.field_6183;
+      boolean bl2 = arm == Arm.RIGHT;
       int l = bl2 ? 1 : -1;
-      if (player.method_6115() && player.method_6014() > 0 && player.method_6058() == hand) {
+      if (player.isUsingItem() && player.getItemUseTimeLeft() > 0 && player.getActiveHand() == hand) {
          this.renderUsingItem(
             acc, player, tickDelta, hand, swingProgress, stack, equipProgress, matrices, vertexConsumers, light, bl, arm, kj, l, tt, swing, swing_rot
          );
-      } else if (player.method_6123() && stack.method_7976() == UseAction.field_8951) {
+      } else if (player.isUsingRiptide() && stack.getUseAction() == UseAction.SPEAR) {
          this.riptideCounter = (float)((double)this.riptideCounter + 0.15 * tt);
-         float dt = (float)stack.method_7935(player) - ((float)player.method_6014() - tickDelta + 1.0F);
+         float dt = (float)stack.getMaxUseTime(player) - ((float)player.getItemUseTimeLeft() - tickDelta + 1.0F);
          float f = dt / 10.0F;
          if (f > 1.0F) {
             f = 1.0F;
          }
 
          if (f > 0.1F) {
-            float g = MathHelper.method_15374((dt - 0.1F) * 1.3F);
+            float g = MathHelper.sin((dt - 0.1F) * 1.3F);
             float j = g * (f - 0.1F);
-            matrices.method_46416(j * 0.0F, j * 0.004F, j * 0.0F);
+            matrices.translate(j * 0.0F, j * 0.004F, j * 0.0F);
          }
 
-         matrices.method_22907(RotationAxis.field_40714.rotationDegrees(45.0F - this.riptideCounter * 2.0F));
-         matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)(25 * l)));
-         matrices.method_22904(0.2 * (double)l, 0.0, 0.75);
-         matrices.method_22904(0.0, 0.0, 0.01 * (double)MathHelper.method_15374(this.riptideCounter * 6.28F));
+         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(45.0F - this.riptideCounter * 2.0F));
+         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)(25 * l)));
+         matrices.translate(0.2 * (double)l, 0.0, 0.75);
+         matrices.translate(0.0, 0.0, 0.01 * (double)MathHelper.sin(this.riptideCounter * 6.28F));
          acc.invokeRenderPlayerArm(matrices, vertexConsumers, light, equipProgress, swingProgress, arm);
-         matrices.method_22907(RotationAxis.field_40714.rotationDegrees(135.0F));
-         matrices.method_22907(RotationAxis.field_40718.rotationDegrees((float)(-65 * l)));
-         matrices.method_22904((double)(0.65F * (float)l), -1.0, -0.6);
+         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(135.0F));
+         matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float)(-65 * l)));
+         matrices.translate((double)(0.65F * (float)l), -1.0, -0.6);
       } else {
          this.riptideCounter = 0.0F;
-         if (!stack.method_31574(Items.field_16539) && !stack.method_31574(Items.field_22016) && !stack.method_31573(ItemTags.field_40108)) {
-            if (stack.method_7976() == UseAction.field_8949) {
-               matrices.method_22904(0.0, -0.2, 0.0);
+         if (!stack.isOf(Items.LANTERN) && !stack.isOf(Items.SOUL_LANTERN) && !stack.isIn(ItemTags.HANGING_SIGNS)) {
+            if (stack.getUseAction() == UseAction.BLOCK) {
+               matrices.translate(0.0, -0.2, 0.0);
             }
          } else {
-            matrices.method_22904(0.1 * (double)l, 0.0, -0.1);
-            matrices.method_22907(RotationAxis.field_40714.rotationDegrees(10.0F));
+            matrices.translate(0.1 * (double)l, 0.0, -0.1);
+            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(10.0F));
          }
 
-         matrices.method_22904((double)l, 0.0 - (double)equipProgress * 0.3, 0.3);
-         matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)(45 * l)));
-         matrices.method_22907(RotationAxis.field_40718.rotationDegrees((float)(-40 * l)));
-         matrices.method_22907(RotationAxis.field_40714.rotationDegrees(30.0F));
+         matrices.translate((double)l, 0.0 - (double)equipProgress * 0.3, 0.3);
+         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)(45 * l)));
+         matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float)(-40 * l)));
+         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(30.0F));
          this.altSwing(matrices, arm, swingProgress);
-         matrices.method_22905(0.9F, 0.9F, 0.9F);
+         matrices.scale(0.9F, 0.9F, 0.9F);
          acc.invokeRenderPlayerArm(matrices, vertexConsumers, light, 0.0F, 0.0F, arm);
       }
 
-      if (player.method_6115() && player.method_6014() > 0 && player.method_6058() == hand && stack.method_7976() == UseAction.field_8953) {
-         matrices.method_22907(RotationAxis.field_40714.rotationDegrees(75.0F));
-         matrices.method_22907(RotationAxis.field_40717.rotationDegrees((float)(-15 * l)));
-         matrices.method_22904(0.8 * (double)l, (double)(0.0F - equipProgress * 0.3F), -0.1);
+      if (player.isUsingItem() && player.getItemUseTimeLeft() > 0 && player.getActiveHand() == hand && stack.getUseAction() == UseAction.BOW) {
+         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(75.0F));
+         matrices.multiply(RotationAxis.NEGATIVE_Z.rotationDegrees((float)(-15 * l)));
+         matrices.translate(0.8 * (double)l, (double)(0.0F - equipProgress * 0.3F), -0.1);
       } else {
-         matrices.method_22904(-0.3 * (double)l, 0.65, -0.1);
-         matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)(-65 * l)));
-         matrices.method_22907(RotationAxis.field_40714.rotationDegrees(10.0F));
+         matrices.translate(-0.3 * (double)l, 0.65, -0.1);
+         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)(-65 * l)));
+         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(10.0F));
       }
 
-      if (stack.method_7909() instanceof BlockItem && !stack.method_31573(ItemTags.field_41890) && !stack.method_31573(ItemTags.field_40109)) {
+      if (stack.getItem() instanceof BlockItem && !stack.isIn(ItemTags.TRIMMABLE_ARMOR) && !stack.isIn(ItemTags.BOOKSHELF_BOOKS)) {
          this.renderBlockItem(acc, player, stack, matrices, vertexConsumers, light, bl, bl2, l, arm, tt, swing, swing_rot, equipProgress, swingProgress);
       } else {
          boolean isToolOrWeapon = this.isTool(stack)
-               && !stack.method_31573(ItemTags.field_41890)
-               && !stack.method_31573(ItemTags.field_40109)
-               && stack.method_7976() != UseAction.field_8950
-               && stack.method_7923()
-            || stack.method_7976() == UseAction.field_8953
-            || stack.method_7976() == UseAction.field_27079
+               && !stack.isIn(ItemTags.TRIMMABLE_ARMOR)
+               && !stack.isIn(ItemTags.BOOKSHELF_BOOKS)
+               && stack.getUseAction() != UseAction.EAT
+               && stack.isEnchantable()
+            || stack.getUseAction() == UseAction.BOW
+            || stack.getUseAction() == UseAction.SPYGLASS
             || this.getAttackDamage(stack) != 0.0F
-            || stack.method_7976() == UseAction.field_8949
-            || stack.method_31574(Items.field_23254)
-            || stack.method_31574(Items.field_8184)
-            || stack.method_7909() instanceof FishingRodItem
-            || stack.method_31574(Items.field_8868);
+            || stack.getUseAction() == UseAction.BLOCK
+            || stack.isOf(Items.WARPED_FUNGUS_ON_A_STICK)
+            || stack.isOf(Items.CARROT_ON_A_STICK)
+            || stack.getItem() instanceof FishingRodItem
+            || stack.isOf(Items.SHEARS);
          if (isToolOrWeapon) {
             if (this.isSword(stack)) {
-               matrices.method_22907(RotationAxis.field_40715.rotationDegrees((float)(75 * l)));
-               matrices.method_22907(RotationAxis.field_40714.rotationDegrees(70.0F));
-               matrices.method_22907(RotationAxis.field_40718.rotationDegrees((float)(45 * l)));
-               matrices.method_22905(1.2F, 1.2F, 1.2F);
-               matrices.method_22907(RotationAxis.field_40714.rotationDegrees(-60.0F * swing));
-               matrices.method_22904(0.0, 0.1 * (double)swing, -0.1 * (double)swing);
-            } else if (stack.method_7976() == UseAction.field_8951) {
-               matrices.method_22907(RotationAxis.field_40715.rotationDegrees((float)(75 * l)));
-               matrices.method_22907(RotationAxis.field_40714.rotationDegrees(90.0F));
-               matrices.method_22907(RotationAxis.field_40718.rotationDegrees((float)(45 * l)));
-               matrices.method_46416(-0.3F * (float)l, 0.0F, 0.0F);
-               matrices.method_22905(1.2F, 1.2F, 1.2F);
-               matrices.method_22907(RotationAxis.field_40714.rotationDegrees(-40.0F * swing_rot));
-               matrices.method_22904(0.0, 0.1 * (double)swing_rot, -0.1 * (double)swing_rot);
-            } else if (stack.method_7976() == UseAction.field_8953) {
-               matrices.method_22907(RotationAxis.field_40718.rotationDegrees((float)(160 * l)));
-               matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)(-60 * l)));
-               matrices.method_22907(RotationAxis.field_40714.rotationDegrees(-70.0F));
-               matrices.method_22905(0.75F, 0.75F, 0.75F);
-               matrices.method_22904(0.15 * (double)l, bl ? 0.35F : 0.45F, bl ? -0.15F : -0.1F);
-               matrices.method_22904(0.17 * (double)l, 0.0, 0.3);
-               matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)(-90 * l)));
-            } else if (stack.method_7976() == UseAction.field_8949) {
-               matrices.method_22907(RotationAxis.field_40715.rotationDegrees((float)(-154 * l)));
-               matrices.method_22907(RotationAxis.field_40714.rotationDegrees(5.0F));
-               matrices.method_22907(RotationAxis.field_40718.rotationDegrees((float)(90 * l)));
-               matrices.method_22904((double)(-0.012F * (float)l), 0.38, -0.175);
-               matrices.method_22905(0.55F, 0.55F, 0.55F);
-            } else if (stack.method_31573(ItemTags.field_42615)) {
-               matrices.method_22907(RotationAxis.field_40715.rotationDegrees((float)(75 * l)));
-               matrices.method_22907(RotationAxis.field_40714.rotationDegrees(70.0F));
-               matrices.method_22907(RotationAxis.field_40718.rotationDegrees((float)(45 * l)));
-               matrices.method_22905(1.2F, 1.2F, 1.2F);
-               matrices.method_22907(RotationAxis.field_40714.rotationDegrees(-80.0F * swing_rot));
-               matrices.method_22907(RotationAxis.field_40714.rotationDegrees(30.0F * swing));
-               matrices.method_22904(0.07 * (double)l, 0.0, 0.05);
-               matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)(90 * l)));
-               matrices.method_22907(RotationAxis.field_40714.rotationDegrees(-15.0F));
+               matrices.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees((float)(75 * l)));
+               matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(70.0F));
+               matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float)(45 * l)));
+               matrices.scale(1.2F, 1.2F, 1.2F);
+               matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-60.0F * swing));
+               matrices.translate(0.0, 0.1 * (double)swing, -0.1 * (double)swing);
+            } else if (stack.getUseAction() == UseAction.SPEAR) {
+               matrices.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees((float)(75 * l)));
+               matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(90.0F));
+               matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float)(45 * l)));
+               matrices.translate(-0.3F * (float)l, 0.0F, 0.0F);
+               matrices.scale(1.2F, 1.2F, 1.2F);
+               matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-40.0F * swing_rot));
+               matrices.translate(0.0, 0.1 * (double)swing_rot, -0.1 * (double)swing_rot);
+            } else if (stack.getUseAction() == UseAction.BOW) {
+               matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float)(160 * l)));
+               matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)(-60 * l)));
+               matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-70.0F));
+               matrices.scale(0.75F, 0.75F, 0.75F);
+               matrices.translate(0.15 * (double)l, bl ? 0.35F : 0.45F, bl ? -0.15F : -0.1F);
+               matrices.translate(0.17 * (double)l, 0.0, 0.3);
+               matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)(-90 * l)));
+            } else if (stack.getUseAction() == UseAction.BLOCK) {
+               matrices.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees((float)(-154 * l)));
+               matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(5.0F));
+               matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float)(90 * l)));
+               matrices.translate((double)(-0.012F * (float)l), 0.38, -0.175);
+               matrices.scale(0.55F, 0.55F, 0.55F);
+            } else if (stack.isIn(ItemTags.SHOVELS)) {
+               matrices.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees((float)(75 * l)));
+               matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(70.0F));
+               matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float)(45 * l)));
+               matrices.scale(1.2F, 1.2F, 1.2F);
+               matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-80.0F * swing_rot));
+               matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(30.0F * swing));
+               matrices.translate(0.07 * (double)l, 0.0, 0.05);
+               matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)(90 * l)));
+               matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-15.0F));
             } else {
-               matrices.method_22907(RotationAxis.field_40715.rotationDegrees((float)(75 * l)));
-               matrices.method_22907(RotationAxis.field_40714.rotationDegrees(70.0F));
-               matrices.method_22907(RotationAxis.field_40718.rotationDegrees((float)(45 * l)));
-               matrices.method_22905(1.2F, 1.2F, 1.2F);
-               matrices.method_22907(RotationAxis.field_40714.rotationDegrees(-25.0F * swing));
-               matrices.method_22904(0.0, 0.05 * (double)swing, -0.05 * (double)swing);
+               matrices.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees((float)(75 * l)));
+               matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(70.0F));
+               matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float)(45 * l)));
+               matrices.scale(1.2F, 1.2F, 1.2F);
+               matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-25.0F * swing));
+               matrices.translate(0.0, 0.05 * (double)swing, -0.05 * (double)swing);
             }
          } else {
-            matrices.method_22907(RotationAxis.field_40715.rotationDegrees((float)(5 * l)));
-            matrices.method_22907(RotationAxis.field_40714.rotationDegrees(-13.0F));
-            matrices.method_22907(RotationAxis.field_40718.rotationDegrees((float)(75 * l)));
-            matrices.method_22904(-0.015 * (double)l, -0.055, -0.06);
-            matrices.method_22905(0.7F, 0.7F, 0.7F);
+            matrices.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees((float)(5 * l)));
+            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-13.0F));
+            matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float)(75 * l)));
+            matrices.translate(-0.015 * (double)l, -0.055, -0.06);
+            matrices.scale(0.7F, 0.7F, 0.7F);
          }
 
-         if (!stack.method_31574(Items.field_8137)) {
-            if (stack.method_31574(Items.field_8301)) {
+         if (!stack.isOf(Items.NETHER_STAR)) {
+            if (stack.isOf(Items.END_CRYSTAL)) {
             }
 
             this.netherCounter = 0.0F;
          } else {
             this.netherCounter = (float)((double)this.netherCounter + 0.9 * tt);
-            matrices.method_22904(0.0, 0.25 + 0.02 * (double)MathHelper.method_15374(this.netherCounter * 0.1F), 0.0);
-            matrices.method_22907(RotationAxis.field_40714.rotationDegrees(3.0F * MathHelper.method_15374(this.netherCounter * 0.2F)));
-            float ns = 1.0F + 0.01F * MathHelper.method_15374(this.netherCounter);
-            matrices.method_22905(ns, ns, ns);
+            matrices.translate(0.0, 0.25 + 0.02 * (double)MathHelper.sin(this.netherCounter * 0.1F), 0.0);
+            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(3.0F * MathHelper.sin(this.netherCounter * 0.2F)));
+            float ns = 1.0F + 0.01F * MathHelper.sin(this.netherCounter);
+            matrices.scale(ns, ns, ns);
          }
 
          acc.invokeRenderItem(
-            player, stack, bl2 ? ModelTransformationMode.field_4322 : ModelTransformationMode.field_4321, !bl2, matrices, vertexConsumers, light
+            player, stack, bl2 ? ModelTransformationMode.FIRST_PERSON_RIGHT_HAND : ModelTransformationMode.FIRST_PERSON_LEFT_HAND, !bl2, matrices, vertexConsumers, light
          );
       }
    }
@@ -1020,30 +1020,30 @@ public class HMIRenderer {
       float swing,
       float swing_rot
    ) {
-      UseAction useAction = stack.method_7976();
-      if (useAction == UseAction.field_8952) {
+      UseAction useAction = stack.getUseAction();
+      if (useAction == UseAction.NONE) {
          acc.invokeApplyItemArmTransform(matrices, arm, equipProgress);
-      } else if (useAction == UseAction.field_8950 || useAction == UseAction.field_8946) {
-         float yawDelta = (float)stack.method_7935(player) - ((float)player.method_6014() - tickDelta + 1.0F);
+      } else if (useAction == UseAction.EAT || useAction == UseAction.DRINK) {
+         float yawDelta = (float)stack.getMaxUseTime(player) - ((float)player.getItemUseTimeLeft() - tickDelta + 1.0F);
          float pitchDelta = yawDelta / 5.0F;
          if (pitchDelta > 1.0F) {
             pitchDelta = 1.0F;
          }
 
-         float k = MathHelper.method_15374(yawDelta / 2.0F * 3.14F) / 10.0F;
-         matrices.method_22904((double)l, 0.1, 0.3);
-         matrices.method_22904(0.2 * (double)l * (double)pitchDelta, -0.7 * (double)pitchDelta, -0.2 * (double)pitchDelta);
-         matrices.method_22904(0.0, -0.2 * (double)k, -0.2 * (double)k);
-         matrices.method_46416(0.0F, 0.1F * this.easeInOutBack(MathHelper.method_15374(pitchDelta * 3.14F)), 0.0F);
-         matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)(45 * l)));
-         matrices.method_22907(RotationAxis.field_40718.rotationDegrees((float)(-40 * l)));
-         matrices.method_22907(RotationAxis.field_40714.rotationDegrees(30.0F));
+         float k = MathHelper.sin(yawDelta / 2.0F * 3.14F) / 10.0F;
+         matrices.translate((double)l, 0.1, 0.3);
+         matrices.translate(0.2 * (double)l * (double)pitchDelta, -0.7 * (double)pitchDelta, -0.2 * (double)pitchDelta);
+         matrices.translate(0.0, -0.2 * (double)k, -0.2 * (double)k);
+         matrices.translate(0.0F, 0.1F * this.easeInOutBack(MathHelper.sin(pitchDelta * 3.14F)), 0.0F);
+         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)(45 * l)));
+         matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float)(-40 * l)));
+         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(30.0F));
          this.altSwing(matrices, arm, swingProgress);
-         matrices.method_22905(0.9F, 0.9F, 0.9F);
-         matrices.method_22907(RotationAxis.field_40716.rotationDegrees(45.0F * pitchDelta * (float)l));
+         matrices.scale(0.9F, 0.9F, 0.9F);
+         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(45.0F * pitchDelta * (float)l));
          acc.invokeRenderPlayerArm(matrices, vertexConsumers, light, 0.0F, swingProgress, arm);
-      } else if (useAction == UseAction.field_8949) {
-         float k = (float)stack.method_7935(player) - ((float)player.method_6014() - tickDelta + 1.0F);
+      } else if (useAction == UseAction.BLOCK) {
+         float k = (float)stack.getMaxUseTime(player) - ((float)player.getItemUseTimeLeft() - tickDelta + 1.0F);
          double s = (double)(k / 4.0F);
          float s2 = k / 6.0F;
          if (s > 1.0) {
@@ -1054,114 +1054,114 @@ public class HMIRenderer {
             s2 = 1.0F;
          }
 
-         matrices.method_22904(0.0, -0.2, 0.0);
-         matrices.method_22904((double)l, 0.0, 0.3);
-         matrices.method_22904(0.7 * s * (double)l, 0.0, -1.3 * s);
-         matrices.method_22904(-0.2 * (double)l * (double)s2, 0.0, 0.0);
-         matrices.method_22907(RotationAxis.field_40714.rotationDegrees((float)(15.0 * Math.sin((double)s2 * 3.14))));
-         matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)(70.0 * s * (double)l)));
-         matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)(45 * l)));
-         matrices.method_22907(RotationAxis.field_40718.rotationDegrees((float)(-40 * l)));
-         matrices.method_22907(RotationAxis.field_40714.rotationDegrees(30.0F));
-         matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)(5 * l) * (float)s));
-         matrices.method_22907(RotationAxis.field_40714.rotationDegrees((float)(-10.0 * s)));
-         matrices.method_22904(0.0, 0.0, -0.2 * s);
+         matrices.translate(0.0, -0.2, 0.0);
+         matrices.translate((double)l, 0.0, 0.3);
+         matrices.translate(0.7 * s * (double)l, 0.0, -1.3 * s);
+         matrices.translate(-0.2 * (double)l * (double)s2, 0.0, 0.0);
+         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees((float)(15.0 * Math.sin((double)s2 * 3.14))));
+         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)(70.0 * s * (double)l)));
+         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)(45 * l)));
+         matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float)(-40 * l)));
+         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(30.0F));
+         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)(5 * l) * (float)s));
+         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees((float)(-10.0 * s)));
+         matrices.translate(0.0, 0.0, -0.2 * s);
          this.altSwing(matrices, arm, swingProgress);
-         matrices.method_22905(0.9F, 0.9F, 0.9F);
+         matrices.scale(0.9F, 0.9F, 0.9F);
          acc.invokeRenderPlayerArm(matrices, vertexConsumers, light, 0.0F, swingProgress, arm);
          if (l == 1) {
-            matrices.method_22904(0.19F, 0.1, -0.24);
-            matrices.method_22907(RotationAxis.field_40718.rotationDegrees(0.0F));
-            matrices.method_22907(RotationAxis.field_40716.rotationDegrees(4.0F));
-            matrices.method_22907(RotationAxis.field_40714.rotationDegrees(-10.4F));
-            matrices.method_22904(-0.2, -0.04, 0.15);
+            matrices.translate(0.19F, 0.1, -0.24);
+            matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(0.0F));
+            matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(4.0F));
+            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-10.4F));
+            matrices.translate(-0.2, -0.04, 0.15);
          } else {
-            matrices.method_22904(-0.19F, 0.1, -0.18);
-            matrices.method_22907(RotationAxis.field_40718.rotationDegrees(0.0F));
-            matrices.method_22907(RotationAxis.field_40716.rotationDegrees(-4.0F));
-            matrices.method_22907(RotationAxis.field_40714.rotationDegrees(-10.4F));
-            matrices.method_22904(0.2, -0.04, 0.15);
+            matrices.translate(-0.19F, 0.1, -0.18);
+            matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(0.0F));
+            matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-4.0F));
+            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-10.4F));
+            matrices.translate(0.2, -0.04, 0.15);
          }
-      } else if (useAction == UseAction.field_8953) {
-         matrices.method_22903();
-         float m1 = (float)stack.method_7935(player) - ((float)player.method_6014() - tickDelta + 1.0F);
+      } else if (useAction == UseAction.BOW) {
+         matrices.push();
+         float m1 = (float)stack.getMaxUseTime(player) - ((float)player.getItemUseTimeLeft() - tickDelta + 1.0F);
          float f1 = m1 / 20.0F;
          if (f1 > 1.0F) {
             f1 = 1.0F;
          }
 
          if (f1 > 0.1F) {
-            float g1 = MathHelper.method_15374((m1 - 0.1F) * 1.3F);
+            float g1 = MathHelper.sin((m1 - 0.1F) * 1.3F);
             float j1 = g1 * f1;
-            matrices.method_46416(j1 * 0.0F, j1 * 0.004F, j1 * 0.0F);
+            matrices.translate(j1 * 0.0F, j1 * 0.004F, j1 * 0.0F);
          }
 
-         matrices.method_22903();
-         matrices.method_46416(bl ? -0.1F : 0.1F, 0.0F, f1 * 0.15F);
+         matrices.push();
+         matrices.translate(bl ? -0.1F : 0.1F, 0.0F, f1 * 0.15F);
          acc.invokeRenderPlayerArm(matrices, vertexConsumers, light, equipProgress, swingProgress, arm);
-         matrices.method_22909();
-         matrices.method_22904(bl ? -0.5 : 0.5, -0.45, 0.1);
-         matrices.method_22907(RotationAxis.field_40714.rotation(0.3F));
+         matrices.pop();
+         matrices.translate(bl ? -0.5 : 0.5, -0.45, 0.1);
+         matrices.multiply(RotationAxis.POSITIVE_X.rotation(0.3F));
          if (bl) {
-            matrices.method_22907(RotationAxis.field_40717.rotation(-0.3F));
-            matrices.method_22907(RotationAxis.field_40715.rotation(1.0F));
+            matrices.multiply(RotationAxis.NEGATIVE_Z.rotation(-0.3F));
+            matrices.multiply(RotationAxis.NEGATIVE_Y.rotation(1.0F));
          } else {
-            matrices.method_22907(RotationAxis.field_40718.rotation(-0.3F));
-            matrices.method_22907(RotationAxis.field_40716.rotation(1.0F));
+            matrices.multiply(RotationAxis.POSITIVE_Z.rotation(-0.3F));
+            matrices.multiply(RotationAxis.POSITIVE_Y.rotation(1.0F));
          }
 
-         acc.invokeRenderPlayerArm(matrices, vertexConsumers, light, equipProgress, swingProgress, arm.method_5928());
+         acc.invokeRenderPlayerArm(matrices, vertexConsumers, light, equipProgress, swingProgress, arm.getOpposite());
          if (bl) {
-            matrices.method_22907(RotationAxis.field_40715.rotation(2.5F));
+            matrices.multiply(RotationAxis.NEGATIVE_Y.rotation(2.5F));
          } else {
-            matrices.method_22907(RotationAxis.field_40716.rotation(2.5F));
+            matrices.multiply(RotationAxis.POSITIVE_Y.rotation(2.5F));
          }
 
-         matrices.method_22904(bl ? -0.65 : 0.65, -0.35, 0.27);
-         matrices.method_22909();
-      } else if (useAction == UseAction.field_8951) {
-         if (player.method_6079().method_7960() && !player.method_20448() && !player.method_5681() && !player.method_6101()) {
-            matrices.method_22903();
-            matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)(-25 * l)));
-            matrices.method_22904(-0.15 * (double)l, 0.1, 0.1);
-            acc.invokeRenderPlayerArm(matrices, vertexConsumers, light, equipProgress, swingProgress, arm.method_5928());
-            matrices.method_22909();
+         matrices.translate(bl ? -0.65 : 0.65, -0.35, 0.27);
+         matrices.pop();
+      } else if (useAction == UseAction.SPEAR) {
+         if (player.getOffHandStack().isEmpty() && !player.isCrawling() && !player.isSwimming() && !player.isClimbing()) {
+            matrices.push();
+            matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)(-25 * l)));
+            matrices.translate(-0.15 * (double)l, 0.1, 0.1);
+            acc.invokeRenderPlayerArm(matrices, vertexConsumers, light, equipProgress, swingProgress, arm.getOpposite());
+            matrices.pop();
          }
 
-         float dt = (float)stack.method_7935(player) - ((float)player.method_6014() - tickDelta + 1.0F);
+         float dt = (float)stack.getMaxUseTime(player) - ((float)player.getItemUseTimeLeft() - tickDelta + 1.0F);
          float f = dt / 10.0F;
          if (f > 1.0F) {
             f = 1.0F;
          }
 
          if (f > 0.1F) {
-            float g = MathHelper.method_15374((dt - 0.1F) * 1.3F);
+            float g = MathHelper.sin((dt - 0.1F) * 1.3F);
             float j = g * (f - 0.1F);
-            matrices.method_46416(j * 0.0F, j * 0.004F, j * 0.0F);
+            matrices.translate(j * 0.0F, j * 0.004F, j * 0.0F);
          }
 
-         matrices.method_22907(RotationAxis.field_40714.rotationDegrees(45.0F));
-         matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)(25 * l)));
-         matrices.method_22904(0.2 * (double)l, 0.0, 0.8);
+         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(45.0F));
+         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)(25 * l)));
+         matrices.translate(0.2 * (double)l, 0.0, 0.8);
          acc.invokeRenderPlayerArm(matrices, vertexConsumers, light, equipProgress, swingProgress, arm);
-         matrices.method_22907(RotationAxis.field_40714.rotationDegrees(100.0F));
-         matrices.method_22907(RotationAxis.field_40718.rotationDegrees((float)(-55 * l)));
-         matrices.method_22904((double)(0.5F * (float)l), -0.7, -0.35);
-      } else if (useAction == UseAction.field_27079) {
-         float g1 = (float)(player.method_6014() % 10);
+         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(100.0F));
+         matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float)(-55 * l)));
+         matrices.translate((double)(0.5F * (float)l), -0.7, -0.35);
+      } else if (useAction == UseAction.SPYGLASS) {
+         float g1 = (float)(player.getItemUseTimeLeft() % 10);
          float h1 = g1 - tickDelta + 1.0F;
          float j1 = 1.0F - h1 / 10.0F;
-         float n = -15.0F + 75.0F * MathHelper.method_15362(j1 * 2.0F * (float) Math.PI);
-         float z = (float)stack.method_7935(player) - ((float)player.method_6014() - tickDelta + 1.0F);
+         float n = -15.0F + 75.0F * MathHelper.cos(j1 * 2.0F * (float) Math.PI);
+         float z = (float)stack.getMaxUseTime(player) - ((float)player.getItemUseTimeLeft() - tickDelta + 1.0F);
          float x = z / 4.0F;
          if (x > 1.0F) {
             x = 1.0F;
          }
 
-         matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)(25 * l) * x));
-         matrices.method_22904((double)(0.3F * (float)l * x), 0.3 * (double)x, 0.1 * (double)x);
+         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)(25 * l) * x));
+         matrices.translate((double)(0.3F * (float)l * x), 0.3 * (double)x, 0.1 * (double)x);
          if (x == 1.0F) {
-            matrices.method_22907(RotationAxis.field_40716.rotationDegrees(n / 20.0F));
+            matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(n / 20.0F));
          }
 
          acc.invokeRenderPlayerArm(matrices, vertexConsumers, light, equipProgress, swingProgress, arm);
@@ -1185,29 +1185,29 @@ public class HMIRenderer {
       float equipProgress,
       float swingProgress
    ) {
-      Block block = Block.method_9503(stack.method_7909());
-      if (block != Blocks.field_10124) {
-         BlockState state = block.method_9564();
+      Block block = Block.getBlockFromItem(stack.getItem());
+      if (block != Blocks.AIR) {
+         BlockState state = block.getDefaultState();
          if (this.isSmallBlockItem(stack)) {
-            matrices.method_22904(0.0, 0.0, -0.1);
-            matrices.method_22907(RotationAxis.field_40715.rotationDegrees((float)(5 * l)));
-            matrices.method_22907(RotationAxis.field_40714.rotationDegrees(15.0F));
-            matrices.method_22907(RotationAxis.field_40718.rotationDegrees((float)(75 * l)));
-         } else if (stack.method_7964().getString().toLowerCase().contains("torch")) {
-            matrices.method_22905(1.5F, 1.5F, 1.5F);
-            matrices.method_22907(RotationAxis.field_40715.rotationDegrees((float)(25 * l)));
-            matrices.method_22907(RotationAxis.field_40714.rotationDegrees(5.0F));
-            matrices.method_22907(RotationAxis.field_40718.rotationDegrees((float)(75 * l)));
-            matrices.method_22904(0.2 * (double)l, 0.2, 0.05);
-         } else if (!stack.method_31574(Items.field_16539) && !stack.method_31574(Items.field_22016) && !stack.method_31573(ItemTags.field_40108)) {
-            matrices.method_22907(RotationAxis.field_40715.rotationDegrees((float)(25 * l)));
-            matrices.method_22907(RotationAxis.field_40714.rotationDegrees(5.0F));
-            matrices.method_22907(RotationAxis.field_40718.rotationDegrees((float)(75 * l)));
-            matrices.method_22904(0.2 * (double)l, 0.2, 0.05);
+            matrices.translate(0.0, 0.0, -0.1);
+            matrices.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees((float)(5 * l)));
+            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(15.0F));
+            matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float)(75 * l)));
+         } else if (stack.getName().getString().toLowerCase().contains("torch")) {
+            matrices.scale(1.5F, 1.5F, 1.5F);
+            matrices.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees((float)(25 * l)));
+            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(5.0F));
+            matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float)(75 * l)));
+            matrices.translate(0.2 * (double)l, 0.2, 0.05);
+         } else if (!stack.isOf(Items.LANTERN) && !stack.isOf(Items.SOUL_LANTERN) && !stack.isIn(ItemTags.HANGING_SIGNS)) {
+            matrices.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees((float)(25 * l)));
+            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(5.0F));
+            matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float)(75 * l)));
+            matrices.translate(0.2 * (double)l, 0.2, 0.05);
          } else {
             float dt = (float)(deltaTime * 8.0);
-            float yawDelta = player.field_5982 - player.method_36454();
-            float pitchDelta = player.field_6004 - player.method_36455();
+            float yawDelta = player.prevYaw - player.getYaw();
+            float pitchDelta = player.prevPitch - player.getPitch();
             this.swingVelocityY += yawDelta * 0.015F * dt;
             this.swingVelocityY += swingProgress * 2.0F * dt;
             this.swingVelocityX += pitchDelta * 0.015F * dt;
@@ -1217,79 +1217,79 @@ public class HMIRenderer {
             this.swingVelocityX = (float)((double)this.swingVelocityX * Math.pow(0.88F, (double)dt));
             this.swingAngleY = this.swingAngleY + this.swingVelocityY * dt;
             this.swingAngleX = this.swingAngleX + this.swingVelocityX * dt;
-            double currentSpeed = player.method_18798().method_1033();
+            double currentSpeed = player.getVelocity().length();
             this.swingVelocityZ = (float)(
                (double)this.swingVelocityZ
                   + (bl ? currentSpeed * -15.0 - (double)this.swingVelocityZ : currentSpeed * 15.0 - (double)this.swingVelocityZ) * 0.1F * (double)dt
             );
-            if ((currentSpeed > 0.09 && player.method_24828() || player.method_5681() || player.method_6101() && !player.method_24828())
-               && (Boolean)MinecraftClient.method_1551().field_1690.method_42448().method_41753()) {
+            if ((currentSpeed > 0.09 && player.isOnGround() || player.isSwimming() || player.isClimbing() && !player.isOnGround())
+               && (Boolean)MinecraftClient.getInstance().options.getBobView().getValue()) {
                boolean randomBool = Math.random() > 0.5;
                this.swingVelocityY = (float)((double)this.swingVelocityY + (randomBool ? -5.5 * currentSpeed * (double)dt : 5.5 * currentSpeed * (double)dt));
             }
 
-            matrices.method_22904(0.0, 0.0, -0.1);
-            matrices.method_22907(RotationAxis.field_40715.rotationDegrees((float)(35 * l) + this.swingAngleY));
-            matrices.method_22907(RotationAxis.field_40714.rotationDegrees(15.0F + this.swingAngleX));
-            matrices.method_22907(RotationAxis.field_40718.rotationDegrees((float)(75 * l) + this.swingVelocityZ));
-            if (stack.method_31573(ItemTags.field_40108)) {
-               matrices.method_22904(0.0, -0.1, 0.0);
-               matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)(-45 * l)));
+            matrices.translate(0.0, 0.0, -0.1);
+            matrices.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees((float)(35 * l) + this.swingAngleY));
+            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(15.0F + this.swingAngleX));
+            matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float)(75 * l) + this.swingVelocityZ));
+            if (stack.isIn(ItemTags.HANGING_SIGNS)) {
+               matrices.translate(0.0, -0.1, 0.0);
+               matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)(-45 * l)));
             }
 
-            matrices.method_22904(0.3 * (double)l, -0.35, 0.0);
-            matrices.method_22904(0.0, 0.0, 0.1);
-            matrices.method_22905(1.5F, 1.5F, 1.5F);
+            matrices.translate(0.3 * (double)l, -0.35, 0.0);
+            matrices.translate(0.0, 0.0, 0.1);
+            matrices.scale(1.5F, 1.5F, 1.5F);
          }
 
-         BlockRenderManager blockRenderManager = MinecraftClient.method_1551().method_1541();
-         matrices.method_22903();
+         BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
+         matrices.push();
          if (!bl2) {
-            matrices.method_46416(-0.4F, 0.0F, 0.0F);
+            matrices.translate(-0.4F, 0.0F, 0.0F);
          }
 
-         matrices.method_22905(0.35F, 0.35F, 0.35F);
-         matrices.method_22904(-0.9 * (double)l, -0.45, -0.5);
-         if (state.method_26164(BlockTags.field_15493)) {
-            matrices.method_22904(0.2 * (double)l, -0.15, -0.2);
+         matrices.scale(0.35F, 0.35F, 0.35F);
+         matrices.translate(-0.9 * (double)l, -0.45, -0.5);
+         if (state.isIn(BlockTags.BUTTONS)) {
+            matrices.translate(0.2 * (double)l, -0.15, -0.2);
          }
 
-         if (state.method_26164(BlockTags.field_24076)) {
-            matrices.method_22904(0.0, 0.1, 0.0);
+         if (state.isIn(BlockTags.PRESSURE_PLATES)) {
+            matrices.translate(0.0, 0.1, 0.0);
          }
 
-         if (stack.method_31574(Items.field_8828)
-            || stack.method_31574(Items.field_21086)
-            || state.method_26164(BlockTags.field_20339)
-            || state.method_26164(BlockTags.field_15503)
-            || state.method_26164(BlockTags.field_15462)
-            || state.method_26164(BlockTags.field_44469)) {
+         if (stack.isOf(Items.SLIME_BLOCK)
+            || stack.isOf(Items.HONEY_BLOCK)
+            || state.isIn(BlockTags.FLOWERS)
+            || state.isIn(BlockTags.LEAVES)
+            || state.isIn(BlockTags.SAPLINGS)
+            || state.isIn(BlockTags.SWORD_EFFICIENT)) {
             this.vertVelocityYSlime = (float)((double)this.vertVelocityYSlime + (double)swingProgress * 0.03 * deltaTime * 8.0);
             if ((
-                  player.method_18798().method_1033() > 0.09 && player.method_24828()
-                     || player.method_5681()
-                     || player.method_20448()
-                     || player.method_6101() && !player.method_24828()
+                  player.getVelocity().length() > 0.09 && player.isOnGround()
+                     || player.isSwimming()
+                     || player.isCrawling()
+                     || player.isClimbing() && !player.isOnGround()
                )
-               && (Boolean)MinecraftClient.method_1551().field_1690.method_42448().method_41753()) {
-               this.vertVelocityYSlime = (float)((double)this.vertVelocityYSlime + -0.05F * player.method_18798().method_1033() * deltaTime * 8.0);
+               && (Boolean)MinecraftClient.getInstance().options.getBobView().getValue()) {
+               this.vertVelocityYSlime = (float)((double)this.vertVelocityYSlime + -0.05F * player.getVelocity().length() * deltaTime * 8.0);
             }
 
-            matrices.method_22905(1.0F, 1.0F + this.vertAngleYSlime * -2.0F, 1.0F);
+            matrices.scale(1.0F, 1.0F + this.vertAngleYSlime * -2.0F, 1.0F);
          }
 
-         if ((float)player.field_6012 - this.prevAge >= 100.0F) {
+         if ((float)player.age - this.prevAge >= 100.0F) {
             this.repPower = !this.repPower;
-            this.prevAge = (float)player.field_6012;
+            this.prevAge = (float)player.age;
          }
 
-         if (stack.method_31573(ItemTags.field_16444) && bl) {
-            matrices.method_22904(0.9, 0.0, 0.8);
-            matrices.method_22907(RotationAxis.field_40716.rotationDegrees((float)(90 * l)));
+         if (stack.isIn(ItemTags.BEDS) && bl) {
+            matrices.translate(0.9, 0.0, 0.8);
+            matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float)(90 * l)));
          }
 
-         blockRenderManager.method_3353(state, matrices, vertexConsumers, light, OverlayTexture.field_21444);
-         matrices.method_22909();
+         blockRenderManager.renderBlockAsEntity(state, matrices, vertexConsumers, light, OverlayTexture.DEFAULT_UV);
+         matrices.pop();
       }
    }
 }

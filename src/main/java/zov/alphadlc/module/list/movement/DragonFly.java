@@ -19,16 +19,16 @@ public class DragonFly extends Module {
 
    @Subscribe
    public void onTick(EventTick event) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null && this.mc.field_1724.method_31549().field_7479) {
+      if (this.mc.player != null && this.mc.world != null && this.mc.player.getAbilities().flying) {
          MoveUtil.setMotion(this.xzSpeed.getValue());
-         if (this.mc.field_1690.field_1903.method_1434()) {
-            this.mc.field_1724.method_18800(this.mc.field_1724.method_18798().field_1352, this.ySpeed.getValue(), this.mc.field_1724.method_18798().field_1350);
+         if (this.mc.options.jumpKey.isPressed()) {
+            this.mc.player.setVelocity(this.mc.player.getVelocity().x, this.ySpeed.getValue(), this.mc.player.getVelocity().z);
          }
 
-         if (this.mc.field_1690.field_1832.method_1434()) {
+         if (this.mc.options.sneakKey.isPressed()) {
             this.mc
-               .field_1724
-               .method_18800(this.mc.field_1724.method_18798().field_1352, -this.ySpeed.getValue(), this.mc.field_1724.method_18798().field_1350);
+               .player
+               .setVelocity(this.mc.player.getVelocity().x, -this.ySpeed.getValue(), this.mc.player.getVelocity().z);
          }
       }
    }

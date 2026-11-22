@@ -16,12 +16,12 @@ public class NameProtect extends Module {
    public final BooleanSetting hideFriends = new BooleanSetting("\u0421\u043a\u0440\u044b\u0442\u044c \u0434\u0440\u0443\u0437\u0435\u0439", false);
 
    public String getCustomName() {
-      return this.isEnabled() ? "alphadlc" : this.mc.field_1724.method_5820();
+      return this.isEnabled() ? "alphadlc" : this.mc.player.getNameForScoreboard();
    }
 
    public String getCustomName(String originalName) {
-      if (this.isEnabled() && this.mc.field_1724 != null) {
-         String me = this.mc.field_1724.method_5820();
+      if (this.isEnabled() && this.mc.player != null) {
+         String me = this.mc.player.getNameForScoreboard();
          if (originalName.contains(me)) {
             return originalName.replace(me, "alphadlc");
          } else {

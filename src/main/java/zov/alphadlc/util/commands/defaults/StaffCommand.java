@@ -49,7 +49,7 @@ public class StaffCommand extends Command {
          default:
             this.logDirect(
                "\u041d\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043d\u0430\u044f \u043f\u043e\u0434\u043a\u043e\u043c\u0430\u043d\u0434\u0430. \u0418\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0439 add/remove/list/clear.",
-               Formatting.field_1080
+               Formatting.GRAY
             );
       }
    }
@@ -60,15 +60,15 @@ public class StaffCommand extends Command {
       if (StaffManager.isStaff(name)) {
          this.logDirect(
             "\u042d\u0442\u043e\u0442 \u0438\u0433\u0440\u043e\u043a \u0443\u0436\u0435 \u0432 \u0441\u043f\u0438\u0441\u043a\u0435 \u043c\u043e\u0434\u0435\u0440\u0430\u0442\u043e\u0440\u043e\u0432",
-            Formatting.field_1080
+            Formatting.GRAY
          );
       } else {
          StaffManager.addStaff(new Staff(name));
          this.logDirect(
             "\u0418\u0433\u0440\u043e\u043a \u0441 \u0438\u043c\u0435\u043d\u0435\u043c "
-               + Formatting.field_1068
+               + Formatting.WHITE
                + name
-               + Formatting.field_1080
+               + Formatting.GRAY
                + " \u0443\u0441\u043f\u0435\u0448\u043d\u043e \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d \u0432 \u0441\u043f\u0438\u0441\u043e\u043a \u043c\u043e\u0434\u0435\u0440\u0430\u0442\u043e\u0440\u043e\u0432"
          );
       }
@@ -80,15 +80,15 @@ public class StaffCommand extends Command {
       if (!StaffManager.isStaff(name)) {
          this.logDirect(
             "\u0422\u0430\u043a\u043e\u0439 \u0438\u0433\u0440\u043e\u043a \u0432 \u0441\u043f\u0438\u0441\u043a\u0435 \u043c\u043e\u0434\u0435\u0440\u0430\u0442\u043e\u0440\u043e\u0432 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d",
-            Formatting.field_1080
+            Formatting.GRAY
          );
       } else {
          StaffManager.removeStaff(name);
          this.logDirect(
             "\u0418\u0433\u0440\u043e\u043a \u0441 \u0438\u043c\u0435\u043d\u0435\u043c "
-               + Formatting.field_1068
+               + Formatting.WHITE
                + name
-               + Formatting.field_1080
+               + Formatting.GRAY
                + " \u0443\u0441\u043f\u0435\u0448\u043d\u043e \u0443\u0434\u0430\u043b\u0435\u043d \u0438\u0437 \u0441\u043f\u0438\u0441\u043a\u0430 \u043c\u043e\u0434\u0435\u0440\u0430\u0442\u043e\u0440\u043e\u0432"
          );
       }
@@ -101,15 +101,15 @@ public class StaffCommand extends Command {
       Paginator.paginate(
          args,
          new Paginator<>(sorted),
-         () -> this.logDirect("\u0421\u043f\u0438\u0441\u043e\u043a \u043c\u043e\u0434\u0435\u0440\u0430\u0442\u043e\u0440\u043e\u0432:", Formatting.field_1080),
+         () -> this.logDirect("\u0421\u043f\u0438\u0441\u043e\u043a \u043c\u043e\u0434\u0435\u0440\u0430\u0442\u043e\u0440\u043e\u0432:", Formatting.GRAY),
          staff -> {
-            Text nameText = Text.method_43470(Formatting.field_1080 + "- " + Formatting.field_1068 + staff.name);
-            Text deleteText = Text.method_43470(Formatting.field_1061 + " [\u0423\u0434\u0430\u043b\u0438\u0442\u044c]")
-               .method_27694(
-                  style -> style.method_10958(new ClickEvent(Action.field_11750, IBaritoneChatControl.FORCE_COMMAND_PREFIX + "staff remove " + staff.name))
-                        .method_10949(new HoverEvent(net.minecraft.text.HoverEvent.Action.field_24342, Text.method_43470("Click to delete staff")))
+            Text nameText = Text.literal(Formatting.GRAY + "- " + Formatting.WHITE + staff.name);
+            Text deleteText = Text.literal(Formatting.RED + " [\u0423\u0434\u0430\u043b\u0438\u0442\u044c]")
+               .styled(
+                  style -> style.withClickEvent(new ClickEvent(Action.RUN_COMMAND, IBaritoneChatControl.FORCE_COMMAND_PREFIX + "staff remove " + staff.name))
+                        .withHoverEvent(new HoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, Text.literal("Click to delete staff")))
                );
-            return nameText.method_27661().method_10852(deleteText);
+            return nameText.copy().append(deleteText);
          },
          IBaritoneChatControl.FORCE_COMMAND_PREFIX + label
       );
@@ -120,7 +120,7 @@ public class StaffCommand extends Command {
       StaffManager.clearStaff();
       this.logDirect(
          "\u0421\u043f\u0438\u0441\u043e\u043a \u043c\u043e\u0434\u0435\u0440\u0430\u0442\u043e\u0440\u043e\u0432 \u043e\u0447\u0438\u0449\u0435\u043d",
-         Formatting.field_1080
+         Formatting.GRAY
       );
    }
 
@@ -143,11 +143,11 @@ public class StaffCommand extends Command {
 
             if (action.equals("add") && args.hasExactly(2)) {
                String prefix = args.peekString(1).toLowerCase(Locale.ROOT);
-               return MinecraftClient.method_1551()
-                  .method_1562()
-                  .method_2880()
+               return MinecraftClient.getInstance()
+                  .getNetworkHandler()
+                  .getPlayerList()
                   .stream()
-                  .map(info -> info.method_2966().getName())
+                  .map(info -> info.getProfile().getName())
                   .filter(name -> name.toLowerCase(Locale.ROOT).startsWith(prefix))
                   .sorted()
                   .distinct();

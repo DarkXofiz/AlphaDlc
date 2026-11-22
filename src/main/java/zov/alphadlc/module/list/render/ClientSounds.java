@@ -27,18 +27,18 @@ public class ClientSounds extends Module {
       "\u0422\u0440\u0435\u0442\u0438\u0439"
    );
    private final SliderSetting volume = ModuleSettingDefinitions.clientSoundsVolume();
-   private static final Identifier ENABLE_ID = Identifier.method_60655("mre", "module_enable");
-   private static final Identifier DISABLE_ID = Identifier.method_60655("mre", "module_disable");
-   private static final Identifier ENABLE_ID1 = Identifier.method_60655("mre", "module_enable1");
-   private static final Identifier DISABLE_ID1 = Identifier.method_60655("mre", "module_disable1");
-   private static final Identifier ENABLE_ID2 = Identifier.method_60655("mre", "module_enable2");
-   private static final Identifier DISABLE_ID2 = Identifier.method_60655("mre", "module_disable2");
-   private static final SoundEvent ENABLE_EVENT = SoundEvent.method_47908(ENABLE_ID);
-   private static final SoundEvent DISABLE_EVENT = SoundEvent.method_47908(DISABLE_ID);
-   private static final SoundEvent ENABLE_EVENT1 = SoundEvent.method_47908(ENABLE_ID1);
-   private static final SoundEvent DISABLE_EVENT1 = SoundEvent.method_47908(DISABLE_ID1);
-   private static final SoundEvent ENABLE_EVENT2 = SoundEvent.method_47908(ENABLE_ID2);
-   private static final SoundEvent DISABLE_EVENT2 = SoundEvent.method_47908(DISABLE_ID2);
+   private static final Identifier ENABLE_ID = Identifier.of("mre", "module_enable");
+   private static final Identifier DISABLE_ID = Identifier.of("mre", "module_disable");
+   private static final Identifier ENABLE_ID1 = Identifier.of("mre", "module_enable1");
+   private static final Identifier DISABLE_ID1 = Identifier.of("mre", "module_disable1");
+   private static final Identifier ENABLE_ID2 = Identifier.of("mre", "module_enable2");
+   private static final Identifier DISABLE_ID2 = Identifier.of("mre", "module_disable2");
+   private static final SoundEvent ENABLE_EVENT = SoundEvent.of(ENABLE_ID);
+   private static final SoundEvent DISABLE_EVENT = SoundEvent.of(DISABLE_ID);
+   private static final SoundEvent ENABLE_EVENT1 = SoundEvent.of(ENABLE_ID1);
+   private static final SoundEvent DISABLE_EVENT1 = SoundEvent.of(DISABLE_ID1);
+   private static final SoundEvent ENABLE_EVENT2 = SoundEvent.of(ENABLE_ID2);
+   private static final SoundEvent DISABLE_EVENT2 = SoundEvent.of(DISABLE_ID2);
    private static SoundInstance lastSound;
 
    public ClientSounds() {
@@ -46,10 +46,10 @@ public class ClientSounds extends Module {
    }
 
    public static void play(boolean enabled) {
-      if (INSTANCE != null && INSTANCE.mc.method_1483() != null) {
+      if (INSTANCE != null && INSTANCE.mc.getSoundManager() != null) {
          if (INSTANCE.isEnabled() || INSTANCE == AlphaDLC.getInstance().getModuleStorage().get(ClientSounds.class)) {
             if (lastSound != null) {
-               INSTANCE.mc.method_1483().method_4870(lastSound);
+               INSTANCE.mc.getSoundManager().stop(lastSound);
             }
 
             String var2 = INSTANCE.soundMode.getValue();
@@ -59,8 +59,8 @@ public class ClientSounds extends Module {
                case "\u0422\u0440\u0435\u0442\u0438\u0439" -> enabled ? ENABLE_EVENT2 : DISABLE_EVENT2;
                default -> enabled ? ENABLE_EVENT : DISABLE_EVENT;
             };
-            lastSound = PositionedSoundInstance.method_4757(soundToPlay, 1.0F, INSTANCE.volume.getFloatValue() / 100.0F);
-            INSTANCE.mc.method_1483().method_4873(lastSound);
+            lastSound = PositionedSoundInstance.master(soundToPlay, 1.0F, INSTANCE.volume.getFloatValue() / 100.0F);
+            INSTANCE.mc.getSoundManager().play(lastSound);
          }
       }
    }

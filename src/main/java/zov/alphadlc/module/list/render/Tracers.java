@@ -58,41 +58,41 @@ public class Tracers extends Module {
    @Subscribe
    public void onWorldRender(EventWorldRender event) {
       MatrixStack stack = event.getMatrixStack();
-      float tickDelta = this.mc.method_61966().method_60637(true);
-      Vec3d cameraPos = this.mc.field_1773.method_19418().method_19326();
-      Vector3f lookVec = this.mc.field_1773.method_19418().method_19335();
-      Vec3d eyePos = cameraPos.method_1019(new Vec3d(lookVec).method_1021(3.0));
-      stack.method_22903();
+      float tickDelta = this.mc.getRenderTickCounter().getTickDelta(true);
+      Vec3d cameraPos = this.mc.gameRenderer.getCamera().getPos();
+      Vector3f lookVec = this.mc.gameRenderer.getCamera().getHorizontalPlane();
+      Vec3d eyePos = cameraPos.add(new Vec3d(lookVec).multiply(3.0));
+      stack.push();
       RenderSystem.enableBlend();
       GL11.glEnable(2848);
       RenderSystem.defaultBlendFunc();
       RenderSystem.disableDepthTest();
       RenderSystem.disableCull();
-      RenderSystem.setShader(ShaderProgramKeys.field_53864);
+      RenderSystem.setShader(ShaderProgramKeys.RENDERTYPE_LINES);
       RenderSystem.lineWidth(1.0F);
-      BufferBuilder buffer = Tessellator.method_1348().method_60827(DrawMode.field_27377, VertexFormats.field_29337);
+      BufferBuilder buffer = Tessellator.getInstance().begin(DrawMode.LINES, VertexFormats.LINES);
       boolean need = false;
 
       for (LivingEntity entity : this.collectTargets()) {
-         if ((!this.onlyWhenNotVisible.getValue() || !this.mc.field_1769.field_27740.method_23093(entity.method_5829())) && entity != this.mc.field_1724) {
-            double tx = entity.field_6014 + (entity.method_23317() - entity.field_6014) * (double)tickDelta;
-            double ty = entity.field_6036 + (entity.method_23318() - entity.field_6036) * (double)tickDelta;
-            double tz = entity.field_5969 + (entity.method_23321() - entity.field_5969) * (double)tickDelta;
+         if ((!this.onlyWhenNotVisible.getValue() || !this.mc.worldRenderer.frustum.isVisible(entity.getBoundingBox())) && entity != this.mc.player) {
+            double tx = entity.prevX + (entity.getX() - entity.prevX) * (double)tickDelta;
+            double ty = entity.prevY + (entity.getY() - entity.prevY) * (double)tickDelta;
+            double tz = entity.prevZ + (entity.getZ() - entity.prevZ) * (double)tickDelta;
             Vec3d targetPos = new Vec3d(tx, ty, tz);
             Color color = new Color(
-               FriendRepository.isFriend(entity.method_5820())
+               FriendRepository.isFriend(entity.getNameForScoreboard())
                   ? ColorProvider.rgba(0, 255, 0, 255.0F)
                   : (this.pinkElytra.getValue() && this.isWearingElytra(entity) ? ColorProvider.rgba(255, 105, 180, 255.0F) : -1)
             );
             VertexUtil.vertexLine(
                stack,
                buffer,
-               (float)(eyePos.field_1352 - cameraPos.field_1352),
-               (float)(eyePos.field_1351 - cameraPos.field_1351),
-               (float)(eyePos.field_1350 - cameraPos.field_1350),
-               (float)(targetPos.field_1352 - cameraPos.field_1352),
-               (float)(targetPos.field_1351 - cameraPos.field_1351),
-               (float)(targetPos.field_1350 - cameraPos.field_1350),
+               (float)(eyePos.x - cameraPos.x),
+               (float)(eyePos.y - cameraPos.y),
+               (float)(eyePos.z - cameraPos.z),
+               (float)(targetPos.x - cameraPos.x),
+               (float)(targetPos.y - cameraPos.y),
+               (float)(targetPos.z - cameraPos.z),
                color
             );
             need = true;
@@ -100,26 +100,26 @@ public class Tracers extends Module {
       }
 
       if (need) {
-         BufferRenderer.method_43433(buffer.method_60800());
+         BufferRenderer.drawWithGlobalProgram(buffer.end());
       }
 
       RenderSystem.enableCull();
       RenderSystem.enableDepthTest();
       GL11.glDisable(2848);
       RenderSystem.disableBlend();
-      stack.method_22909();
+      stack.pop();
    }
 
    private List<LivingEntity> collectTargets() {
       List<LivingEntity> list = new ArrayList<>();
 
-      for (Entity entity : this.mc.field_1687.method_18112()) {
+      for (Entity entity : this.mc.world.getEntities()) {
          if (entity instanceof LivingEntity) {
             LivingEntity living = (LivingEntity)entity;
             if (living instanceof PlayerEntity) {
                PlayerEntity playerEntity = (PlayerEntity)living;
-               if (this.mc.method_1562() != null && this.mc.method_1562().method_2871(playerEntity.method_5667()) != null) {
-                  if (FriendRepository.isFriend(living.method_5820())) {
+               if (this.mc.getNetworkHandler() != null && this.mc.getNetworkHandler().getPlayerListEntry(playerEntity.getUuid()) != null) {
+                  if (FriendRepository.isFriend(living.getNameForScoreboard())) {
                      if (!this.onlyNetherite.getValue() || this.isWearingAnyNetherite(playerEntity)) {
                         list.add(living);
                      }
@@ -135,8 +135,8 @@ public class Tracers extends Module {
    }
 
    private boolean isWearingAnyNetherite(PlayerEntity player) {
-      for (EquipmentSlot slot : new EquipmentSlot[]{EquipmentSlot.field_6169, EquipmentSlot.field_6174, EquipmentSlot.field_6172, EquipmentSlot.field_6166}) {
-         ItemStack stack = player.method_6118(slot);
+      for (EquipmentSlot slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
+         ItemStack stack = player.getEquippedStack(slot);
          if (this.isNetheriteArmor(stack)) {
             return true;
          }
@@ -146,19 +146,19 @@ public class Tracers extends Module {
    }
 
    private boolean isWearingElytra(LivingEntity entity) {
-      ItemStack chestStack = entity.method_6118(EquipmentSlot.field_6174);
-      return chestStack.method_31574(Items.field_8833);
+      ItemStack chestStack = entity.getEquippedStack(EquipmentSlot.CHEST);
+      return chestStack.isOf(Items.ELYTRA);
    }
 
    private boolean isNetheriteArmor(ItemStack stack) {
-      return stack.method_31574(Items.field_22027)
-         || stack.method_31574(Items.field_22028)
-         || stack.method_31574(Items.field_22029)
-         || stack.method_31574(Items.field_22030);
+      return stack.isOf(Items.NETHERITE_HELMET)
+         || stack.isOf(Items.NETHERITE_CHESTPLATE)
+         || stack.isOf(Items.NETHERITE_LEGGINGS)
+         || stack.isOf(Items.NETHERITE_BOOTS);
    }
 
    private boolean isValid(Entity entity) {
-      if (!entity.method_5805()) {
+      if (!entity.isAlive()) {
          return false;
       } else if (entity == AlphaDLC.getInstance().getModuleStorage().get(FreeCamera.class).fakePlayer) {
          return false;

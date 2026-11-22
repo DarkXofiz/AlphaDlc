@@ -13,7 +13,7 @@ public final class GCDFixer implements IMinecraft {
    }
 
    public static float getGCD() {
-      double var11 = (Double)mc.field_1690.method_42495().method_41753() / 0.15F / 8.0;
+      double var11 = (Double)mc.options.getMouseSensitivity().getValue() / 0.15F / 8.0;
       double var9 = Math.cbrt(var11);
       float f1;
       return (f1 = (float)((var9 - 0.2F) / 0.6F * 0.6 + 0.2)) * f1 * f1 * 8.0F;

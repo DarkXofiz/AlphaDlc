@@ -37,7 +37,7 @@ public class WellHelper extends Module {
 
    @Subscribe
    private void onPacket(EventPacket e) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
+      if (this.mc.player != null && this.mc.world != null) {
          if (e.getType() == EventPacket.Type.RECEIVE) {
             if (e.getPacket() instanceof GameMessageS2CPacket p && this.invseeElytraCheck.getValue()) {
                String text = p.comp_763().getString();
@@ -54,7 +54,7 @@ public class WellHelper extends Module {
                   Matcher matcher = PLAYER_PATTERN.matcher(text);
                   if (matcher.find()) {
                      String playerName = matcher.group(1);
-                     if (!playerName.equalsIgnoreCase(this.mc.field_1724.method_5477().getString()) && !this.pendingPlayers.contains(playerName)) {
+                     if (!playerName.equalsIgnoreCase(this.mc.player.getName().getString()) && !this.pendingPlayers.contains(playerName)) {
                         this.pendingPlayers.add(playerName);
                      }
 
@@ -68,7 +68,7 @@ public class WellHelper extends Module {
 
    @Subscribe
    private void onTick(EventTick e) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null && this.invseeElytraCheck.getValue()) {
+      if (this.mc.player != null && this.mc.world != null && this.invseeElytraCheck.getValue()) {
          if (this.collectingPlayers) {
             this.collectTimeout--;
             if (this.collectTimeout <= 0) {
@@ -83,14 +83,14 @@ public class WellHelper extends Module {
                this.checkNextPlayer();
             }
          } else {
-            if (this.waitingForInvsee && this.currentInvseePlayer != null && this.mc.field_1755 instanceof GenericContainerScreen screen) {
+            if (this.waitingForInvsee && this.currentInvseePlayer != null && this.mc.currentScreen instanceof GenericContainerScreen screen) {
                boolean hasElytra = false;
-               int containerSlots = ((GenericContainerScreenHandler)screen.method_17577()).method_17388() * 9;
+               int containerSlots = ((GenericContainerScreenHandler)screen.getScreenHandler()).getRows() * 9;
 
                for (int i = 0; i < containerSlots; i++) {
-                  Slot slot = (Slot)((GenericContainerScreenHandler)screen.method_17577()).field_7761.get(i);
-                  ItemStack stack = slot.method_7677();
-                  if (stack.method_7909() == Items.field_8833) {
+                  Slot slot = (Slot)((GenericContainerScreenHandler)screen.getScreenHandler()).slots.get(i);
+                  ItemStack stack = slot.getStack();
+                  if (stack.getItem() == Items.ELYTRA) {
                      hasElytra = true;
                      break;
                   }
@@ -99,16 +99,16 @@ public class WellHelper extends Module {
                if (hasElytra) {
                   this.logDirect(
                      new Text[]{
-                        Text.method_43470(this.currentInvseePlayer)
-                           .method_27692(Formatting.field_1060)
-                           .method_10852(
-                              Text.method_43470(" \u0438\u043c\u0435\u0435\u0442 \u042d\u041b\u0418\u0422\u0420\u042b!").method_27692(Formatting.field_1076)
+                        Text.literal(this.currentInvseePlayer)
+                           .formatted(Formatting.GREEN)
+                           .append(
+                              Text.literal(" \u0438\u043c\u0435\u0435\u0442 \u042d\u041b\u0418\u0422\u0420\u042b!").formatted(Formatting.LIGHT_PURPLE)
                            )
                      }
                   );
                }
 
-               this.mc.field_1724.method_7346();
+               this.mc.player.closeHandledScreen();
                this.currentInvseePlayer = null;
                this.waitingForInvsee = false;
                if (!this.pendingPlayers.isEmpty()) {
@@ -120,10 +120,10 @@ public class WellHelper extends Module {
    }
 
    private void checkNextPlayer() {
-      if (!this.pendingPlayers.isEmpty() && this.mc.method_1562() != null) {
+      if (!this.pendingPlayers.isEmpty() && this.mc.getNetworkHandler() != null) {
          this.currentInvseePlayer = this.pendingPlayers.remove(0);
          this.waitingForInvsee = true;
-         this.mc.method_1562().method_45730("invsee " + this.currentInvseePlayer);
+         this.mc.getNetworkHandler().sendChatCommand("invsee " + this.currentInvseePlayer);
       }
    }
 }

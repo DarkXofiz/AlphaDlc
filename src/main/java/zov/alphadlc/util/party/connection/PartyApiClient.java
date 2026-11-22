@@ -54,9 +54,9 @@ public final class PartyApiClient implements IMinecraft {
    }
 
    public static void fetchPartyStateAsync() {
-      if (mc.field_1724 != null) {
+      if (mc.player != null) {
          JsonObject req = new JsonObject();
-         req.addProperty("player", mc.field_1724.method_5820());
+         req.addProperty("player", mc.player.getNameForScoreboard());
          HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create("http://bybybybyvich.pythonanywhere.com/party/state"))
             .POST(BodyPublishers.ofString(req.toString()))
@@ -90,9 +90,9 @@ public final class PartyApiClient implements IMinecraft {
    }
 
    public static void fetchInvitesAsync() {
-      if (mc.field_1724 != null) {
+      if (mc.player != null) {
          JsonObject req = new JsonObject();
-         req.addProperty("player", mc.field_1724.method_5820());
+         req.addProperty("player", mc.player.getNameForScoreboard());
          postAsync(
             "/party/invites",
             req,
@@ -100,13 +100,13 @@ public final class PartyApiClient implements IMinecraft {
                for (JsonElement e : json.getAsJsonArray("invites")) {
                   String party = e.getAsString();
                   ChatUtil.send(
-                     Formatting.field_1080
+                     Formatting.GRAY
                         + "\u0412\u0430\u0441 \u043f\u0440\u0438\u0433\u043b\u0430\u0441\u0438\u043b\u0438 \u0432 \u043f\u0430\u0442\u0438 "
-                        + Formatting.field_1068
+                        + Formatting.WHITE
                         + party
-                        + Formatting.field_1080
+                        + Formatting.GRAY
                         + ", \u043d\u0430\u043f\u0438\u0448\u0438\u0442\u0435 "
-                        + Formatting.field_1068
+                        + Formatting.WHITE
                         + ".party join "
                         + party
                   );

@@ -19,7 +19,7 @@ import zov.alphadlc.util.base.Instance;
 @Mixin({MinecraftClient.class})
 public class MinecraftClientMixin {
    @Unique
-   private long lastHookTime = Util.method_648();
+   private long lastHookTime = Util.getMeasuringTimeNano();
    @Unique
    private int accumulatedCalls = 0;
 
@@ -75,7 +75,7 @@ public class MinecraftClientMixin {
       at = {@At("HEAD")}
    )
    private void render(boolean tick, CallbackInfo ci) {
-      long timeNano = Util.method_648();
+      long timeNano = Util.getMeasuringTimeNano();
       long deltaTime = timeNano - this.lastHookTime;
       this.accumulatedCalls += (int)(deltaTime / 4166666L);
       this.lastHookTime = this.lastHookTime + (long)this.accumulatedCalls * 4166666L;

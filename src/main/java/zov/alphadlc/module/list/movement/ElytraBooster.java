@@ -88,10 +88,10 @@ public final class ElytraBooster extends Module {
    };
 
    public ElytraBooster.BoostValues computeBoost(float yaw, float pitch) {
-      if (this.boost.getValue() && this.mc.field_1724 != null) {
+      if (this.boost.getValue() && this.mc.player != null) {
          KillAura aura = Instance.get(KillAura.class);
          if (aura != null && aura.isEnabled()) {
-            yaw = MathHelper.method_15393(aura.lastYaw);
+            yaw = MathHelper.wrapDegrees(aura.lastYaw);
             pitch = aura.lastPitch;
          }
 
@@ -113,7 +113,7 @@ public final class ElytraBooster extends Module {
       if (!this.maxspeed.getValue()) {
          return new ElytraBooster.BoostValues(this.speedxz.getFloatValue(), this.speedy.getFloatValue());
       } else {
-         float convertedYaw = this.convertAngleToRange(MathHelper.method_15393(yaw));
+         float convertedYaw = this.convertAngleToRange(MathHelper.wrapDegrees(yaw));
          float convertedPitch = this.convertAngleToRange(Math.abs(pitch));
          float xzSpeed = this.getSpeedForYaw(convertedYaw);
          float ySpeed = this.getSpeedForPitch(convertedPitch);
@@ -185,7 +185,7 @@ public final class ElytraBooster extends Module {
       if (idx == -1) {
          return 1.6F;
       } else {
-         float dist = Math.abs(MathHelper.method_15393(yaw) - (float)AI_YAW_VECTORS[idx]);
+         float dist = Math.abs(MathHelper.wrapDegrees(yaw) - (float)AI_YAW_VECTORS[idx]);
          float maxBoost = 2.2F;
          float minBoostVal = 1.6F;
          float maxDistance = 12.0F;
@@ -232,7 +232,7 @@ public final class ElytraBooster extends Module {
       float minDist = Float.MAX_VALUE;
 
       for (int i = 0; i < vectors.length; i++) {
-         float d = Math.abs(MathHelper.method_15393(angle) - (float)vectors[i]);
+         float d = Math.abs(MathHelper.wrapDegrees(angle) - (float)vectors[i]);
          if (d < minDist) {
             minDist = d;
             minIdx = i;
@@ -244,22 +244,22 @@ public final class ElytraBooster extends Module {
 
    @Subscribe
    private void onHud(EventHUD event) {
-      if (this.showOverlay.getValue() && this.mc.field_1724 != null) {
-         if (this.mc.field_1724.method_6128()) {
-            float yaw = this.mc.field_1724.method_36454();
-            float pitch = this.mc.field_1724.method_36455();
+      if (this.showOverlay.getValue() && this.mc.player != null) {
+         if (this.mc.player.isGliding()) {
+            float yaw = this.mc.player.getYaw();
+            float pitch = this.mc.player.getPitch();
             KillAura aura = Instance.get(KillAura.class);
             if (aura != null && aura.isEnabled()) {
-               yaw = MathHelper.method_15393(aura.lastYaw);
+               yaw = MathHelper.wrapDegrees(aura.lastYaw);
                pitch = aura.lastPitch;
             }
 
             String pitchText = String.format(Locale.US, "Y: %.1f\u00b0", pitch);
-            String yawText = String.format(Locale.US, "XZ: %.1f\u00b0", MathHelper.method_15393(yaw));
+            String yawText = String.format(Locale.US, "XZ: %.1f\u00b0", MathHelper.wrapDegrees(yaw));
             String text = pitchText + "  \u00b7  " + yawText;
             int color = ColorProvider.getColorClient();
-            int sw = this.mc.method_22683().method_4486();
-            int sh = this.mc.method_22683().method_4502();
+            int sw = this.mc.getWindow().getScaledWidth();
+            int sh = this.mc.getWindow().getScaledHeight();
             float w = Fonts.SFBOLD.get().getWidth(text, 8.0F);
             float x = (float)sw / 2.0F - w / 2.0F;
             float y = (float)sh / 2.0F + 32.0F;
@@ -270,12 +270,12 @@ public final class ElytraBooster extends Module {
 
    @Subscribe
    private void onFirework(FireworkEvent event) {
-      if (this.mc.field_1724 != null && this.boost.getValue() && event.getBoostedEntity() == this.mc.field_1724) {
-         float yaw = this.mc.field_1724.method_36454();
-         float pitch = this.mc.field_1724.method_36455();
+      if (this.mc.player != null && this.boost.getValue() && event.getBoostedEntity() == this.mc.player) {
+         float yaw = this.mc.player.getYaw();
+         float pitch = this.mc.player.getPitch();
          KillAura aura = Instance.get(KillAura.class);
          if (aura != null && aura.isEnabled()) {
-            yaw = MathHelper.method_15393(aura.lastYaw);
+            yaw = MathHelper.wrapDegrees(aura.lastYaw);
             pitch = aura.lastPitch;
          }
 

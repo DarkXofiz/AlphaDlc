@@ -50,7 +50,7 @@ public class ClientPlayerInteractionManagerMixin {
       EventRightClickBlock event = new EventRightClickBlock(hand, hitResult);
       event.post();
       if (event.isCancelled()) {
-         cir.setReturnValue(ActionResult.field_5814);
+         cir.setReturnValue(ActionResult.FAIL);
       }
    }
 

@@ -26,15 +26,15 @@ public class TriggerBot extends Module {
 
    @Subscribe
    public void onEvent(EventTick e2) {
-      if (this.mc.field_1724 != null) {
-         if (!this.mc.field_1724.method_6115() || !this.pauseEating.getValue()) {
+      if (this.mc.player != null) {
+         if (!this.mc.player.isUsingItem() || !this.pauseEating.getValue()) {
             if (this.delay > 0) {
                this.delay--;
             } else if (this.autoCrit()) {
-               Entity ent = this.mc.field_1692;
+               Entity ent = this.mc.targetedEntity;
                if (ent != null) {
-                  this.mc.field_1761.method_2918(this.mc.field_1724, ent);
-                  this.mc.field_1724.method_6104(Hand.field_5808);
+                  this.mc.interactionManager.attackEntity(this.mc.player, ent);
+                  this.mc.player.swingHand(Hand.MAIN_HAND);
                   this.delay = 10;
                }
             }
@@ -50,22 +50,22 @@ public class TriggerBot extends Module {
 
    private boolean autoCrit() {
       boolean reasonForSkipCrit = !this.onlyCriticals.getValue()
-         || this.mc.field_1724.method_31549().field_7479
-         || this.mc.field_1724.method_6059(StatusEffects.field_5902)
-         || this.mc.field_1724.method_6059(StatusEffects.field_5919)
-         || this.mc.field_1687.method_8320(this.mc.field_1724.method_24515()).method_26204() == Blocks.field_9983;
-      float f2 = this.mc.field_1724.method_7261(0.5F);
-      float f3 = this.mc.field_1724.method_24828() ? 1.0F : 0.9F;
+         || this.mc.player.getAbilities().flying
+         || this.mc.player.hasStatusEffect(StatusEffects.LEVITATION)
+         || this.mc.player.hasStatusEffect(StatusEffects.BLINDNESS)
+         || this.mc.world.getBlockState(this.mc.player.getBlockPos()).getBlock() == Blocks.LADDER;
+      float f2 = this.mc.player.getAttackCooldownProgress(0.5F);
+      float f3 = this.mc.player.isOnGround() ? 1.0F : 0.9F;
       if (f2 < f3) {
          return false;
       } else {
-         boolean mergeWithSpeed = this.mc.field_1724.method_24828();
-         if (!this.mc.field_1690.field_1903.method_1434() && mergeWithSpeed && this.spaceOnly.getValue()) {
+         boolean mergeWithSpeed = this.mc.player.isOnGround();
+         if (!this.mc.options.jumpKey.isPressed() && mergeWithSpeed && this.spaceOnly.getValue()) {
             return true;
-         } else if (this.mc.field_1724.method_5771()) {
+         } else if (this.mc.player.isInLava()) {
             return true;
          } else {
-            return reasonForSkipCrit ? true : !this.mc.field_1724.method_24828() && this.mc.field_1724.field_6017 > 0.0F;
+            return reasonForSkipCrit ? true : !this.mc.player.isOnGround() && this.mc.player.fallDistance > 0.0F;
          }
       }
    }

@@ -54,8 +54,8 @@ public class GpsCommand extends Command {
    @Override
    public Stream<String> tabComplete(String label, IArgConsumer args) {
       if (!args.hasAny() || args.hasExactlyOne() && args.getArgs().getFirst().getValue().isEmpty()) {
-         ClientPlayerEntity p2 = MinecraftClient.method_1551().field_1724;
-         return p2 == null ? Stream.of("off") : Stream.of("off", (int)p2.method_23317() + " " + (int)p2.method_23321());
+         ClientPlayerEntity p2 = MinecraftClient.getInstance().player;
+         return p2 == null ? Stream.of("off") : Stream.of("off", (int)p2.getX() + " " + (int)p2.getZ());
       } else {
          return Stream.empty();
       }

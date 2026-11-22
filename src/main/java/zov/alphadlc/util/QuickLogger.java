@@ -9,12 +9,12 @@ import net.minecraft.util.Formatting;
 
 public interface QuickLogger {
    static Text getPrefix() {
-      MutableText onetap = Text.method_43470("alphadlc DLC");
-      onetap.method_10862(onetap.method_10866().method_10977(Formatting.field_1068));
-      MutableText prefix = Text.method_43470("");
-      prefix.method_10862(onetap.method_10866().method_10977(Formatting.field_1063));
-      prefix.method_10852(onetap);
-      prefix.method_27693(" -> ");
+      MutableText onetap = Text.literal("alphadlc DLC");
+      onetap.setStyle(onetap.getStyle().withColor(Formatting.WHITE));
+      MutableText prefix = Text.literal("");
+      prefix.setStyle(onetap.getStyle().withColor(Formatting.DARK_GRAY));
+      prefix.append(onetap);
+      prefix.append(" -> ");
       return prefix;
    }
 
@@ -23,24 +23,24 @@ public interface QuickLogger {
    }
 
    default void logDirect(Text... components) {
-      MutableText component = Text.method_43470("");
-      component.method_10852(getPrefix());
-      component.method_10852(Text.method_43470(" "));
-      Arrays.asList(components).forEach(component::method_10852);
-      if (MinecraftClient.method_1551().field_1724 != null) {
-         MinecraftClient.method_1551().field_1705.method_1743().method_1812(component);
+      MutableText component = Text.literal("");
+      component.append(getPrefix());
+      component.append(Text.literal(" "));
+      Arrays.asList(components).forEach(component::append);
+      if (MinecraftClient.getInstance().player != null) {
+         MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(component);
       }
    }
 
    default void logDirect(String message, Formatting color) {
       Stream.of(message.split("\n")).forEach(line -> {
-         MutableText component = Text.method_43470(line.replace("\t", "    "));
-         component.method_10862(component.method_10866().method_10977(color));
+         MutableText component = Text.literal(line.replace("\t", "    "));
+         component.setStyle(component.getStyle().withColor(color));
          this.logDirect(component);
       });
    }
 
    default void logDirect(String message) {
-      this.logDirect(message, Formatting.field_1080);
+      this.logDirect(message, Formatting.GRAY);
    }
 }

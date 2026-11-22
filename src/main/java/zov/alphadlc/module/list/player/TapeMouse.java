@@ -42,11 +42,11 @@ public class TapeMouse extends Module {
    }
 
    private void clickForLocalPlayer() {
-      if (this.mc.field_1724 != null && this.mc.field_1755 == null) {
+      if (this.mc.player != null && this.mc.currentScreen == null) {
          if (this.rightClick.getValue()) {
-            this.mc.method_1583();
-         } else if (!this.onlyEntity.getValue() || this.mc.field_1765 != null && this.mc.field_1765.method_17783() == Type.field_1331) {
-            this.mc.method_1536();
+            this.mc.doItemUse();
+         } else if (!this.onlyEntity.getValue() || this.mc.crosshairTarget != null && this.mc.crosshairTarget.getType() == Type.ENTITY) {
+            this.mc.doAttack();
          }
       }
    }

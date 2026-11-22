@@ -40,14 +40,14 @@ public final class MathUtil implements IMinecraft {
    }
 
    public static double calc(double value) {
-      Window rs = mc.method_22683();
-      return value * rs.method_4495() / 2.0;
+      Window rs = mc.getWindow();
+      return value * rs.getScaleFactor() / 2.0;
    }
 
    public static double getBps(Entity player) {
-      double dx = player.method_23317() - player.field_6014;
-      double dy = player.method_23318() - player.field_6036;
-      double dz = player.method_23321() - player.field_5969;
+      double dx = player.getX() - player.prevX;
+      double dy = player.getY() - player.prevY;
+      double dz = player.getZ() - player.prevZ;
       double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
       return 20.0 * distance;
    }
@@ -57,9 +57,9 @@ public final class MathUtil implements IMinecraft {
    }
 
    public static double getDistanceSq(double x, double y, double z) {
-      double d0 = mc.field_1724.method_23317() - x;
-      double d1 = mc.field_1724.method_23318() - y;
-      double d2 = mc.field_1724.method_23321() - z;
+      double d0 = mc.player.getX() - x;
+      double d1 = mc.player.getY() - y;
+      double d2 = mc.player.getZ() - z;
       return d0 * d0 + d1 * d1 + d2 * d2;
    }
 
@@ -84,7 +84,7 @@ public final class MathUtil implements IMinecraft {
    }
 
    public static double getDistanceSq(Entity ent) {
-      return getDistanceSq(ent.method_23317(), ent.method_23318(), ent.method_23321());
+      return getDistanceSq(ent.getX(), ent.getY(), ent.getZ());
    }
 
    public static double roundToDecimal(double n, int point) {
@@ -97,11 +97,11 @@ public final class MathUtil implements IMinecraft {
    }
 
    public static double angle(Vec3d vec3d, Vec3d other) {
-      double lengthSq = vec3d.method_1033() * other.method_1033();
+      double lengthSq = vec3d.length() * other.length();
       if (lengthSq < 1.0E-4) {
          return 0.0;
       } else {
-         double dot = vec3d.method_1026(other);
+         double dot = vec3d.dotProduct(other);
          double arg = dot / lengthSq;
          if (arg > 1.0) {
             return 0.0;
@@ -112,7 +112,7 @@ public final class MathUtil implements IMinecraft {
    }
 
    public static Vec3d fromTo(Vec3d from, double x, double y, double z) {
-      return fromTo(from.field_1352, from.field_1351, from.field_1350, x, y, z);
+      return fromTo(from.x, from.y, from.z, x, y, z);
    }
 
    public static float lerp(float f, float st, float en) {
@@ -140,19 +140,19 @@ public final class MathUtil implements IMinecraft {
    }
 
    public static float sin(float value) {
-      return MathHelper.method_15374(value);
+      return MathHelper.sin(value);
    }
 
    public static float cos(float value) {
-      return MathHelper.method_15362(value);
+      return MathHelper.cos(value);
    }
 
    public static float wrapDegrees(float value) {
-      return MathHelper.method_15393(value);
+      return MathHelper.wrapDegrees(value);
    }
 
    public static double wrapDegrees(double value) {
-      return MathHelper.method_15338(value);
+      return MathHelper.wrapDegrees(value);
    }
 
    public static double square(double input) {

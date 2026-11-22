@@ -48,7 +48,7 @@ public class ElytraHelper extends Module {
             this.swapped = true;
          }
 
-         if (e2.getKey() == this.fireworkKey.getValue() && this.mc.field_1724.method_6128()) {
+         if (e2.getKey() == this.fireworkKey.getValue() && this.mc.player.isGliding()) {
             this.fireworkUsed = true;
          }
       }
@@ -58,35 +58,35 @@ public class ElytraHelper extends Module {
    private void onPlayerUpdate(EventPlayerUpdate e2) {
       if (this.swapped) {
          this.swapped = false;
-         this.swap(this.mode, this.mc.field_1724.method_6118(EquipmentSlot.field_6174).method_7909() == Items.field_8833);
+         this.swap(this.mode, this.mc.player.getEquippedStack(EquipmentSlot.CHEST).getItem() == Items.ELYTRA);
       }
    }
 
    @Subscribe
    private void onTick(EventTick e2) {
-      if (this.mc.field_1724 != null) {
+      if (this.mc.player != null) {
          if (this.autoTakeoff.getValue()) {
-            ItemStack chest = this.mc.field_1724.method_6118(EquipmentSlot.field_6174);
-            if (chest.method_7909() == Items.field_8833
-               && !this.mc.field_1724.method_5771()
-               && !this.mc.field_1724.method_5799()
-               && this.mc.field_1724.method_24828()
-               && !this.mc.field_1724.method_5765()
-               && !this.mc.field_1724.method_6128()
-               && !this.mc.field_1724.method_7325()
-               && !this.mc.field_1690.field_1903.method_1434()) {
-               this.mc.field_1724.method_6043();
+            ItemStack chest = this.mc.player.getEquippedStack(EquipmentSlot.CHEST);
+            if (chest.getItem() == Items.ELYTRA
+               && !this.mc.player.isInLava()
+               && !this.mc.player.isTouchingWater()
+               && this.mc.player.isOnGround()
+               && !this.mc.player.hasVehicle()
+               && !this.mc.player.isGliding()
+               && !this.mc.player.isSpectator()
+               && !this.mc.options.jumpKey.isPressed()) {
+               this.mc.player.jump();
             }
 
-            if (chest.method_7909() == Items.field_8833
-               && !this.mc.field_1724.method_5771()
-               && !this.mc.field_1724.method_5799()
-               && !this.mc.field_1724.method_24828()
-               && !this.mc.field_1724.method_5765()
-               && !this.mc.field_1724.method_6128()
-               && !this.mc.field_1724.method_7325()) {
-               NetworkUtils.sendSilentPacket(new ClientCommandC2SPacket(this.mc.field_1724, Mode.field_12982));
-               this.mc.field_1724.method_23669();
+            if (chest.getItem() == Items.ELYTRA
+               && !this.mc.player.isInLava()
+               && !this.mc.player.isTouchingWater()
+               && !this.mc.player.isOnGround()
+               && !this.mc.player.hasVehicle()
+               && !this.mc.player.isGliding()
+               && !this.mc.player.isSpectator()) {
+               NetworkUtils.sendSilentPacket(new ClientCommandC2SPacket(this.mc.player, Mode.START_FALL_FLYING));
+               this.mc.player.startGliding();
             }
          }
 
@@ -94,10 +94,10 @@ public class ElytraHelper extends Module {
             String var4 = this.throwFireworkMode.getValue();
             switch (var4) {
                case "\u041e\u0431\u044b\u0447\u043d\u044b\u0439":
-                  InventoryUtil.swapAndUseHvH(Items.field_8639);
+                  InventoryUtil.swapAndUseHvH(Items.FIREWORK_ROCKET);
                   break;
                case "\u041b\u0435\u0433\u0438\u0442\u043d\u044b\u0439":
-                  InventoryUtil.swapAndUseLegit(Items.field_8639);
+                  InventoryUtil.swapAndUseLegit(Items.FIREWORK_ROCKET);
             }
 
             this.fireworkUsed = false;
@@ -132,18 +132,18 @@ public class ElytraHelper extends Module {
       if (slot == -1) {
          ChatUtil.send(
             "\u042d\u043b\u0438\u0442\u0440\u0430"
-               + Formatting.field_1080
+               + Formatting.GRAY
                + " \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u0430 \u0432 \u0438\u043d\u0432\u0435\u043d\u0442\u0430\u0440\u0435"
          );
       } else {
          if (slot >= 0 && slot <= 8) {
             this.lastElytraSlot = slot;
-            this.mc.field_1761.method_2906(0, 6, slot, SlotActionType.field_7791, this.mc.field_1724);
+            this.mc.interactionManager.clickSlot(0, 6, slot, SlotActionType.SWAP, this.mc.player);
          } else if (slot >= 9 && slot <= 35) {
             this.lastElytraSlot = 8;
-            this.mc.field_1761.method_2906(0, slot, 8, SlotActionType.field_7791, this.mc.field_1724);
-            this.mc.field_1761.method_2906(0, 6, 8, SlotActionType.field_7791, this.mc.field_1724);
-            this.mc.field_1761.method_2906(0, slot, 8, SlotActionType.field_7791, this.mc.field_1724);
+            this.mc.interactionManager.clickSlot(0, slot, 8, SlotActionType.SWAP, this.mc.player);
+            this.mc.interactionManager.clickSlot(0, 6, 8, SlotActionType.SWAP, this.mc.player);
+            this.mc.interactionManager.clickSlot(0, slot, 8, SlotActionType.SWAP, this.mc.player);
          }
       }
    }
@@ -153,23 +153,23 @@ public class ElytraHelper extends Module {
       if (chestplateSlot == -1) {
          ChatUtil.send(
             "\u041d\u0430\u0433\u0440\u0443\u0434\u043d\u0438\u043a"
-               + Formatting.field_1080
+               + Formatting.GRAY
                + " \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d \u0432 \u0438\u043d\u0432\u0435\u043d\u0442\u0430\u0440\u0435"
          );
       } else {
          if (this.lastElytraSlot >= 0 && this.lastElytraSlot <= 8) {
             if (chestplateSlot == this.lastElytraSlot) {
-               this.mc.field_1761.method_2906(0, 6, this.lastElytraSlot, SlotActionType.field_7791, this.mc.field_1724);
+               this.mc.interactionManager.clickSlot(0, 6, this.lastElytraSlot, SlotActionType.SWAP, this.mc.player);
             } else {
-               this.mc.field_1761.method_2906(0, chestplateSlot, this.lastElytraSlot, SlotActionType.field_7791, this.mc.field_1724);
-               this.mc.field_1761.method_2906(0, 6, this.lastElytraSlot, SlotActionType.field_7791, this.mc.field_1724);
+               this.mc.interactionManager.clickSlot(0, chestplateSlot, this.lastElytraSlot, SlotActionType.SWAP, this.mc.player);
+               this.mc.interactionManager.clickSlot(0, 6, this.lastElytraSlot, SlotActionType.SWAP, this.mc.player);
             }
          } else if (chestplateSlot >= 0 && chestplateSlot <= 8) {
-            this.mc.field_1761.method_2906(0, 6, chestplateSlot, SlotActionType.field_7791, this.mc.field_1724);
+            this.mc.interactionManager.clickSlot(0, 6, chestplateSlot, SlotActionType.SWAP, this.mc.player);
          } else if (chestplateSlot >= 9 && chestplateSlot <= 35) {
-            this.mc.field_1761.method_2906(0, chestplateSlot, 8, SlotActionType.field_7791, this.mc.field_1724);
-            this.mc.field_1761.method_2906(0, 6, 8, SlotActionType.field_7791, this.mc.field_1724);
-            this.mc.field_1761.method_2906(0, chestplateSlot, 8, SlotActionType.field_7791, this.mc.field_1724);
+            this.mc.interactionManager.clickSlot(0, chestplateSlot, 8, SlotActionType.SWAP, this.mc.player);
+            this.mc.interactionManager.clickSlot(0, 6, 8, SlotActionType.SWAP, this.mc.player);
+            this.mc.interactionManager.clickSlot(0, chestplateSlot, 8, SlotActionType.SWAP, this.mc.player);
          }
       }
    }
@@ -187,19 +187,19 @@ public class ElytraHelper extends Module {
       if (slot == -1) {
          ChatUtil.send(
             "\u042d\u043b\u0438\u0442\u0440\u0430"
-               + Formatting.field_1080
+               + Formatting.GRAY
                + " \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u0430 \u0432 \u0438\u043d\u0432\u0435\u043d\u0442\u0430\u0440\u0435"
          );
       } else {
          if (slot >= 0 && slot <= 8) {
             this.lastElytraSlot = slot;
-            InventoryUtil.swapWithBypassGrim(() -> this.mc.field_1761.method_2906(0, 6, slot, SlotActionType.field_7791, this.mc.field_1724));
+            InventoryUtil.swapWithBypassGrim(() -> this.mc.interactionManager.clickSlot(0, 6, slot, SlotActionType.SWAP, this.mc.player));
          } else if (slot >= 9 && slot <= 35) {
             this.lastElytraSlot = 8;
             InventoryUtil.swapWithBypassGrim(() -> {
-               this.mc.field_1761.method_2906(0, slot, 8, SlotActionType.field_7791, this.mc.field_1724);
-               this.mc.field_1761.method_2906(0, 6, 8, SlotActionType.field_7791, this.mc.field_1724);
-               this.mc.field_1761.method_2906(0, slot, 8, SlotActionType.field_7791, this.mc.field_1724);
+               this.mc.interactionManager.clickSlot(0, slot, 8, SlotActionType.SWAP, this.mc.player);
+               this.mc.interactionManager.clickSlot(0, 6, 8, SlotActionType.SWAP, this.mc.player);
+               this.mc.interactionManager.clickSlot(0, slot, 8, SlotActionType.SWAP, this.mc.player);
             });
          }
       }
@@ -210,26 +210,26 @@ public class ElytraHelper extends Module {
       if (chestplateSlot == -1) {
          ChatUtil.send(
             "\u041d\u0430\u0433\u0440\u0443\u0434\u043d\u0438\u043a"
-               + Formatting.field_1080
+               + Formatting.GRAY
                + " \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d \u0432 \u0438\u043d\u0432\u0435\u043d\u0442\u0430\u0440\u0435"
          );
       } else {
          if (this.lastElytraSlot >= 0 && this.lastElytraSlot <= 8) {
             if (chestplateSlot == this.lastElytraSlot) {
-               InventoryUtil.swapWithBypassGrim(() -> this.mc.field_1761.method_2906(0, 6, this.lastElytraSlot, SlotActionType.field_7791, this.mc.field_1724));
+               InventoryUtil.swapWithBypassGrim(() -> this.mc.interactionManager.clickSlot(0, 6, this.lastElytraSlot, SlotActionType.SWAP, this.mc.player));
             } else {
                InventoryUtil.swapWithBypassGrim(() -> {
-                  this.mc.field_1761.method_2906(0, chestplateSlot, this.lastElytraSlot, SlotActionType.field_7791, this.mc.field_1724);
-                  this.mc.field_1761.method_2906(0, 6, this.lastElytraSlot, SlotActionType.field_7791, this.mc.field_1724);
+                  this.mc.interactionManager.clickSlot(0, chestplateSlot, this.lastElytraSlot, SlotActionType.SWAP, this.mc.player);
+                  this.mc.interactionManager.clickSlot(0, 6, this.lastElytraSlot, SlotActionType.SWAP, this.mc.player);
                });
             }
          } else if (chestplateSlot >= 0 && chestplateSlot <= 8) {
-            InventoryUtil.swapWithBypassGrim(() -> this.mc.field_1761.method_2906(0, 6, chestplateSlot, SlotActionType.field_7791, this.mc.field_1724));
+            InventoryUtil.swapWithBypassGrim(() -> this.mc.interactionManager.clickSlot(0, 6, chestplateSlot, SlotActionType.SWAP, this.mc.player));
          } else if (chestplateSlot >= 9 && chestplateSlot <= 35) {
             InventoryUtil.swapWithBypassGrim(() -> {
-               this.mc.field_1761.method_2906(0, chestplateSlot, 8, SlotActionType.field_7791, this.mc.field_1724);
-               this.mc.field_1761.method_2906(0, 6, 8, SlotActionType.field_7791, this.mc.field_1724);
-               this.mc.field_1761.method_2906(0, chestplateSlot, 8, SlotActionType.field_7791, this.mc.field_1724);
+               this.mc.interactionManager.clickSlot(0, chestplateSlot, 8, SlotActionType.SWAP, this.mc.player);
+               this.mc.interactionManager.clickSlot(0, 6, 8, SlotActionType.SWAP, this.mc.player);
+               this.mc.interactionManager.clickSlot(0, chestplateSlot, 8, SlotActionType.SWAP, this.mc.player);
             });
          }
       }
@@ -248,19 +248,19 @@ public class ElytraHelper extends Module {
       if (slot == -1) {
          ChatUtil.send(
             "\u042d\u043b\u0438\u0442\u0440\u0430"
-               + Formatting.field_1080
+               + Formatting.GRAY
                + " \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u0430 \u0432 \u0438\u043d\u0432\u0435\u043d\u0442\u0430\u0440\u0435"
          );
       } else {
          if (slot >= 0 && slot <= 8) {
             this.lastElytraSlot = slot;
-            InventoryUtil.swapWithBypassPolar(() -> this.mc.field_1761.method_2906(0, 6, slot, SlotActionType.field_7791, this.mc.field_1724));
+            InventoryUtil.swapWithBypassPolar(() -> this.mc.interactionManager.clickSlot(0, 6, slot, SlotActionType.SWAP, this.mc.player));
          } else if (slot >= 9 && slot <= 35) {
             this.lastElytraSlot = 8;
             InventoryUtil.swapWithBypassPolar(() -> {
-               this.mc.field_1761.method_2906(0, slot, 8, SlotActionType.field_7791, this.mc.field_1724);
-               this.mc.field_1761.method_2906(0, 6, 8, SlotActionType.field_7791, this.mc.field_1724);
-               this.mc.field_1761.method_2906(0, slot, 8, SlotActionType.field_7791, this.mc.field_1724);
+               this.mc.interactionManager.clickSlot(0, slot, 8, SlotActionType.SWAP, this.mc.player);
+               this.mc.interactionManager.clickSlot(0, 6, 8, SlotActionType.SWAP, this.mc.player);
+               this.mc.interactionManager.clickSlot(0, slot, 8, SlotActionType.SWAP, this.mc.player);
             });
          }
       }
@@ -271,26 +271,26 @@ public class ElytraHelper extends Module {
       if (chestplateSlot == -1) {
          ChatUtil.send(
             "\u041d\u0430\u0433\u0440\u0443\u0434\u043d\u0438\u043a"
-               + Formatting.field_1080
+               + Formatting.GRAY
                + " \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d \u0432 \u0438\u043d\u0432\u0435\u043d\u0442\u0430\u0440\u0435"
          );
       } else {
          if (this.lastElytraSlot >= 0 && this.lastElytraSlot <= 8) {
             if (chestplateSlot == this.lastElytraSlot) {
-               InventoryUtil.swapWithBypassPolar(() -> this.mc.field_1761.method_2906(0, 6, this.lastElytraSlot, SlotActionType.field_7791, this.mc.field_1724));
+               InventoryUtil.swapWithBypassPolar(() -> this.mc.interactionManager.clickSlot(0, 6, this.lastElytraSlot, SlotActionType.SWAP, this.mc.player));
             } else {
                InventoryUtil.swapWithBypassPolar(() -> {
-                  this.mc.field_1761.method_2906(0, chestplateSlot, this.lastElytraSlot, SlotActionType.field_7791, this.mc.field_1724);
-                  this.mc.field_1761.method_2906(0, 6, this.lastElytraSlot, SlotActionType.field_7791, this.mc.field_1724);
+                  this.mc.interactionManager.clickSlot(0, chestplateSlot, this.lastElytraSlot, SlotActionType.SWAP, this.mc.player);
+                  this.mc.interactionManager.clickSlot(0, 6, this.lastElytraSlot, SlotActionType.SWAP, this.mc.player);
                });
             }
          } else if (chestplateSlot >= 0 && chestplateSlot <= 8) {
-            InventoryUtil.swapWithBypassPolar(() -> this.mc.field_1761.method_2906(0, 6, chestplateSlot, SlotActionType.field_7791, this.mc.field_1724));
+            InventoryUtil.swapWithBypassPolar(() -> this.mc.interactionManager.clickSlot(0, 6, chestplateSlot, SlotActionType.SWAP, this.mc.player));
          } else if (chestplateSlot >= 9 && chestplateSlot <= 35) {
             InventoryUtil.swapWithBypassPolar(() -> {
-               this.mc.field_1761.method_2906(0, chestplateSlot, 8, SlotActionType.field_7791, this.mc.field_1724);
-               this.mc.field_1761.method_2906(0, 6, 8, SlotActionType.field_7791, this.mc.field_1724);
-               this.mc.field_1761.method_2906(0, chestplateSlot, 8, SlotActionType.field_7791, this.mc.field_1724);
+               this.mc.interactionManager.clickSlot(0, chestplateSlot, 8, SlotActionType.SWAP, this.mc.player);
+               this.mc.interactionManager.clickSlot(0, 6, 8, SlotActionType.SWAP, this.mc.player);
+               this.mc.interactionManager.clickSlot(0, chestplateSlot, 8, SlotActionType.SWAP, this.mc.player);
             });
          }
       }

@@ -3,5 +3,5 @@ package zov.alphadlc.util;
 import net.minecraft.client.MinecraftClient;
 
 public interface IMinecraft {
-   MinecraftClient mc = MinecraftClient.method_1551();
+   MinecraftClient mc = MinecraftClient.getInstance();
 }

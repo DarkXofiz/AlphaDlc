@@ -16,17 +16,17 @@ import zov.alphadlc.module.ModuleInformation;
 public class FullBright extends Module {
    @Subscribe
    private void onUpdate(EventTick e) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
-         if (!this.mc.field_1724.method_6059(StatusEffects.field_5925)) {
-            this.mc.field_1724.method_6092(new StatusEffectInstance(StatusEffects.field_5925, -1, 3));
+      if (this.mc.player != null && this.mc.world != null) {
+         if (!this.mc.player.hasStatusEffect(StatusEffects.NIGHT_VISION)) {
+            this.mc.player.addStatusEffect(new StatusEffectInstance(StatusEffects.NIGHT_VISION, -1, 3));
          }
       }
    }
 
    @Override
    public void onDisable() {
-      if (this.mc.field_1724 != null) {
-         this.mc.field_1724.method_6016(StatusEffects.field_5925);
+      if (this.mc.player != null) {
+         this.mc.player.removeStatusEffect(StatusEffects.NIGHT_VISION);
          super.onDisable();
       }
    }

@@ -44,7 +44,7 @@ public class FriendCommand extends Command {
          default:
             this.logDirect(
                "\u041d\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043d\u0430\u044f \u043f\u043e\u0434\u043a\u043e\u043c\u0430\u043d\u0434\u0430. \u0418\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0439 add/remove/list/clear.",
-               Formatting.field_1080
+               Formatting.GRAY
             );
       }
    }
@@ -55,16 +55,16 @@ public class FriendCommand extends Command {
       if (FriendRepository.isFriend(name)) {
          this.logDirect(
             "\u042d\u0442\u043e\u0442 \u0438\u0433\u0440\u043e\u043a \u0443\u0436\u0435 \u0432 \u0441\u043f\u0438\u0441\u043a\u0435 \u0434\u0440\u0443\u0437\u0435\u0439",
-            Formatting.field_1080
+            Formatting.GRAY
          );
       } else {
          FriendRepository.addFriend(name);
          this.logDirect(
-            Formatting.field_1080
+            Formatting.GRAY
                + "\u0418\u0433\u0440\u043e\u043a \u0441 \u0438\u043c\u0435\u043d\u0435\u043c "
-               + Formatting.field_1068
+               + Formatting.WHITE
                + name
-               + Formatting.field_1080
+               + Formatting.GRAY
                + " \u0443\u0441\u043f\u0435\u0448\u043d\u043e \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d \u0432 \u0434\u0440\u0443\u0437\u044c\u044f"
          );
       }
@@ -74,14 +74,14 @@ public class FriendCommand extends Command {
       args.requireMin(1);
       String name = args.getString();
       if (!FriendRepository.isFriend(name)) {
-         this.logDirect("\u0422\u0430\u043a\u043e\u0439 \u0434\u0440\u0443\u0433 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d", Formatting.field_1080);
+         this.logDirect("\u0422\u0430\u043a\u043e\u0439 \u0434\u0440\u0443\u0433 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d", Formatting.GRAY);
       } else {
          FriendRepository.removeFriend(name);
          this.logDirect(
             "\u0418\u0433\u0440\u043e\u043a \u0441 \u0438\u043c\u0435\u043d\u0435\u043c "
-               + Formatting.field_1068
+               + Formatting.WHITE
                + name
-               + Formatting.field_1080
+               + Formatting.GRAY
                + " \u0443\u0441\u043f\u0435\u0448\u043d\u043e \u0443\u0434\u0430\u043b\u0435\u043d \u0438\u0437 \u0434\u0440\u0443\u0437\u0435\u0439"
          );
       }
@@ -93,15 +93,15 @@ public class FriendCommand extends Command {
       Paginator.paginate(
          args,
          new Paginator<>(friends),
-         () -> this.logDirect("\u0421\u043f\u0438\u0441\u043e\u043a \u0434\u0440\u0443\u0437\u0435\u0439:", Formatting.field_1080),
+         () -> this.logDirect("\u0421\u043f\u0438\u0441\u043e\u043a \u0434\u0440\u0443\u0437\u0435\u0439:", Formatting.GRAY),
          friend -> {
-            Text nameText = Text.method_43470(Formatting.field_1080 + "- " + Formatting.field_1068 + friend.name());
-            Text deleteText = Text.method_43470(Formatting.field_1061 + " [\u0423\u0434\u0430\u043b\u0438\u0442\u044c]")
-               .method_27694(
-                  style -> style.method_10958(new ClickEvent(Action.field_11750, IBaritoneChatControl.FORCE_COMMAND_PREFIX + "friend remove " + friend.name()))
-                        .method_10949(new HoverEvent(net.minecraft.text.HoverEvent.Action.field_24342, Text.method_43470("Click to delete friend")))
+            Text nameText = Text.literal(Formatting.GRAY + "- " + Formatting.WHITE + friend.name());
+            Text deleteText = Text.literal(Formatting.RED + " [\u0423\u0434\u0430\u043b\u0438\u0442\u044c]")
+               .styled(
+                  style -> style.withClickEvent(new ClickEvent(Action.RUN_COMMAND, IBaritoneChatControl.FORCE_COMMAND_PREFIX + "friend remove " + friend.name()))
+                        .withHoverEvent(new HoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, Text.literal("Click to delete friend")))
                );
-            return nameText.method_27661().method_10852(deleteText);
+            return nameText.copy().append(deleteText);
          },
          IBaritoneChatControl.FORCE_COMMAND_PREFIX + label
       );
@@ -110,7 +110,7 @@ public class FriendCommand extends Command {
    private void handleClearFriends(IArgConsumer args) throws CommandException {
       args.requireMax(1);
       FriendRepository.clear();
-      this.logDirect("\u0421\u043f\u0438\u0441\u043e\u043a \u0434\u0440\u0443\u0437\u0435\u0439 \u043e\u0447\u0438\u0449\u0435\u043d", Formatting.field_1080);
+      this.logDirect("\u0421\u043f\u0438\u0441\u043e\u043a \u0434\u0440\u0443\u0437\u0435\u0439 \u043e\u0447\u0438\u0449\u0435\u043d", Formatting.GRAY);
    }
 
    @Override
@@ -132,11 +132,11 @@ public class FriendCommand extends Command {
 
             if (action.equals("add") && args.hasExactly(2)) {
                String prefix = args.peekString(1).toLowerCase(Locale.ROOT);
-               return MinecraftClient.method_1551()
-                  .method_1562()
-                  .method_2880()
+               return MinecraftClient.getInstance()
+                  .getNetworkHandler()
+                  .getPlayerList()
                   .stream()
-                  .map(info -> info.method_2966().getName())
+                  .map(info -> info.getProfile().getName())
                   .filter(name -> name.toLowerCase(Locale.ROOT).startsWith(prefix))
                   .sorted()
                   .distinct();

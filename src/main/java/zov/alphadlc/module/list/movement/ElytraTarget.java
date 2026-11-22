@@ -44,7 +44,7 @@ public class ElytraTarget extends Module {
 
    @Subscribe
    private void onKey(EventKeyInput e) {
-      if (this.mc.field_1755 == null) {
+      if (this.mc.currentScreen == null) {
          if (e.getAction() == 1) {
             if (e.getKey() == this.predictateKey.getValue()) {
                this.predictate.toggle();
@@ -62,10 +62,10 @@ public class ElytraTarget extends Module {
    }
 
    public boolean canAttack(LivingEntity target) {
-      if (target != null && this.mc.field_1724 != null) {
+      if (target != null && this.mc.player != null) {
          KillAura attackAura = Instance.get(KillAura.class);
          float attackDist = attackAura != null ? attackAura.distance.getFloatValue() : 4.0F;
-         double distNearest = this.mc.field_1724.method_33571().method_1022(BestPoint.getNearestPoint(target));
+         double distNearest = this.mc.player.getEyePos().distanceTo(BestPoint.getNearestPoint(target));
          return distNearest <= (double)attackDist;
       } else {
          return false;

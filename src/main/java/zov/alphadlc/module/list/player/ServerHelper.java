@@ -86,61 +86,61 @@ public class ServerHelper extends Module {
    }
 
    private boolean isGrinchPotion(ItemStack stack) {
-      if (!stack.method_31574(Items.field_8436)) {
+      if (!stack.isOf(Items.SPLASH_POTION)) {
          return false;
       } else {
-         String name = stack.method_7964().getString().toLowerCase();
+         String name = stack.getName().getString().toLowerCase();
          return name.contains("\u0433\u0440\u0438\u043d\u0447");
       }
    }
 
    private boolean isNewYearHorror(ItemStack stack) {
-      if (!stack.method_31574(Items.field_8436)) {
+      if (!stack.isOf(Items.SPLASH_POTION)) {
          return false;
       } else {
-         String name = stack.method_7964().getString().toLowerCase();
+         String name = stack.getName().getString().toLowerCase();
          return name.contains("\u043d\u043e\u0432\u043e\u0433\u043e\u0434\u043d\u0438\u0439 \u0443\u0436\u0430\u0441");
       }
    }
 
    private boolean isDarkEssence(ItemStack stack) {
-      if (!stack.method_31574(Items.field_8436)) {
+      if (!stack.isOf(Items.SPLASH_POTION)) {
          return false;
       } else {
-         String name = stack.method_7964().getString().toLowerCase();
+         String name = stack.getName().getString().toLowerCase();
          return name.contains("\u044d\u0441\u0441\u0435\u043d\u0446\u0438\u044f \u043a\u0440\u043e\u043c\u0435\u0448\u043d\u0438\u043a\u0430");
       }
    }
 
    private boolean isSnowball(ItemStack stack) {
-      if (!stack.method_31574(Items.field_8436)) {
+      if (!stack.isOf(Items.SPLASH_POTION)) {
          return false;
       } else {
-         String name = stack.method_7964().getString().toLowerCase();
+         String name = stack.getName().getString().toLowerCase();
          return name.contains("\u0441\u043d\u0435\u0436\u043e\u043a");
       }
    }
 
    private boolean isAntiFly(ItemStack stack) {
-      return stack.method_31574(Items.field_8450);
+      return stack.isOf(Items.FIREWORK_STAR);
    }
 
    private boolean isTrapItem(ItemStack stack) {
-      return stack.method_31574(Items.field_8207);
+      return stack.isOf(Items.HEART_OF_THE_SEA);
    }
 
    private boolean isTrapPotion(ItemStack stack) {
-      if (!stack.method_31574(Items.field_8436)) {
+      if (!stack.isOf(Items.SPLASH_POTION)) {
          return false;
       } else {
-         String name = stack.method_7964().getString().toLowerCase();
+         String name = stack.getName().getString().toLowerCase();
          return name.contains("\u043b\u043e\u0432\u0443\u0448") || name.contains("\u043b\u043e\u0432\u0443\u0448\u043a");
       }
    }
 
    private int findSlot(Predicate<ItemStack> predicate, int from, int to) {
       for (int i2 = from; i2 < to; i2++) {
-         if (predicate.test(this.mc.field_1724.method_31548().method_5438(i2))) {
+         if (predicate.test(this.mc.player.getInventory().getStack(i2))) {
             return i2;
          }
       }
@@ -158,7 +158,7 @@ public class ServerHelper extends Module {
 
    @Subscribe
    private void onKey(EventKeyInput e2) {
-      if (this.mc.field_1755 == null) {
+      if (this.mc.currentScreen == null) {
          if (e2.getAction() == 1) {
             if (e2.getKey() == this.antiFlyKey.getValue()) {
                this.useAntiFly = true;
@@ -234,9 +234,9 @@ public class ServerHelper extends Module {
    private void handleAutoFixAll() {
       if (this.server.is("ReallyWorld") && this.autoFixAll.getValue()) {
          boolean inPvp = this.isPvp();
-         if (this.wasInPvp && !inPvp && this.mc.field_1724.field_6012 >= this.nextFixTick) {
-            this.mc.field_1724.field_3944.method_45730("fix all");
-            this.nextFixTick = this.mc.field_1724.field_6012 + 40;
+         if (this.wasInPvp && !inPvp && this.mc.player.age >= this.nextFixTick) {
+            this.mc.player.networkHandler.sendChatCommand("fix all");
+            this.nextFixTick = this.mc.player.age + 40;
          }
 
          this.wasInPvp = inPvp;
@@ -246,19 +246,19 @@ public class ServerHelper extends Module {
    }
 
    private boolean isPvp() {
-      return this.mc.field_1724 != null && this.mc.field_1687 != null
-         ? this.mc.field_1687.method_18456().stream().filter(p -> p != this.mc.field_1724).anyMatch(p -> p.method_5858(this.mc.field_1724) < 100.0)
+      return this.mc.player != null && this.mc.world != null
+         ? this.mc.world.getPlayers().stream().filter(p -> p != this.mc.player).anyMatch(p -> p.squaredDistanceTo(this.mc.player) < 100.0)
          : false;
    }
 
    private void pulseShift() {
-      if (this.mc.field_1690 != null) {
-         this.mc.field_1690.field_1832.method_23481(true);
+      if (this.mc.options != null) {
+         this.mc.options.sneakKey.setPressed(true);
          new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-               if (ServerHelper.this.mc.field_1690 != null) {
-                  ServerHelper.this.mc.field_1690.field_1832.method_23481(false);
+               if (ServerHelper.this.mc.options != null) {
+                  ServerHelper.this.mc.options.sneakKey.setPressed(false);
                }
             }
          }, 150L);
@@ -266,28 +266,28 @@ public class ServerHelper extends Module {
    }
 
    private void useTrapItem() {
-      if (this.mc.field_1724 != null) {
-         if (this.isTrapItem(this.mc.field_1724.method_6047())) {
-            this.mc.field_1761.method_2919(this.mc.field_1724, Hand.field_5808);
-         } else if (this.isTrapItem(this.mc.field_1724.method_6079())) {
-            this.mc.field_1761.method_2919(this.mc.field_1724, Hand.field_5810);
+      if (this.mc.player != null) {
+         if (this.isTrapItem(this.mc.player.getMainHandStack())) {
+            this.mc.interactionManager.interactItem(this.mc.player, Hand.MAIN_HAND);
+         } else if (this.isTrapItem(this.mc.player.getOffHandStack())) {
+            this.mc.interactionManager.interactItem(this.mc.player, Hand.OFF_HAND);
          } else {
             int slot = this.findTrapInHotbar();
             if (slot != -1) {
-               int prev = this.mc.field_1724.method_31548().field_7545;
-               this.mc.field_1724.method_31548().field_7545 = slot;
-               this.mc.field_1724.field_3944.method_52787(new UpdateSelectedSlotC2SPacket(slot));
-               this.mc.field_1761.method_2919(this.mc.field_1724, Hand.field_5808);
-               this.mc.field_1724.method_31548().field_7545 = prev;
-               this.mc.field_1724.field_3944.method_52787(new UpdateSelectedSlotC2SPacket(prev));
+               int prev = this.mc.player.getInventory().selectedSlot;
+               this.mc.player.getInventory().selectedSlot = slot;
+               this.mc.player.networkHandler.sendPacket(new UpdateSelectedSlotC2SPacket(slot));
+               this.mc.interactionManager.interactItem(this.mc.player, Hand.MAIN_HAND);
+               this.mc.player.getInventory().selectedSlot = prev;
+               this.mc.player.networkHandler.sendPacket(new UpdateSelectedSlotC2SPacket(prev));
             } else {
                slot = this.findTrapInInventory();
                if (slot != -1) {
-                  int prev = this.mc.field_1724.method_31548().field_7545;
-                  int syncId = this.mc.field_1724.field_7512.field_7763;
-                  this.mc.field_1761.method_2906(syncId, slot, prev, SlotActionType.field_7791, this.mc.field_1724);
-                  this.mc.field_1761.method_2919(this.mc.field_1724, Hand.field_5808);
-                  this.mc.field_1761.method_2906(syncId, slot, prev, SlotActionType.field_7791, this.mc.field_1724);
+                  int prev = this.mc.player.getInventory().selectedSlot;
+                  int syncId = this.mc.player.currentScreenHandler.syncId;
+                  this.mc.interactionManager.clickSlot(syncId, slot, prev, SlotActionType.SWAP, this.mc.player);
+                  this.mc.interactionManager.interactItem(this.mc.player, Hand.MAIN_HAND);
+                  this.mc.interactionManager.clickSlot(syncId, slot, prev, SlotActionType.SWAP, this.mc.player);
                }
             }
          }
@@ -303,16 +303,16 @@ public class ServerHelper extends Module {
    }
 
    private void useItem(Predicate<ItemStack> predicate) {
-      if (this.mc.field_1724 != null && this.mc.method_1562() != null) {
-         if (predicate.test(this.mc.field_1724.method_6079())) {
+      if (this.mc.player != null && this.mc.getNetworkHandler() != null) {
+         if (predicate.test(this.mc.player.getOffHandStack())) {
             this.shiftClick();
          } else {
             int hotbarSlot = this.findSlot(predicate, 0, 9);
             if (hotbarSlot != -1) {
                boolean wasSprinting = this.stopSprintingIfNeeded();
-               this.swapToOffhand(this.mc.field_1724.field_7512.field_7763, 45, hotbarSlot);
+               this.swapToOffhand(this.mc.player.currentScreenHandler.syncId, 45, hotbarSlot);
                this.shiftClick();
-               this.swapToOffhand(this.mc.field_1724.field_7512.field_7763, 45, hotbarSlot);
+               this.swapToOffhand(this.mc.player.currentScreenHandler.syncId, 45, hotbarSlot);
                if (wasSprinting) {
                   this.resumeSprinting();
                }
@@ -333,24 +333,24 @@ public class ServerHelper extends Module {
    }
 
    private void shiftClick() {
-      this.mc.method_1562().method_52787(new ClientCommandC2SPacket(this.mc.field_1724, Mode.field_12979));
-      this.mc.method_1562().method_52787(new ClientCommandC2SPacket(this.mc.field_1724, Mode.field_12984));
+      this.mc.getNetworkHandler().sendPacket(new ClientCommandC2SPacket(this.mc.player, Mode.PRESS_SHIFT_KEY));
+      this.mc.getNetworkHandler().sendPacket(new ClientCommandC2SPacket(this.mc.player, Mode.RELEASE_SHIFT_KEY));
    }
 
    private void swapToOffhand(int syncId, int slot, int button) {
-      this.mc.field_1761.method_2906(syncId, slot, button, SlotActionType.field_7791, this.mc.field_1724);
-      this.mc.method_1562().method_52787(new CloseHandledScreenC2SPacket(0));
+      this.mc.interactionManager.clickSlot(syncId, slot, button, SlotActionType.SWAP, this.mc.player);
+      this.mc.getNetworkHandler().sendPacket(new CloseHandledScreenC2SPacket(0));
    }
 
    private boolean stopSprintingIfNeeded() {
-      if (!this.mc.field_1724.method_5624()) {
+      if (!this.mc.player.isSprinting()) {
          return false;
       } else {
-         this.mc.method_1562().method_52787(new PlayerInputC2SPacket(new PlayerInput(false, false, false, false, false, false, false)));
-         this.mc.field_1724.method_5728(false);
-         this.mc.method_1562().method_52787(new ClientCommandC2SPacket(this.mc.field_1724, Mode.field_12985));
+         this.mc.getNetworkHandler().sendPacket(new PlayerInputC2SPacket(new PlayerInput(false, false, false, false, false, false, false)));
+         this.mc.player.setSprinting(false);
+         this.mc.getNetworkHandler().sendPacket(new ClientCommandC2SPacket(this.mc.player, Mode.STOP_SPRINTING));
          if (!Instance.get(Sprint.class).isEnabled()) {
-            this.mc.field_1690.field_1867.method_23481(false);
+            this.mc.options.sprintKey.setPressed(false);
          }
 
          return true;
@@ -358,6 +358,6 @@ public class ServerHelper extends Module {
    }
 
    private void resumeSprinting() {
-      this.mc.method_1562().method_52787(new PlayerInputC2SPacket(this.mc.field_1724.field_3913.field_54155));
+      this.mc.getNetworkHandler().sendPacket(new PlayerInputC2SPacket(this.mc.player.input.playerInput));
    }
 }

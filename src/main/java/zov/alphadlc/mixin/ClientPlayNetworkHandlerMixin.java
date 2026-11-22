@@ -16,7 +16,7 @@ import zov.alphadlc.event.list.EventEntitySpawn;
 @Mixin({ClientPlayNetworkHandler.class})
 public class ClientPlayNetworkHandlerMixin {
    @Shadow
-   private ClientWorld field_3699;
+   private ClientWorld world;
 
    @Inject(
       method = {"sendChatMessage(Ljava/lang/String;)V"},
@@ -53,7 +53,7 @@ public class ClientPlayNetworkHandlerMixin {
       )}
    )
    private void hookEntitySpawn(EntitySpawnS2CPacket packet, CallbackInfo ci) {
-      Entity entity = this.field_3699.method_8469(packet.method_11167());
+      Entity entity = this.world.getEntityById(packet.getEntityId());
       if (entity != null) {
          EventEntitySpawn event = new EventEntitySpawn(entity);
          event.post();

@@ -29,13 +29,13 @@ import zov.alphadlc.util.base.Instance;
 public abstract class ClientPlayerEntityMixin {
    @Final
    @Shadow
-   protected MinecraftClient field_3937;
+   protected MinecraftClient client;
    @Final
    @Shadow
-   public ClientPlayNetworkHandler field_3944;
+   public ClientPlayNetworkHandler networkHandler;
 
    @Shadow
-   public abstract void method_3137();
+   public abstract void closeScreen();
 
    @Inject(
       method = {"tick"},
@@ -83,12 +83,12 @@ public abstract class ClientPlayerEntityMixin {
       require = 0
    )
    private boolean onIsUsingItemRedirect(ClientPlayerEntity player) {
-      if (player.method_6115()) {
+      if (player.isUsingItem()) {
          EventNoSlow event = new EventNoSlow();
          event.post();
-         return player.method_6115() && player.method_5854() == null && !event.isCancelled();
+         return player.isUsingItem() && player.getVehicle() == null && !event.isCancelled();
       } else {
-         return player.method_6115() && player.method_5854() == null;
+         return player.isUsingItem() && player.getVehicle() == null;
       }
    }
 
@@ -105,14 +105,14 @@ public abstract class ClientPlayerEntityMixin {
    }
 
    @Overwrite
-   public void method_7346() {
+   public void closeHandledScreen() {
       EventCloseInv event = new EventCloseInv();
       event.post();
       if (!event.isCancelled()) {
-         ScreenHandler screenHandler = ((PlayerEntity)this).field_7512;
-         this.field_3944.method_52787(new CloseHandledScreenC2SPacket(screenHandler.field_7763));
+         ScreenHandler screenHandler = ((PlayerEntity)this).currentScreenHandler;
+         this.networkHandler.sendPacket(new CloseHandledScreenC2SPacket(screenHandler.syncId));
       }
 
-      this.method_3137();
+      this.closeScreen();
    }
 }

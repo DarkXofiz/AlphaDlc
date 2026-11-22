@@ -56,7 +56,7 @@ public class ClickGuiFrame extends Screen implements IMinecraft {
 
    private void applyCursor(long cursor) {
       if (cursor != this.currentCursor) {
-         GLFW.glfwSetCursor(mc.method_22683().method_4490(), cursor);
+         GLFW.glfwSetCursor(mc.getWindow().getHandle(), cursor);
          this.currentCursor = cursor;
       }
    }
@@ -74,7 +74,7 @@ public class ClickGuiFrame extends Screen implements IMinecraft {
    }
 
    public ClickGuiFrame() {
-      super(Text.method_30163("Avalora Frame"));
+      super(Text.of("Avalora Frame"));
       this.searchField = new SearchField("Search...");
 
       for (ModuleCategory category : ModuleCategory.values()) {
@@ -82,12 +82,12 @@ public class ClickGuiFrame extends Screen implements IMinecraft {
       }
    }
 
-   public void method_25394(DrawContext context, int mouseX, int mouseY, float delta) {
+   public void render(DrawContext context, int mouseX, int mouseY, float delta) {
       CursorManager.reset();
       CursorManager.resetIBeam();
       CursorManager.resetClick();
-      int windowWidth = mc.method_22683().method_4486();
-      int windowHeight = mc.method_22683().method_4502();
+      int windowWidth = mc.getWindow().getScaledWidth();
+      int windowHeight = mc.getWindow().getScaledHeight();
       float guiScale = this.guiScale();
       float centerX = (float)windowWidth / 2.0F;
       float centerY = (float)windowHeight / 2.0F;
@@ -113,7 +113,7 @@ public class ClickGuiFrame extends Screen implements IMinecraft {
          Panel panel = this.panels.get(i);
          panel.slideDir = i % 2 == 0 ? 1 : -1;
          panel.slideAnim.run(this.closing ? 0.0F : 1.0F);
-         float slide = MathHelper.method_15363(panel.slideAnim.getValue(), 0.0F, 1.0F);
+         float slide = MathHelper.clamp(panel.slideAnim.getValue(), 0.0F, 1.0F);
          float yOffset = (1.0F - slide) * (float)panel.slideDir * offscreen;
          panel.setX(startX + (float)i * (panelWidth + spacing));
          panel.setY(panelY + yOffset);
@@ -136,7 +136,7 @@ public class ClickGuiFrame extends Screen implements IMinecraft {
             this.closing = false;
             modelView.popMatrix();
             Scissor.resetGuiTransform();
-            this.method_25419();
+            this.close();
             return;
          }
       }
@@ -177,16 +177,16 @@ public class ClickGuiFrame extends Screen implements IMinecraft {
          float textWidth = Fonts.SFREGULAR.get().getWidth(this.lastDesc, size);
          float tooltipW = textWidth + padX * 2.0F;
          float tooltipH = size + padY * 2.0F;
-         float tooltipX = MathHelper.method_15363((float)windowWidth / 2.0F - tooltipW / 2.0F, 4.0F, (float)windowWidth - tooltipW - 4.0F);
+         float tooltipX = MathHelper.clamp((float)windowWidth / 2.0F - tooltipW / 2.0F, 4.0F, (float)windowWidth - tooltipW - 4.0F);
          float tooltipY = panelY - tooltipH - 8.0F;
          int a = (int)(255.0F * da);
          float cx = tooltipX + tooltipW / 2.0F;
          float cy = tooltipY + tooltipH / 2.0F;
          float scale = 0.92F + 0.08F * da;
-         context.method_51448().method_22903();
-         context.method_51448().method_46416(cx, cy, 0.0F);
-         context.method_51448().method_22905(scale, scale, 1.0F);
-         context.method_51448().method_46416(-cx, -cy, 0.0F);
+         context.getMatrices().push();
+         context.getMatrices().translate(cx, cy, 0.0F);
+         context.getMatrices().scale(scale, scale, 1.0F);
+         context.getMatrices().translate(-cx, -cy, 0.0F);
          DrawUtil.drawRoundBlur(tooltipX, tooltipY, tooltipW, tooltipH, 4.0F, ColorProvider.rgba(200, 200, 200, (float)((int)(255.0F * da))), 12.0F);
          DrawUtil.drawRound(tooltipX, tooltipY, tooltipW, tooltipH, 4.0F, ColorProvider.setAlpha(ColorProvider.getColorClickGui(), (int)(130.0F * da)));
          DrawUtil.drawRound(
@@ -200,7 +200,7 @@ public class ClickGuiFrame extends Screen implements IMinecraft {
             ColorProvider.setAlpha(ColorProvider.getColorText(), a),
             size
          );
-         context.method_51448().method_22909();
+         context.getMatrices().pop();
       }
 
       this.themeEditor.render(context, mouseX, mouseY, delta);
@@ -225,10 +225,10 @@ public class ClickGuiFrame extends Screen implements IMinecraft {
       this.applyCursor(desiredCursor);
    }
 
-   public void method_25432() {
-      super.method_25432();
+   public void removed() {
+      super.removed();
       if (this.cursorsCreated) {
-         GLFW.glfwSetCursor(mc.method_22683().method_4490(), 0L);
+         GLFW.glfwSetCursor(mc.getWindow().getHandle(), 0L);
          GLFW.glfwDestroyCursor(this.handCursor);
          GLFW.glfwDestroyCursor(this.iBeamCursor);
          GLFW.glfwDestroyCursor(this.pointingCursor);
@@ -263,17 +263,17 @@ public class ClickGuiFrame extends Screen implements IMinecraft {
 
    private double scaleMouseX(double mouseX) {
       float s = this.guiScale();
-      double cx = (double)mc.method_22683().method_4486() / 2.0;
+      double cx = (double)mc.getWindow().getScaledWidth() / 2.0;
       return (mouseX - cx) / (double)s + cx;
    }
 
    private double scaleMouseY(double mouseY) {
       float s = this.guiScale();
-      double cy = (double)mc.method_22683().method_4502() / 2.0;
+      double cy = (double)mc.getWindow().getScaledHeight() / 2.0;
       return (mouseY - cy) / (double)s + cy;
    }
 
-   public boolean method_25402(double mouseX, double mouseY, int button) {
+   public boolean mouseClicked(double mouseX, double mouseY, int button) {
       mouseX = this.scaleMouseX(mouseX);
       mouseY = this.scaleMouseY(mouseY);
       if (this.itemModelGallery != null) {
@@ -300,11 +300,11 @@ public class ClickGuiFrame extends Screen implements IMinecraft {
             }
          }
 
-         return super.method_25402(mouseX, mouseY, button);
+         return super.mouseClicked(mouseX, mouseY, button);
       }
    }
 
-   public boolean method_25406(double mouseX, double mouseY, int button) {
+   public boolean mouseReleased(double mouseX, double mouseY, int button) {
       mouseX = this.scaleMouseX(mouseX);
       mouseY = this.scaleMouseY(mouseY);
       if (this.itemModelGallery != null) {
@@ -317,11 +317,11 @@ public class ClickGuiFrame extends Screen implements IMinecraft {
             panel.mouseReleased(mouseX, mouseY, button);
          }
 
-         return super.method_25406(mouseX, mouseY, button);
+         return super.mouseReleased(mouseX, mouseY, button);
       }
    }
 
-   public boolean method_25401(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+   public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
       mouseX = this.scaleMouseX(mouseX);
       mouseY = this.scaleMouseY(mouseY);
       if (this.itemModelGallery != null) {
@@ -332,11 +332,11 @@ public class ClickGuiFrame extends Screen implements IMinecraft {
             panel.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
          }
 
-         return super.method_25401(mouseX, mouseY, horizontalAmount, verticalAmount);
+         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
       }
    }
 
-   public boolean method_25404(int keyCode, int scanCode, int modifiers) {
+   public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
       if (this.itemModelGallery != null) {
          if (keyCode == 256) {
             this.itemModelGallery = null;
@@ -388,12 +388,12 @@ public class ClickGuiFrame extends Screen implements IMinecraft {
                panel.keyPressed(keyCode, scanCode, modifiers);
             }
 
-            return super.method_25404(keyCode, scanCode, modifiers);
+            return super.keyPressed(keyCode, scanCode, modifiers);
          }
       }
    }
 
-   public boolean method_25400(char chr, int modifiers) {
+   public boolean charTyped(char chr, int modifiers) {
       if (this.itemModelGallery != null) {
          this.itemModelGallery.charTyped(chr, modifiers);
          return true;
@@ -401,11 +401,11 @@ public class ClickGuiFrame extends Screen implements IMinecraft {
          this.searchField.charTyped(chr, modifiers);
          return true;
       } else {
-         return super.method_25400(chr, modifiers);
+         return super.charTyped(chr, modifiers);
       }
    }
 
-   public boolean method_25421() {
+   public boolean shouldPause() {
       return false;
    }
 

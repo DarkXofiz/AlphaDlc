@@ -48,7 +48,7 @@ public class BindCommand extends Command {
          default:
             this.logDirect(
                "\u041d\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043d\u0430\u044f \u043f\u043e\u0434\u043a\u043e\u043c\u0430\u043d\u0434\u0430. \u0418\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0439 add/remove/list/clear.",
-               Formatting.field_1080
+               Formatting.GRAY
             );
       }
    }
@@ -59,24 +59,24 @@ public class BindCommand extends Command {
       Module module = this.moduleStorage.get(moduleName);
       if (module == null) {
          this.logDirect(
-            Formatting.field_1080
+            Formatting.GRAY
                + "\u041c\u043e\u0434\u0443\u043b\u044c \u0441 \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435\u043c "
-               + Formatting.field_1068
+               + Formatting.WHITE
                + moduleName
-               + Formatting.field_1080
+               + Formatting.GRAY
                + " \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d"
          );
       } else {
          int key = args.<Entry<String, Integer>, KeyDataType>getDatatypeFor(KeyDataType.INSTANCE).getValue();
          module.setKey(key);
          this.logDirect(
-            Formatting.field_1080
+            Formatting.GRAY
                + "\u041c\u043e\u0434\u0443\u043b\u044c "
-               + Formatting.field_1068
+               + Formatting.WHITE
                + module.getName()
-               + Formatting.field_1080
+               + Formatting.GRAY
                + " \u0443\u0441\u043f\u0435\u0448\u043d\u043e \u043f\u0440\u0438\u0432\u044f\u0437\u0430\u043d \u043a \u043a\u043b\u0430\u0432\u0438\u0448\u0435 "
-               + Formatting.field_1068
+               + Formatting.WHITE
                + KeyStorage.getKey(key).toUpperCase()
          );
       }
@@ -88,21 +88,21 @@ public class BindCommand extends Command {
       Module module = this.moduleStorage.get(moduleName);
       if (module == null) {
          this.logDirect(
-            Formatting.field_1080
+            Formatting.GRAY
                + "\u041c\u043e\u0434\u0443\u043b\u044c \u0441 \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435\u043c "
-               + Formatting.field_1068
+               + Formatting.WHITE
                + moduleName
-               + Formatting.field_1080
+               + Formatting.GRAY
                + " \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d"
          );
       } else {
          module.setKey(-1);
          this.logDirect(
-            Formatting.field_1080
+            Formatting.GRAY
                + "\u041c\u043e\u0434\u0443\u043b\u044c "
-               + Formatting.field_1068
+               + Formatting.WHITE
                + module.getName()
-               + Formatting.field_1080
+               + Formatting.GRAY
                + " \u0431\u043e\u043b\u044c\u0448\u0435 \u043d\u0435 \u0438\u043c\u0435\u0435\u0442 \u043f\u0440\u0438\u0432\u044f\u0437\u043a\u0443 \u043a \u043a\u043b\u0430\u0432\u0438\u0448\u0435"
          );
       }
@@ -118,7 +118,7 @@ public class BindCommand extends Command {
          module -> {
             int key = module.getKey();
             String keyName = KeyStorage.getKey(key).toUpperCase();
-            return Text.method_43470(Formatting.field_1080 + module.getName() + ": " + Formatting.field_1068 + keyName);
+            return Text.literal(Formatting.GRAY + module.getName() + ": " + Formatting.WHITE + keyName);
          },
          IBaritoneChatControl.FORCE_COMMAND_PREFIX + label
       );
@@ -132,7 +132,7 @@ public class BindCommand extends Command {
       }
 
       this.logDirect(
-         Formatting.field_1080
+         Formatting.GRAY
             + "\u0412\u0441\u0435 \u043c\u043e\u0434\u0443\u043b\u0438 \u0443\u0441\u043f\u0435\u0448\u043d\u043e \u043e\u0442\u0432\u044f\u0437\u0430\u043d\u044b \u0438 \u0431\u043e\u043b\u044c\u0448\u0435 \u043d\u0435 \u0438\u043c\u0435\u044e\u0442 \u043f\u0440\u0438\u0432\u044f\u0437\u043a\u0443 \u043a \u043a\u043b\u0430\u0432\u0438\u0448\u0435"
       );
    }

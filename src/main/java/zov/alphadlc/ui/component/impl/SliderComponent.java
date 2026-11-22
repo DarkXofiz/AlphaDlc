@@ -63,7 +63,7 @@ public class SliderComponent extends Component {
          this.x + 3.0F, trackY - 3.5F, trackWidth + 1.0F, 4.0F, 1.0F, ColorProvider.setAlpha(ColorProvider.getColorSliderWindow(), (int)(100.0F * alpha))
       );
       DrawUtil.drawRound(this.x + 3.5F, trackY - 3.0F, trackWidth, 3.0F, 1.0F, ColorProvider.setAlpha(ColorProvider.getColorSliderWindow(), alphaInt));
-      float fillWidth = MathHelper.method_15363(this.sliderAnimation.getValue(), 0.0F, trackWidth);
+      float fillWidth = MathHelper.clamp(this.sliderAnimation.getValue(), 0.0F, trackWidth);
       int sliderColor = ColorProvider.setAlpha(ColorProvider.getColorSlider(), alphaInt);
       DrawUtil.drawRound(this.x + 3.5F, trackY - 3.5F, fillWidth, 4.0F, 1.0F, sliderColor);
       float circleSize = this.drag ? 7.0F : 5.5F;
@@ -79,7 +79,7 @@ public class SliderComponent extends Component {
       );
       if (this.drag) {
          double val = (double)(((float)mouseX - (this.x + 3.5F)) / trackWidth) * (this.setting.getMax() - this.setting.getMin()) + this.setting.getMin();
-         this.setting.setValue((double)((float)MathHelper.method_15350(this.round(val, this.setting.getStep()), this.setting.getMin(), this.setting.getMax())));
+         this.setting.setValue((double)((float)MathHelper.clamp(this.round(val, this.setting.getStep()), this.setting.getMin(), this.setting.getMax())));
       }
 
       this.setHeight(15.0F);

@@ -35,7 +35,7 @@ public class SunriseHelper extends Module {
 
    @Subscribe
    public void onKey(EventKeyInput e) {
-      if (this.mc.field_1755 == null && e.getAction() != 0 && e.getAction() != 2) {
+      if (this.mc.currentScreen == null && e.getAction() != 0 && e.getAction() != 2) {
          if (e.getKey() == this.bindTrap.getValue()) {
             this.throwTrap = true;
          }
@@ -48,7 +48,7 @@ public class SunriseHelper extends Module {
 
    @Subscribe
    public void onUpdate(EventPlayerUpdate e) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
+      if (this.mc.player != null && this.mc.world != null) {
          if (this.throwTrap) {
             this.useItem("\u0442\u0440\u0430\u043f\u043a\u0430");
             this.throwTrap = false;
@@ -64,59 +64,59 @@ public class SunriseHelper extends Module {
    private void useItem(String itemName) {
       int slotHotbar = this.findItemSlotHotbar(itemName);
       int slotInv = this.findItemSlotInventory(itemName);
-      int previousSlot = this.mc.field_1724.method_31548().field_7545;
-      String mainHandName = this.mc.field_1724.method_6047().method_7964().getString().toLowerCase();
+      int previousSlot = this.mc.player.getInventory().selectedSlot;
+      String mainHandName = this.mc.player.getMainHandStack().getName().getString().toLowerCase();
       if (mainHandName.contains(itemName)) {
-         this.mc.field_1761.method_2919(this.mc.field_1724, Hand.field_5808);
+         this.mc.interactionManager.interactItem(this.mc.player, Hand.MAIN_HAND);
       } else {
-         String offHandName = this.mc.field_1724.method_6079().method_7964().getString().toLowerCase();
+         String offHandName = this.mc.player.getOffHandStack().getName().getString().toLowerCase();
          if (offHandName.contains(itemName)) {
-            this.mc.field_1761.method_2919(this.mc.field_1724, Hand.field_5810);
+            this.mc.interactionManager.interactItem(this.mc.player, Hand.OFF_HAND);
          } else if (slotHotbar != -1) {
-            this.mc.method_1562().method_52787(new UpdateSelectedSlotC2SPacket(slotHotbar));
-            this.mc.field_1761.method_2919(this.mc.field_1724, Hand.field_5808);
-            this.mc.method_1562().method_52787(new UpdateSelectedSlotC2SPacket(previousSlot));
+            this.mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slotHotbar));
+            this.mc.interactionManager.interactItem(this.mc.player, Hand.MAIN_HAND);
+            this.mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(previousSlot));
          } else {
             if (slotInv != -1) {
                int slotCorrectable = -1;
 
                for (int slotNone = 0; slotNone < 8; slotNone++) {
-                  ItemStack stack = this.mc.field_1724.method_31548().method_5438(slotNone);
-                  if (stack.method_7960()) {
+                  ItemStack stack = this.mc.player.getInventory().getStack(slotNone);
+                  if (stack.isEmpty()) {
                      slotCorrectable = slotNone;
                   }
 
-                  if (stack.method_7976() == UseAction.field_8952) {
+                  if (stack.getUseAction() == UseAction.NONE) {
                      slotCorrectable = slotNone;
                   }
                }
 
-               this.mc.method_1562().method_52787(new PlayerInputC2SPacket(new PlayerInput(false, false, false, false, false, false, false)));
+               this.mc.getNetworkHandler().sendPacket(new PlayerInputC2SPacket(new PlayerInput(false, false, false, false, false, false, false)));
                if (AlphaDLC.getInstance().getServerManager().isServerSprinting()) {
-                  this.mc.field_1724.method_5728(false);
-                  this.mc.method_1562().method_52787(new ClientCommandC2SPacket(this.mc.field_1724, Mode.field_12985));
+                  this.mc.player.setSprinting(false);
+                  this.mc.getNetworkHandler().sendPacket(new ClientCommandC2SPacket(this.mc.player, Mode.STOP_SPRINTING));
                   if (!Instance.get(Sprint.class).isEnabled()) {
-                     this.mc.field_1690.field_1867.method_23481(false);
+                     this.mc.options.sprintKey.setPressed(false);
                   }
                }
 
                if (slotCorrectable == -1) {
-                  this.mc.field_1761.method_2906(0, slotInv, 8, SlotActionType.field_7791, this.mc.field_1724);
+                  this.mc.interactionManager.clickSlot(0, slotInv, 8, SlotActionType.SWAP, this.mc.player);
                   NetworkUtils.sendSilentPacket(new CloseHandledScreenC2SPacket(0));
-                  this.mc.method_1562().method_52787(new UpdateSelectedSlotC2SPacket(8));
-                  this.mc.field_1761.method_2919(this.mc.field_1724, Hand.field_5808);
-                  this.mc.method_1562().method_52787(new UpdateSelectedSlotC2SPacket(previousSlot));
+                  this.mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(8));
+                  this.mc.interactionManager.interactItem(this.mc.player, Hand.MAIN_HAND);
+                  this.mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(previousSlot));
                } else {
-                  this.mc.field_1761.method_2906(0, slotInv, slotCorrectable, SlotActionType.field_7791, this.mc.field_1724);
+                  this.mc.interactionManager.clickSlot(0, slotInv, slotCorrectable, SlotActionType.SWAP, this.mc.player);
                   NetworkUtils.sendSilentPacket(new CloseHandledScreenC2SPacket(0));
-                  this.mc.method_1562().method_52787(new UpdateSelectedSlotC2SPacket(slotCorrectable));
-                  this.mc.field_1761.method_2919(this.mc.field_1724, Hand.field_5808);
-                  this.mc.method_1562().method_52787(new UpdateSelectedSlotC2SPacket(previousSlot));
-                  this.mc.field_1761.method_2906(0, slotInv, slotCorrectable, SlotActionType.field_7791, this.mc.field_1724);
+                  this.mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slotCorrectable));
+                  this.mc.interactionManager.interactItem(this.mc.player, Hand.MAIN_HAND);
+                  this.mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(previousSlot));
+                  this.mc.interactionManager.clickSlot(0, slotInv, slotCorrectable, SlotActionType.SWAP, this.mc.player);
                   NetworkUtils.sendSilentPacket(new CloseHandledScreenC2SPacket(0));
                }
 
-               this.mc.method_1562().method_52787(new PlayerInputC2SPacket(this.mc.field_1724.field_3913.field_54155));
+               this.mc.getNetworkHandler().sendPacket(new PlayerInputC2SPacket(this.mc.player.input.playerInput));
             }
          }
       }
@@ -124,9 +124,9 @@ public class SunriseHelper extends Module {
 
    private int findItemSlotHotbar(String itemName) {
       for (int i = 0; i < 9; i++) {
-         ItemStack stack = this.mc.field_1724.method_31548().method_5438(i);
-         if (!stack.method_7960()) {
-            String name = stack.method_7964().getString().toLowerCase();
+         ItemStack stack = this.mc.player.getInventory().getStack(i);
+         if (!stack.isEmpty()) {
+            String name = stack.getName().getString().toLowerCase();
             if (name.contains(itemName)) {
                return i;
             }
@@ -138,9 +138,9 @@ public class SunriseHelper extends Module {
 
    private int findItemSlotInventory(String itemName) {
       for (int i = 9; i < 36; i++) {
-         ItemStack stack = this.mc.field_1724.method_31548().method_5438(i);
-         if (!stack.method_7960()) {
-            String name = stack.method_7964().getString().toLowerCase();
+         ItemStack stack = this.mc.player.getInventory().getStack(i);
+         if (!stack.isEmpty()) {
+            String name = stack.getName().getString().toLowerCase();
             if (name.contains(itemName)) {
                return i;
             }

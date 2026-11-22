@@ -99,7 +99,7 @@ import zov.alphadlc.util.staff.StaffManager;
    moduleCategory = ModuleCategory.RENDER
 )
 public class Interface extends Module {
-   private static final Identifier TARGET_HUD_GLOW_TEXTURE = Identifier.method_60655("mre", "images/glow.png");
+   private static final Identifier TARGET_HUD_GLOW_TEXTURE = Identifier.of("mre", "images/glow.png");
    private final ModeListSetting elements = new ModeListSetting(
       "\u042d\u043b\u0435\u043c\u0435\u043d\u0442\u044b",
       new BooleanSetting("\u0412\u0430\u0442\u0435\u0440\u043c\u0430\u0440\u043a\u0430", true),
@@ -442,7 +442,7 @@ public class Interface extends Module {
    private static final Random RANDOM = new Random();
    private final List<Interface.CooldownItem> cooldownItems;
    private static final Item[] COOLDOWN_EXAMPLE_ITEMS = new Item[]{
-      Items.field_8634, Items.field_8449, Items.field_8233, Items.field_49814, Items.field_8367, Items.field_8547, Items.field_8255, Items.field_39057
+      Items.ENDER_PEARL, Items.ENDER_EYE, Items.CHORUS_FRUIT, Items.MACE, Items.ENCHANTED_GOLDEN_APPLE, Items.TRIDENT, Items.SHIELD, Items.GOAT_HORN
    };
    private int cooldownExampleIndex;
    private long cooldownExampleChange;
@@ -771,7 +771,7 @@ public class Interface extends Module {
 
    @Subscribe
    public void onEventHUD(EventHUD e) {
-      if (this.mc.field_1724 != null && !this.mc.field_1690.field_1842 && !this.mc.method_53526().method_53536()) {
+      if (this.mc.player != null && !this.mc.options.hudHidden && !this.mc.getDebugHud().shouldShowDebugHud()) {
          if (this.elements.isEnabled("\u041d\u043e\u0442\u0438\u0444\u0438\u043a\u0430\u0446\u0438\u0438")) {
             this.notifications.render(e.getDrawContext());
             this.renderNotificationsExample(e.getDrawContext());
@@ -829,7 +829,7 @@ public class Interface extends Module {
 
    @Subscribe
    private void onUpdate(EventTick e) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
+      if (this.mc.player != null && this.mc.world != null) {
          if (this.elements.isEnabled("\u0410\u043a\u0442\u0438\u0432\u043d\u044b\u0435 \u043c\u043e\u0434\u0435\u0440\u0430\u0442\u043e\u0440\u044b")) {
             this.update();
          }
@@ -848,8 +848,8 @@ public class Interface extends Module {
    private void onPopTotem(EventPopTotem e) {
       if (this.isTotemNotifEnabled()) {
          PlayerEntity player = e.getPlayer();
-         String name = player.method_5477().getString();
-         boolean enchanted = !player.method_6079().method_58657().method_57543();
+         String name = player.getName().getString();
+         boolean enchanted = !player.getOffHandStack().getEnchantments().isEmpty();
          Text tagText = NameTags.processName(player);
          this.notifications.postTotem(tagText, enchanted);
       }
@@ -857,10 +857,10 @@ public class Interface extends Module {
 
    @Subscribe
    private void onCooldownPacket(EventPacket e) {
-      if (this.mc.field_1724 != null && e.getType() == EventPacket.Type.RECEIVE) {
+      if (this.mc.player != null && e.getType() == EventPacket.Type.RECEIVE) {
          if (e.getPacket() instanceof CooldownUpdateS2CPacket c) {
-            Item item = (Item)Registries.field_41178.method_63535(c.comp_3082());
-            if (item == null || item == Items.field_8162) {
+            Item item = (Item)Registries.ITEM.get(c.comp_3082());
+            if (item == null || item == Items.AIR) {
                return;
             }
 
@@ -881,8 +881,8 @@ public class Interface extends Module {
    }
 
    private void renderKeyBinds(DrawContext context) {
-      if (this.mc.field_1724 != null) {
-         if (!(this.mc.field_1755 instanceof ChatScreen)) {
+      if (this.mc.player != null) {
+         if (!(this.mc.currentScreen instanceof ChatScreen)) {
             this.keybindsPopup.open = false;
             this.keybindsPopup.draggingSlider = null;
          }
@@ -895,7 +895,7 @@ public class Interface extends Module {
    }
 
    private void renderKeyBindsNew(DrawContext context) {
-      if (this.mc.field_1724 != null) {
+      if (this.mc.player != null) {
          float posX = this.keyBindsDrag.getX();
          float posY = this.keyBindsDrag.getY();
          float headerHeight = 14.0F;
@@ -924,7 +924,7 @@ public class Interface extends Module {
          }
 
          boolean isFound = !entries.isEmpty();
-         if (!isFound && !(this.mc.field_1755 instanceof ChatScreen)) {
+         if (!isFound && !(this.mc.currentScreen instanceof ChatScreen)) {
             this.alpha.run(0.0F);
          } else {
             this.alpha.run(1.0F);
@@ -933,7 +933,7 @@ public class Interface extends Module {
          float globalAlpha = this.alpha.getValue();
          if (!(globalAlpha <= 0.05F)) {
             int headerAlpha = (int)Math.min(255.0F, Math.max(0.0F, 255.0F * globalAlpha));
-            boolean showExample = this.mc.field_1755 instanceof ChatScreen && !isFound;
+            boolean showExample = this.mc.currentScreen instanceof ChatScreen && !isFound;
             float maxLabelBoxW = minWidth;
             float maxBindBoxW = 0.0F;
 
@@ -1005,10 +1005,10 @@ public class Interface extends Module {
                   int itemAlpha = (int)Math.min(255.0F, Math.max(0.0F, 255.0F * animVal * globalAlpha));
                   if (itemAlpha >= 5) {
                      float rowHeight = itemHeight * animVal;
-                     context.method_51448().method_22903();
-                     context.method_51448().method_46416(posX + totalRowWidth / 2.0F, curY + rowHeight / 2.0F, 0.0F);
-                     context.method_51448().method_22905(animVal, animVal, animVal);
-                     context.method_51448().method_46416(-(posX + totalRowWidth / 2.0F), -(curY + rowHeight / 2.0F), 0.0F);
+                     context.getMatrices().push();
+                     context.getMatrices().translate(posX + totalRowWidth / 2.0F, curY + rowHeight / 2.0F, 0.0F);
+                     context.getMatrices().scale(animVal, animVal, animVal);
+                     context.getMatrices().translate(-(posX + totalRowWidth / 2.0F), -(curY + rowHeight / 2.0F), 0.0F);
 
                      String catIcon = switch (entryxx.category()) {
                         case COMBAT -> "a";
@@ -1029,7 +1029,7 @@ public class Interface extends Module {
                         Fonts.SFMEDIUM.get(), entryxx.label(), posX + padX + 9.0F, curY + 1.35F, ColorProvider.rgba(255, 255, 255, (float)itemAlpha), 7.0F
                      );
                      this.drawKeybindCap(entryxx.bind(), posX + totalRowWidth - padX - maxBindBoxW, curY, maxBindBoxW, itemHeight, itemAlpha);
-                     context.method_51448().method_22909();
+                     context.getMatrices().pop();
                      curY += rowHeight;
                   }
                }
@@ -1069,16 +1069,16 @@ public class Interface extends Module {
    }
 
    private float hbBottomY() {
-      return (float)this.mc.method_22683().method_4502() - 4.0F;
+      return (float)this.mc.getWindow().getScaledHeight() - 4.0F;
    }
 
    private float hotbarMainVisualRight() {
       float size = this.hotbarPopup.size.getFloatValue();
-      return (float)this.mc.method_22683().method_4486() / 2.0F + this.hbMainWidth() * size / 2.0F;
+      return (float)this.mc.getWindow().getScaledWidth() / 2.0F + this.hbMainWidth() * size / 2.0F;
    }
 
    private int durabilityColor(float ratio) {
-      ratio = MathHelper.method_15363(ratio, 0.0F, 1.0F);
+      ratio = MathHelper.clamp(ratio, 0.0F, 1.0F);
       int rgb = Color.HSBtoRGB(ratio * 0.33F, 0.85F, 0.95F);
       return ColorProvider.rgba(rgb >> 16 & 0xFF, rgb >> 8 & 0xFF, rgb & 0xFF, 255.0F);
    }
@@ -1109,20 +1109,20 @@ public class Interface extends Module {
    }
 
    private void renderCustomHotbar(DrawContext context) {
-      if (this.mc.field_1724 != null) {
+      if (this.mc.player != null) {
          float size = this.hotbarPopup.size.getFloatValue();
          float offW = this.hbOffhandBoxW();
          float mainW = this.hbMainWidth();
          float height = this.hbHeight();
          float totalWidth = offW + 4.0F + mainW;
-         float screenW = (float)this.mc.method_22683().method_4486();
+         float screenW = (float)this.mc.getWindow().getScaledWidth();
          float ox = screenW / 2.0F - (offW + 4.0F + mainW / 2.0F) * size;
          float oy = this.hbBottomY() - height * size;
          this.hotbarDrag.setX(ox);
          this.hotbarDrag.setY(oy);
          this.hotbarDrag.setWidth(totalWidth);
          this.hotbarDrag.setHeight(height);
-         if (!(this.mc.field_1755 instanceof ChatScreen)) {
+         if (!(this.mc.currentScreen instanceof ChatScreen)) {
             this.hotbarPopup.open = false;
             this.hotbarPopup.draggingSlider = null;
          }
@@ -1141,15 +1141,15 @@ public class Interface extends Module {
       float offW = this.hbOffhandBoxW();
       float mainW = this.hbMainWidth();
       float height = this.hbHeight();
-      int selected = this.mc.field_1724.method_31548().field_7545;
+      int selected = this.mc.player.getInventory().selectedSlot;
       int divColor = ColorProvider.rgba(255, 255, 255, 35.0F);
       this.drawElementBackground(this.hotbarPopup, ox, oy, offW, height, 3.0F, 1.0F);
       this.drawElementShine(this.hotbarPopup, context, ox, oy, offW, height, 3.0F);
-      this.drawHotbarCell(context, this.mc.field_1724.method_6079(), ox + pad, oy + pad, cell, iconSize, false);
+      this.drawHotbarCell(context, this.mc.player.getOffHandStack(), ox + pad, oy + pad, cell, iconSize, false);
       float mainX = ox + offW + 4.0F;
       this.drawElementBackground(this.hotbarPopup, mainX, oy, mainW, height, 3.0F, 1.0F);
       this.drawElementShine(this.hotbarPopup, context, mainX, oy, mainW, height, 3.0F);
-      String lvl = String.valueOf(this.mc.field_1724.field_7520);
+      String lvl = String.valueOf(this.mc.player.experienceLevel);
       float lvlW = Fonts.SFMEDIUM.get().getWidth(lvl, 8.0F);
       int xpColor = ColorProvider.rgba(80, 220, 80, 255.0F);
       DrawUtil.drawText(Fonts.SFMEDIUM.get(), lvl, mainX + mainW / 2.0F - lvlW / 2.0F, oy - 9.0F, xpColor, 8.0F);
@@ -1161,7 +1161,7 @@ public class Interface extends Module {
             DrawUtil.drawRound(cellX - 0.25F, cellY + 3.0F, 0.5F, cell - 6.0F, 0.25F, divColor);
          }
 
-         this.drawHotbarCell(context, this.mc.field_1724.method_31548().method_5438(i), cellX, cellY, cell, iconSize, i == selected);
+         this.drawHotbarCell(context, this.mc.player.getInventory().getStack(i), cellX, cellY, cell, iconSize, i == selected);
       }
    }
 
@@ -1170,12 +1170,12 @@ public class Interface extends Module {
          DrawUtil.drawRound(cellX + 0.5F, cellY, cell - 1.0F, cell, 2.5F, ColorProvider.setAlpha(ColorProvider.getColorClient(), 90));
       }
 
-      if (!stack.method_7960()) {
+      if (!stack.isEmpty()) {
          float iconX = cellX + (cell - iconSize) / 2.0F;
          float iconY = cellY + (cell - iconSize) / 2.0F;
          this.drawCooldownIcon(context, stack, iconX, iconY, iconSize, 255);
-         if (this.hotbarCounts.getValue() && stack.method_7947() > 1) {
-            String cnt = String.valueOf(stack.method_7947());
+         if (this.hotbarCounts.getValue() && stack.getCount() > 1) {
+            String cnt = String.valueOf(stack.getCount());
             float cw = Fonts.SFMEDIUM.get().getWidth(cnt, 7.5F);
             this.drawOutlinedCount(cnt, cellX + cell - cw - 1.5F, cellY + cell - 8.5F, 7.5F);
          }
@@ -1183,7 +1183,7 @@ public class Interface extends Module {
    }
 
    private void renderArmourBar(DrawContext context) {
-      if (this.mc.field_1724 != null) {
+      if (this.mc.player != null) {
          float pad = 3.0F;
          float cell = 20.0F;
          float iconSize = 16.0F;
@@ -1191,7 +1191,7 @@ public class Interface extends Module {
          float width = pad * 2.0F + cell * (float)count;
          float height = pad * 2.0F + cell;
          float size = this.armourPopup.size.getFloatValue();
-         float screenW = (float)this.mc.method_22683().method_4486();
+         float screenW = (float)this.mc.getWindow().getScaledWidth();
          float ox = this.hotbarMainVisualRight() + 4.0F;
          float oy = this.hbBottomY() - height * size;
          if (ox + width * size > screenW - 2.0F) {
@@ -1202,7 +1202,7 @@ public class Interface extends Module {
          this.armourDrag.setY(oy);
          this.armourDrag.setWidth(width);
          this.armourDrag.setHeight(height);
-         if (!(this.mc.field_1755 instanceof ChatScreen)) {
+         if (!(this.mc.currentScreen instanceof ChatScreen)) {
             this.armourPopup.open = false;
             this.armourPopup.draggingSlider = null;
          }
@@ -1216,21 +1216,21 @@ public class Interface extends Module {
 
    private void renderArmourBarContent(DrawContext context, float posX, float posY, float width, float height, float pad, float cell, float iconSize) {
       boolean durab = this.armourDurability.getValue();
-      EquipmentSlot[] eqSlots = new EquipmentSlot[]{EquipmentSlot.field_6169, EquipmentSlot.field_6174, EquipmentSlot.field_6172, EquipmentSlot.field_6166};
+      EquipmentSlot[] eqSlots = new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
       this.drawElementBackground(this.armourPopup, posX, posY, width, height, 3.0F, 1.0F);
       this.drawElementShine(this.armourPopup, context, posX, posY, width, height, 3.0F);
 
       for (int i = 0; i < eqSlots.length; i++) {
          float cellX = posX + pad + (float)i * cell;
          float cellY = posY + pad;
-         ItemStack stack = this.mc.field_1724.method_6118(eqSlots[i]);
-         if (!stack.method_7960()) {
+         ItemStack stack = this.mc.player.getEquippedStack(eqSlots[i]);
+         if (!stack.isEmpty()) {
             float iconX = cellX + (cell - iconSize) / 2.0F;
             float iconY = cellY + (cell - iconSize) / 2.0F;
             this.drawCooldownIcon(context, stack, iconX, iconY, iconSize, 255);
-            if (durab && stack.method_7963() && stack.method_7936() > 0) {
-               float ratio = 1.0F - (float)stack.method_7919() / (float)stack.method_7936();
-               ratio = MathHelper.method_15363(ratio, 0.0F, 1.0F);
+            if (durab && stack.isDamageable() && stack.getMaxDamage() > 0) {
+               float ratio = 1.0F - (float)stack.getDamage() / (float)stack.getMaxDamage();
+               ratio = MathHelper.clamp(ratio, 0.0F, 1.0F);
                float barH = 2.5F;
                float barX = cellX + (cell - iconSize) / 2.0F;
                float barY = cellY + cell - barH - 0.5F;
@@ -1242,8 +1242,8 @@ public class Interface extends Module {
    }
 
    private void renderTotemBar(DrawContext context) {
-      if (this.mc.field_1724 != null) {
-         if (!(this.mc.field_1755 instanceof ChatScreen)) {
+      if (this.mc.player != null) {
+         if (!(this.mc.currentScreen instanceof ChatScreen)) {
             this.totemBarPopup.open = false;
             this.totemBarPopup.draggingSlider = null;
          }
@@ -1260,10 +1260,10 @@ public class Interface extends Module {
       float posY = this.totemBarDrag.getY();
       int totemCount = 0;
 
-      for (int i = 0; i < this.mc.field_1724.method_31548().method_5439(); i++) {
-         ItemStack s = this.mc.field_1724.method_31548().method_5438(i);
-         if (s.method_7909() == Items.field_8288) {
-            totemCount += s.method_7947();
+      for (int i = 0; i < this.mc.player.getInventory().size(); i++) {
+         ItemStack s = this.mc.player.getInventory().getStack(i);
+         if (s.getItem() == Items.TOTEM_OF_UNDYING) {
+            totemCount += s.getCount();
          }
       }
 
@@ -1280,15 +1280,15 @@ public class Interface extends Module {
       this.drawElementShine(this.totemBarPopup, context, posX, posY, width, height, 3.0F);
       float iconX = posX + (width - iconSize) / 2.0F;
       float iconY = posY + pad;
-      this.drawCooldownIcon(context, new ItemStack(Items.field_8288), iconX, iconY, iconSize, 255);
+      this.drawCooldownIcon(context, new ItemStack(Items.TOTEM_OF_UNDYING), iconX, iconY, iconSize, 255);
       DrawUtil.drawText(Fonts.SFMEDIUM.get(), text, posX + (width - textW) / 2.0F, iconY + iconSize + gap, -1, textSize);
       this.totemBarDrag.setWidth(width);
       this.totemBarDrag.setHeight(height);
    }
 
    private void renderStaffList(DrawContext context) {
-      if (this.mc.field_1724 != null) {
-         if (!(this.mc.field_1755 instanceof ChatScreen)) {
+      if (this.mc.player != null) {
+         if (!(this.mc.currentScreen instanceof ChatScreen)) {
             this.stafflistPopup.open = false;
             this.stafflistPopup.draggingSlider = null;
          }
@@ -1322,7 +1322,7 @@ public class Interface extends Module {
          }
       }
 
-      if (!isFound && !(this.mc.field_1755 instanceof ChatScreen)) {
+      if (!isFound && !(this.mc.currentScreen instanceof ChatScreen)) {
          this.alpha2.run(0.0F);
       } else {
          this.alpha2.run(1.0F);
@@ -1331,7 +1331,7 @@ public class Interface extends Module {
       float globalAlpha = this.alpha2.getValue();
       if (!(globalAlpha <= 0.05F)) {
          int headerAlpha = (int)Math.min(255.0F, Math.max(0.0F, 255.0F * globalAlpha));
-         boolean showExample = this.mc.field_1755 instanceof ChatScreen && !isFound;
+         boolean showExample = this.mc.currentScreen instanceof ChatScreen && !isFound;
          float maxNameBoxW = minWidth;
 
          for (Interface.Staff staffx : this.staffPlayers) {
@@ -1393,19 +1393,19 @@ public class Interface extends Module {
                int itemAlpha = (int)Math.min(255.0F, Math.max(0.0F, 255.0F * animVal * globalAlpha));
                if (itemAlpha >= 5) {
                   float rowHeight = itemHeight * animVal;
-                  context.method_51448().method_22903();
-                  context.method_51448().method_46416(posX + totalRowWidth / 2.0F, curY + rowHeight / 2.0F, 0.0F);
-                  context.method_51448().method_22905(animVal, animVal, animVal);
-                  context.method_51448().method_46416(-(posX + totalRowWidth / 2.0F), -(curY + rowHeight / 2.0F), 0.0F);
-                  PlayerListEntry playerEntry = this.mc.method_1562().method_2874(staffxxx.name);
+                  context.getMatrices().push();
+                  context.getMatrices().translate(posX + totalRowWidth / 2.0F, curY + rowHeight / 2.0F, 0.0F);
+                  context.getMatrices().scale(animVal, animVal, animVal);
+                  context.getMatrices().translate(-(posX + totalRowWidth / 2.0F), -(curY + rowHeight / 2.0F), 0.0F);
+                  PlayerListEntry playerEntry = this.mc.getNetworkHandler().getPlayerListEntry(staffxxx.name);
                   Identifier skinTexture;
                   if (playerEntry != null) {
-                     skinTexture = playerEntry.method_52810().comp_1626();
+                     skinTexture = playerEntry.getSkinTextures().comp_1626();
                   } else {
-                     skinTexture = DefaultSkinHelper.method_4649();
+                     skinTexture = DefaultSkinHelper.getTexture();
                   }
 
-                  int textureId = this.mc.method_1531().method_4619(skinTexture).method_4624();
+                  int textureId = this.mc.getTextureManager().getTexture(skinTexture).getGlId();
                   float headSize = 8.0F;
                   Builder.texture()
                      .size(new SizeState(headSize, headSize))
@@ -1414,21 +1414,21 @@ public class Interface extends Module {
                      .texture(0.125F, 0.125F, 0.125F, 0.125F, textureId)
                      .smoothness(1.0F)
                      .build()
-                     .render(context.method_51448().method_23760().method_23761(), posX + padX + 1.0F, curY + (itemHeight - headSize) / 2.0F);
+                     .render(context.getMatrices().peek().getPositionMatrix(), posX + padX + 1.0F, curY + (itemHeight - headSize) / 2.0F);
                   DrawUtil.drawText(Fonts.SFMEDIUM.get(), staffxxx.prefix, posX + padX + 10.0F, curY + (itemHeight - 7.0F) / 2.0F - 0.35F, 7.0F, itemAlpha);
                   int dotColor = staffxxx.status == Interface.Status.NONE
                      ? ColorProvider.rgba(32, 255, 32, (float)itemAlpha)
                      : ColorProvider.rgba(255, 32, 32, (float)itemAlpha);
                   float dotCX = posX + totalRowWidth - padX - statusBoxW / 2.0F;
                   DrawUtil.drawCircle(dotCX, curY + itemHeight / 2.0F, 3.5F, dotColor);
-                  context.method_51448().method_22909();
+                  context.getMatrices().pop();
                   curY += rowHeight;
                }
             }
          }
 
          if (showExample) {
-            int textureId = this.mc.method_1531().method_4619(DefaultSkinHelper.method_4649()).method_4624();
+            int textureId = this.mc.getTextureManager().getTexture(DefaultSkinHelper.getTexture()).getGlId();
             float headSize = 8.0F;
             Builder.texture()
                .size(new SizeState(headSize, headSize))
@@ -1437,7 +1437,7 @@ public class Interface extends Module {
                .texture(0.125F, 0.125F, 0.125F, 0.125F, textureId)
                .smoothness(1.0F)
                .build()
-               .render(context.method_51448().method_23760().method_23761(), posX + padX + 1.0F, curY + (itemHeight - headSize) / 2.0F);
+               .render(context.getMatrices().peek().getPositionMatrix(), posX + padX + 1.0F, curY + (itemHeight - headSize) / 2.0F);
             DrawUtil.drawText(
                Fonts.SFMEDIUM.get(),
                "Example",
@@ -1495,16 +1495,16 @@ public class Interface extends Module {
    }
 
    private double potionsMouseX() {
-      return this.mc.field_1729.method_1603() / this.mc.method_22683().method_4495();
+      return this.mc.mouse.getX() / this.mc.getWindow().getScaleFactor();
    }
 
    private double potionsMouseY() {
-      return this.mc.field_1729.method_1604() / this.mc.method_22683().method_4495();
+      return this.mc.mouse.getY() / this.mc.getWindow().getScaleFactor();
    }
 
    private void renderPotions(DrawContext context) {
-      if (this.mc.field_1724 != null) {
-         boolean chatOpen = this.mc.field_1755 instanceof ChatScreen;
+      if (this.mc.player != null) {
+         boolean chatOpen = this.mc.currentScreen instanceof ChatScreen;
          if (!chatOpen) {
             this.potionsPopup.open = false;
             this.potionsPopup.draggingSlider = null;
@@ -1532,24 +1532,24 @@ public class Interface extends Module {
             IRenderer.DEFAULT_MATRIX.identity().translate(ox, oy, 0.0F).scale(size, size, 1.0F).translate(-ox, -oy, 0.0F);
          }
 
-         context.method_51448().method_22903();
+         context.getMatrices().push();
          if (needScale) {
-            context.method_51448().method_46416(ox, oy, 0.0F);
-            context.method_51448().method_22905(size, size, 1.0F);
-            context.method_51448().method_46416(-ox, -oy, 0.0F);
+            context.getMatrices().translate(ox, oy, 0.0F);
+            context.getMatrices().scale(size, size, 1.0F);
+            context.getMatrices().translate(-ox, -oy, 0.0F);
          }
 
          if (needRot) {
-            context.method_51448().method_46416(cx, cy, 0.0F);
-            context.method_51448().method_22907(RotationAxis.field_40718.rotationDegrees(angle));
-            context.method_51448().method_46416(-cx, -cy, 0.0F);
+            context.getMatrices().translate(cx, cy, 0.0F);
+            context.getMatrices().multiply(RotationAxis.POSITIVE_Z.rotationDegrees(angle));
+            context.getMatrices().translate(-cx, -cy, 0.0F);
          }
       }
    }
 
    private void endScale(Interface.HudPopup p, DrawContext context) {
       if (p.transformed) {
-         context.method_51448().method_22909();
+         context.getMatrices().pop();
          IRenderer.DEFAULT_MATRIX.identity();
          float size = p.size.getFloatValue();
          if (Math.abs(size - 1.0F) > 0.001F) {
@@ -1567,7 +1567,7 @@ public class Interface extends Module {
    }
 
    private void drawElementBackground(Interface.HudPopup p, float x, float y, float w, float h, float radius, float alphaFactor) {
-      float clampFactor = MathHelper.method_15363(alphaFactor, 0.0F, 1.0F);
+      float clampFactor = MathHelper.clamp(alphaFactor, 0.0F, 1.0F);
       int alpha = (int)((float)p.alpha.getIntValue() * clampFactor);
       alpha = Math.min(255, Math.max(0, alpha));
       if (p.blur.getValue()) {
@@ -1597,12 +1597,12 @@ public class Interface extends Module {
 
    private void drawElementShine(Interface.HudPopup p, DrawContext context, float x, float y, float w, float h, float radius) {
       if (p.shine.getValue()) {
-         HudShine.render(context.method_51448(), x, y, w, h, radius, p.shineThickness.getFloatValue(), 1.0F, p.shineAlpha.getFloatValue() / 100.0F, 0.0F);
+         HudShine.render(context.getMatrices(), x, y, w, h, radius, p.shineThickness.getFloatValue(), 1.0F, p.shineAlpha.getFloatValue() / 100.0F, 0.0F);
       }
    }
 
    private void renderPotionsNew(DrawContext context) {
-      if (this.mc.field_1724 != null) {
+      if (this.mc.player != null) {
          float posX = this.potionsDrag.getX();
          float posY = this.potionsDrag.getY();
          float headerHeight = 14.0F;
@@ -1620,7 +1620,7 @@ public class Interface extends Module {
             }
          }
 
-         if (!isFound && !(this.mc.field_1755 instanceof ChatScreen)) {
+         if (!isFound && !(this.mc.currentScreen instanceof ChatScreen)) {
             this.alpha3.run(0.0F);
          } else {
             this.alpha3.run(1.0F);
@@ -1629,13 +1629,13 @@ public class Interface extends Module {
          float globalAlpha = this.alpha3.getValue();
          if (!(globalAlpha <= 0.05F)) {
             int headerAlpha = (int)Math.min(255.0F, Math.max(0.0F, 255.0F * globalAlpha));
-            boolean showExample = this.mc.field_1755 instanceof ChatScreen && !isFound;
+            boolean showExample = this.mc.currentScreen instanceof ChatScreen && !isFound;
             if (showExample) {
                long currentTime = System.currentTimeMillis();
                if (currentTime - this.lastEffectChange > 2000L) {
                   if (cachedAllEffects == null) {
                      cachedAllEffects = new ArrayList<>();
-                     Registries.field_41174.method_42017().forEach(cachedAllEffects::add);
+                     Registries.STATUS_EFFECT.streamEntries().forEach(cachedAllEffects::add);
                   }
 
                   if (!cachedAllEffects.isEmpty()) {
@@ -1719,8 +1719,8 @@ public class Interface extends Module {
                      int sec = seconds % 60;
                      String timeStr = String.format("%d:%02d", minutes, sec);
                      String nameStr = itemxx.name;
-                     boolean isHarmful = !((StatusEffect)itemxx.effect.comp_349()).method_5573();
-                     String effectId = Registries.field_41174.method_10221((StatusEffect)itemxx.effect.comp_349()).method_12832();
+                     boolean isHarmful = !((StatusEffect)itemxx.effect.comp_349()).isBeneficial();
+                     String effectId = Registries.STATUS_EFFECT.getId((StatusEffect)itemxx.effect.comp_349()).getPath();
                      boolean isNightVision = effectId.equals("night_vision");
                      int textAlpha = 255;
                      if (itemxx.durationTicks <= 200 && itemxx.durationTicks > 0 && !isNightVision) {
@@ -1743,19 +1743,19 @@ public class Interface extends Module {
                         float timeW = Fonts.SFMEDIUM.get().getWidth(timeStr, 6.75F);
                         float timeBoxW = timeW + 10.0F;
                         float rowHeight = itemHeight * rowAnimVal;
-                        context.method_51448().method_22903();
-                        context.method_51448().method_46416(posX + totalRowWidth / 2.0F, curY + rowHeight / 2.0F, 0.0F);
-                        context.method_51448().method_22905(rowAnimVal, rowAnimVal, rowAnimVal);
-                        context.method_51448().method_46416(-(posX + totalRowWidth / 2.0F), -(curY + rowHeight / 2.0F), 0.0F);
+                        context.getMatrices().push();
+                        context.getMatrices().translate(posX + totalRowWidth / 2.0F, curY + rowHeight / 2.0F, 0.0F);
+                        context.getMatrices().scale(rowAnimVal, rowAnimVal, rowAnimVal);
+                        context.getMatrices().translate(-(posX + totalRowWidth / 2.0F), -(curY + rowHeight / 2.0F), 0.0F);
                         float potionMid = textMidY(curY + 2.5F, 7.0F);
-                        Sprite sprite = this.mc.method_18505().method_18663(itemxx.effect);
+                        Sprite sprite = this.mc.getStatusEffectSpriteManager().getSprite(itemxx.effect);
                         if (sprite != null) {
                            float iconSize = 8.0F;
                            float iconX = posX + padX + 2.0F;
                            float iconY = potionMid - iconSize / 2.0F;
                            int color = itemAlpha << 24 | 16777215;
                            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, (float)itemAlpha / 255.0F);
-                           context.method_52710(RenderLayer::method_62277, sprite, (int)iconX, (int)iconY, (int)iconSize, (int)iconSize, color);
+                           context.drawSpriteStretched(RenderLayer::getGuiTextured, sprite, (int)iconX, (int)iconY, (int)iconSize, (int)iconSize, color);
                            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
                         }
 
@@ -1777,7 +1777,7 @@ public class Interface extends Module {
                            float ringCY = curY + itemHeight / 2.0F;
                            float progress = 1.0F;
                            if (itemxx.maxDurationTicks > 0 && itemxx.durationTicks >= 0) {
-                              progress = MathHelper.method_15363((float)itemxx.durationTicks / (float)itemxx.maxDurationTicks, 0.0F, 1.0F);
+                              progress = MathHelper.clamp((float)itemxx.durationTicks / (float)itemxx.maxDurationTicks, 0.0F, 1.0F);
                            }
 
                            DrawUtil.drawRingArc(ringCX, ringCY, ringRadius, 1.4F, -90.0F, 270.0F, ColorProvider.rgba(80, 80, 80, (float)itemAlpha));
@@ -1804,7 +1804,7 @@ public class Interface extends Module {
                            ColorProvider.rgba(255, 255, 255, (float)itemAlpha),
                            6.75F
                         );
-                        context.method_51448().method_22909();
+                        context.getMatrices().pop();
                         curY += rowHeight;
                      }
                   }
@@ -1818,14 +1818,14 @@ public class Interface extends Module {
                float timeWx = Fonts.SFMEDIUM.get().getWidth(timeStrx, 6.75F);
                float timeBoxWx = timeWx + 10.0F;
                float exMid = textMidY(curY + 2.5F, 7.0F);
-               Sprite spritex = this.mc.method_18505().method_18663(this.currentRandomEffect);
+               Sprite spritex = this.mc.getStatusEffectSpriteManager().getSprite(this.currentRandomEffect);
                if (spritex != null) {
                   float iconSize = 8.0F;
                   float iconX = posX + padX + 2.0F;
                   float iconY = exMid - iconSize / 2.0F;
                   int color = headerAlpha << 24 | 16777215;
                   RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, (float)headerAlpha / 255.0F);
-                  context.method_52710(RenderLayer::method_62277, spritex, (int)iconX, (int)iconY, (int)iconSize, (int)iconSize, color);
+                  context.drawSpriteStretched(RenderLayer::getGuiTextured, spritex, (int)iconX, (int)iconY, (int)iconSize, (int)iconSize, color);
                   RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
                }
 
@@ -1880,11 +1880,11 @@ public class Interface extends Module {
       float ex = p.drag.getX();
       float ey = p.drag.getY();
       float ew = p.drag.getWidth();
-      float screenW = (float)this.mc.method_22683().method_4486();
-      float screenH = (float)this.mc.method_22683().method_4502();
+      float screenW = (float)this.mc.getWindow().getScaledWidth();
+      float screenH = (float)this.mc.getWindow().getScaledHeight();
       float x = p.title.equals("CustomHotbar") ? ex - w - 4.0F : ex + ew + 4.0F;
-      x = MathHelper.method_15363(x, 2.0F, Math.max(2.0F, screenW - w - 2.0F));
-      float y = MathHelper.method_15363(ey, 2.0F, Math.max(2.0F, screenH - totalH - 2.0F));
+      x = MathHelper.clamp(x, 2.0F, Math.max(2.0F, screenW - w - 2.0F));
+      float y = MathHelper.clamp(ey, 2.0F, Math.max(2.0F, screenH - totalH - 2.0F));
       p.px = x;
       p.py = y;
       p.pw = w;
@@ -1955,7 +1955,7 @@ public class Interface extends Module {
       float trackY = y + h - 5.5F;
       DrawUtil.drawRound(trackX, trackY, trackW, 3.0F, 1.0F, ColorProvider.setAlpha(ColorProvider.getColorSliderWindow(), a));
       float fill = (float)((double)trackW * (setting.getValue() - setting.getMin()) / (setting.getMax() - setting.getMin()));
-      fill = MathHelper.method_15363(fill, 0.0F, trackW);
+      fill = MathHelper.clamp(fill, 0.0F, trackW);
       DrawUtil.drawRound(trackX, trackY, fill, 3.0F, 1.0F, ColorProvider.setAlpha(ColorProvider.getColorSlider(), a));
       float circleX = trackX + fill;
       DrawUtil.drawRound(circleX - 2.5F, trackY - 1.0F, 5.0F, 5.0F, 1.75F, ColorProvider.setAlpha(ColorProvider.getColorSliderCircle(), a));
@@ -1970,7 +1970,7 @@ public class Interface extends Module {
    }
 
    public boolean handlePotionsClick(double mouseX, double mouseY, int button) {
-      if (!this.isEnabled() || !(this.mc.field_1755 instanceof ChatScreen)) {
+      if (!this.isEnabled() || !(this.mc.currentScreen instanceof ChatScreen)) {
          return false;
       } else if (this.elements.isEnabled("\u0411\u0430\u0444\u044b") && this.handleElementClick(this.potionsPopup, mouseX, mouseY, button)) {
          return true;
@@ -2067,7 +2067,7 @@ public class Interface extends Module {
          staff.isOnServer = false;
       }
 
-      Iterator var28 = this.mc.method_1562().method_2880().iterator();
+      Iterator var28 = this.mc.getNetworkHandler().getPlayerList().iterator();
 
       while (true) {
          String name;
@@ -2081,15 +2081,15 @@ public class Interface extends Module {
             }
 
             playerListEntry = (PlayerListEntry)var28.next();
-            name = playerListEntry.method_2966().getName().replaceAll("[\\[\\]]", "");
-            PlayerListEntry info = MinecraftClient.method_1551().method_1562().method_2874(name);
+            name = playerListEntry.getProfile().getName().replaceAll("[\\[\\]]", "");
+            PlayerListEntry info = MinecraftClient.getInstance().getNetworkHandler().getPlayerListEntry(name);
             vanish = info == null;
-            isGM3 = info != null && info.method_2958() == GameMode.field_9219;
+            isGM3 = info != null && info.getGameMode() == GameMode.SPECTATOR;
             boolean matchesPrefix = this.prefixMatches
-               .matcher(playerListEntry.method_2971() != null ? playerListEntry.method_2971().getString().toLowerCase(Locale.ROOT) : "")
+               .matcher(playerListEntry.getDisplayName() != null ? playerListEntry.getDisplayName().getString().toLowerCase(Locale.ROOT) : "")
                .matches();
             boolean isValidName = this.namePattern.matcher(name).matches();
-            boolean notSelf = !name.equals(MinecraftClient.method_1551().field_1724.method_5477().getString());
+            boolean notSelf = !name.equals(MinecraftClient.getInstance().player.getName().getString());
             if (isValidName && notSelf && matchesPrefix || isValidName && notSelf && vanish || StaffManager.isStaff(name)) {
                if (!StaffManager.isStaff(name)) {
                   break;
@@ -2117,11 +2117,11 @@ public class Interface extends Module {
                   "shop_mage"
                };
                boolean contains = false;
-               if (MinecraftClient.method_1551().method_1558() != null
-                  && MinecraftClient.method_1551().method_1558().field_3761 != null
+               if (MinecraftClient.getInstance().getCurrentServerEntry() != null
+                  && MinecraftClient.getInstance().getCurrentServerEntry().address != null
                   && (
-                     MinecraftClient.method_1551().method_1558().field_3761.contains("mc.rwdonat.pw")
-                        || MinecraftClient.method_1551().method_1558().field_3761.contains("mc.cakeworld.pw")
+                     MinecraftClient.getInstance().getCurrentServerEntry().address.contains("mc.rwdonat.pw")
+                        || MinecraftClient.getInstance().getCurrentServerEntry().address.contains("mc.cakeworld.pw")
                   )) {
                   for (int i = 0; (long)i < Arrays.stream(names).count(); i++) {
                      if (name.contains(names[i])) {
@@ -2166,11 +2166,11 @@ public class Interface extends Module {
                "shop_mage"
             };
             boolean containsx = false;
-            if (MinecraftClient.method_1551().method_1558() != null
-               && MinecraftClient.method_1551().method_1558().field_3761 != null
+            if (MinecraftClient.getInstance().getCurrentServerEntry() != null
+               && MinecraftClient.getInstance().getCurrentServerEntry().address != null
                && (
-                  MinecraftClient.method_1551().method_1558().field_3761.contains("mc.rwdonat.pw")
-                     || MinecraftClient.method_1551().method_1558().field_3761.contains("mc.cakeworld.pw")
+                  MinecraftClient.getInstance().getCurrentServerEntry().address.contains("mc.rwdonat.pw")
+                     || MinecraftClient.getInstance().getCurrentServerEntry().address.contains("mc.cakeworld.pw")
                )) {
                for (int ix = 0; (long)ix < Arrays.stream(namesx).count(); ix++) {
                   if (name.contains(namesx[ix])) {
@@ -2180,7 +2180,7 @@ public class Interface extends Module {
             }
 
             if (!containsx) {
-               Text originalPrefix = playerListEntry.method_2971();
+               Text originalPrefix = playerListEntry.getDisplayName();
                Text prefix = originalPrefix;
                if (originalPrefix != null) {
                   prefix = ReplaceUtil.replaceSymbols(originalPrefix);
@@ -2189,28 +2189,28 @@ public class Interface extends Module {
                   if (nickIndex != -1) {
                      int endIndex = nickIndex + name.length();
                      if (endIndex < fullString.length()) {
-                        MutableText newText = Text.method_43473();
+                        MutableText newText = Text.empty();
                         int currentLength = 0;
-                        MutableText baseCopy = prefix.method_27661();
-                        baseCopy.method_10855().clear();
+                        MutableText baseCopy = prefix.copy();
+                        baseCopy.getSiblings().clear();
                         String mainContent = baseCopy.getString();
                         if (!mainContent.isEmpty() && currentLength < endIndex) {
                            int takeLength = Math.min(mainContent.length(), endIndex - currentLength);
-                           newText.method_10852(Text.method_43470(mainContent.substring(0, takeLength)).method_10862(prefix.method_10866()));
+                           newText.append(Text.literal(mainContent.substring(0, takeLength)).setStyle(prefix.getStyle()));
                            currentLength += takeLength;
                         }
 
-                        for (Text sibling : prefix.method_10855()) {
+                        for (Text sibling : prefix.getSiblings()) {
                            if (currentLength >= endIndex) {
                               break;
                            }
 
-                           MutableText siblingCopy = sibling.method_27661();
-                           siblingCopy.method_10855().clear();
+                           MutableText siblingCopy = sibling.copy();
+                           siblingCopy.getSiblings().clear();
                            String siblingContent = siblingCopy.getString();
                            int takeLength = Math.min(siblingContent.length(), endIndex - currentLength);
                            if (takeLength > 0) {
-                              newText.method_10852(Text.method_43470(siblingContent.substring(0, takeLength)).method_10862(sibling.method_10866()));
+                              newText.append(Text.literal(siblingContent.substring(0, takeLength)).setStyle(sibling.getStyle()));
                               currentLength += takeLength;
                            }
                         }
@@ -2221,7 +2221,7 @@ public class Interface extends Module {
                }
 
                Interface.Staff staff = new Interface.Staff(
-                  prefix == null ? Text.method_30163(playerListEntry.method_2966().getName()) : prefix, name, vanish || isGM3, status
+                  prefix == null ? Text.of(playerListEntry.getProfile().getName()) : prefix, name, vanish || isGM3, status
                );
                staff.isOnServer = true;
                this.staffPlayers.add(staff);
@@ -2231,13 +2231,13 @@ public class Interface extends Module {
    }
 
    public int getPing(PlayerEntity entity) {
-      PlayerListEntry list = this.mc.method_1562().method_2871(entity.method_5667());
-      return list != null ? list.method_2959() : 0;
+      PlayerListEntry list = this.mc.getNetworkHandler().getPlayerListEntry(entity.getUuid());
+      return list != null ? list.getLatency() : 0;
    }
 
    private void renderWatermark(DrawContext context) {
-      if (this.mc.field_1724 != null) {
-         boolean chatOpen = this.mc.field_1755 instanceof ChatScreen;
+      if (this.mc.player != null) {
+         boolean chatOpen = this.mc.currentScreen instanceof ChatScreen;
          if (!chatOpen) {
             this.watermarkPopup.open = false;
             this.watermarkPopup.draggingSlider = null;
@@ -2251,8 +2251,8 @@ public class Interface extends Module {
    }
 
    private void renderInfo(DrawContext context) {
-      if (this.mc.field_1724 != null) {
-         boolean chatOpen = this.mc.field_1755 instanceof ChatScreen;
+      if (this.mc.player != null) {
+         boolean chatOpen = this.mc.currentScreen instanceof ChatScreen;
          if (!chatOpen) {
             this.infoPopup.open = false;
             this.infoPopup.draggingSlider = null;
@@ -2269,7 +2269,7 @@ public class Interface extends Module {
       Counter.updateFPS();
       String userText = "User";
       String fpsValue = Counter.getCurrentFPS() + " Fps";
-      String pingValue = Server.getPing(this.mc.field_1724) + " Ping";
+      String pingValue = Server.getPing(this.mc.player) + " Ping";
       float x = this.watermarkDrag.getX();
       float y = this.watermarkDrag.getY();
       float height = 16.5F;
@@ -2356,7 +2356,7 @@ public class Interface extends Module {
       float leftPad = 5.0F;
       float rightPad = 5.0F;
       if (!showCoords && !showTps && !showBps) {
-         if (this.mc.field_1755 instanceof ChatScreen) {
+         if (this.mc.currentScreen instanceof ChatScreen) {
             String ph = "Info";
             float w = leftPad + msdf.getWidth(ph, 7.0F) + rightPad;
             this.drawElementBackground(this.infoPopup, x, y, w, height, 3.0F, 1.0F);
@@ -2372,11 +2372,11 @@ public class Interface extends Module {
          String coordsIcon = "F";
          String tpsIcon = "$";
          String bpsIcon = "@";
-         String xPart = "x" + (int)this.mc.field_1724.method_23317();
-         String yPart = "y" + (int)this.mc.field_1724.method_23318();
-         String zPart = "z" + (int)this.mc.field_1724.method_23321();
-         double dX = this.mc.field_1724.method_23317() - this.mc.field_1724.field_6014;
-         double dZ = this.mc.field_1724.method_23321() - this.mc.field_1724.field_5969;
+         String xPart = "x" + (int)this.mc.player.getX();
+         String yPart = "y" + (int)this.mc.player.getY();
+         String zPart = "z" + (int)this.mc.player.getZ();
+         double dX = this.mc.player.getX() - this.mc.player.prevX;
+         double dZ = this.mc.player.getZ() - this.mc.player.prevZ;
          String bpsValue = String.format(Locale.US, "%.1f Bps", Math.hypot(dX, dZ) * 20.0);
          String tpsValue = String.format(Locale.US, "%.1f Tps", AlphaDLC.getInstance().getTpsGetter().getTPS());
          int groups = (showCoords ? 1 : 0) + (showTps ? 1 : 0) + (showBps ? 1 : 0);
@@ -2473,7 +2473,7 @@ public class Interface extends Module {
    }
 
    private void renderTargetHUD(DrawContext context) {
-      boolean chatOpen = this.mc.field_1755 instanceof ChatScreen;
+      boolean chatOpen = this.mc.currentScreen instanceof ChatScreen;
       if (!chatOpen) {
          this.targetHudPopup.open = false;
          this.targetHudPopup.draggingSlider = null;
@@ -2487,14 +2487,14 @@ public class Interface extends Module {
 
    private void renderTargetHUDContent(DrawContext context) {
       KillAura killAura = Instance.get(KillAura.class);
-      boolean chatOpen = this.mc.field_1755 instanceof ChatScreen;
+      boolean chatOpen = this.mc.currentScreen instanceof ChatScreen;
       LivingEntity target = null;
-      if (killAura.isEnabled() && killAura.getTarget() != null && killAura.getTarget().method_5805()) {
+      if (killAura.isEnabled() && killAura.getTarget() != null && killAura.getTarget().isAlive()) {
          target = killAura.getTarget();
-      } else if (this.thShowOnHover.getValue() && this.mc.field_1692 instanceof LivingEntity living && living.method_5805()) {
+      } else if (this.thShowOnHover.getValue() && this.mc.targetedEntity instanceof LivingEntity living && living.isAlive()) {
          target = living;
       } else if (chatOpen) {
-         target = this.mc.field_1724;
+         target = this.mc.player;
       }
 
       if (target != null) {
@@ -2519,15 +2519,15 @@ public class Interface extends Module {
          float headSize = 24.0F;
          float headX = x + 4.0F;
          float headY = y + (height - headSize) / 2.0F;
-         float hurtPercent = (float)livingEntity.field_6235 / 10.0F;
+         float hurtPercent = (float)livingEntity.hurtTime / 10.0F;
          int headColor = ColorProvider.rgba(255, (int)(255.0F * (1.0F - hurtPercent)), (int)(255.0F * (1.0F - hurtPercent)), (float)alphaInt);
 
          try {
             Identifier faceTex = this.getEntityFaceTexture(livingEntity, playerEntity);
             if (faceTex != null) {
-               AbstractTexture tex = this.mc.method_1531().method_4619(faceTex);
-               tex.method_4527(false, false);
-               int texId = tex.method_4624();
+               AbstractTexture tex = this.mc.getTextureManager().getTexture(faceTex);
+               tex.setFilter(false, false);
+               int texId = tex.getGlId();
                if (texId > 0) {
                   BuiltTexture headTexture = Builder.texture()
                      .size(new SizeState(headSize, headSize))
@@ -2536,7 +2536,7 @@ public class Interface extends Module {
                      .texture(0.125F, 0.125F, 0.125F, 0.125F, texId)
                      .smoothness(1.0F)
                      .build();
-                  headTexture.render(context.method_51448().method_23760().method_23761(), headX, headY);
+                  headTexture.render(context.getMatrices().peek().getPositionMatrix(), headX, headY);
                }
             }
          } catch (Exception var62) {
@@ -2545,7 +2545,7 @@ public class Interface extends Module {
          float textX = headX + headSize + 5.0F;
          float rightEdge = x + width - 5.0F;
          NameProtect nameProtect = Instance.get(NameProtect.class);
-         String name = nameProtect.isEnabled() ? nameProtect.getCustomName(livingEntity.method_5477().getString()) : livingEntity.method_5477().getString();
+         String name = nameProtect.isEnabled() ? nameProtect.getCustomName(livingEntity.getName().getString()) : livingEntity.getName().getString();
          String shownName = this.trimTextToWidth(name, 8.5F, rightEdge - textX);
          DrawUtil.drawText(Fonts.SFMEDIUM.get(), shownName, textX, y + 3.0F, ColorProvider.rgba(255, 255, 255, (float)alphaInt), 8.5F);
          float currentHp = Server.getHealth(livingEntity, false);
@@ -2553,7 +2553,7 @@ public class Interface extends Module {
             currentHp = 0.0F;
          }
 
-         float absorption = livingEntity.method_6067();
+         float absorption = livingEntity.getAbsorptionAmount();
          if (Float.isNaN(absorption) || absorption < 0.0F) {
             absorption = 0.0F;
          }
@@ -2561,14 +2561,14 @@ public class Interface extends Module {
          float barHeight = 4.0F;
          float barY = y + height - 8.0F;
          float barWidth = rightEdge - textX;
-         float maxHealth = livingEntity.method_6063();
+         float maxHealth = livingEntity.getMaxHealth();
          float total = maxHealth + absorption;
          if (total <= 0.0F) {
             total = 1.0F;
          }
 
-         float healthFrac = MathHelper.method_15363(currentHp / total, 0.0F, 1.0F);
-         float absFrac = MathHelper.method_15363(absorption / total, 0.0F, 1.0F);
+         float healthFrac = MathHelper.clamp(currentHp / total, 0.0F, 1.0F);
+         float absFrac = MathHelper.clamp(absorption / total, 0.0F, 1.0F);
          this.hpAnimation.run(healthFrac);
          this.absorptionAnimation.run(absFrac);
          float healthW = barWidth * this.hpAnimation.getValue();
@@ -2587,7 +2587,7 @@ public class Interface extends Module {
          }
 
          float fillW = Math.min(barWidth, healthW + absW);
-         float arrowX = MathHelper.method_15363(textX + fillW, textX + 3.0F, textX + barWidth - 3.0F);
+         float arrowX = MathHelper.clamp(textX + fillW, textX + 3.0F, textX + barWidth - 3.0F);
          float arrowTipY = barY - 1.0F;
          float arrowTopY = barY - 5.0F;
          boolean hasAbs = absorption > 0.05F;
@@ -2596,20 +2596,20 @@ public class Interface extends Module {
          float shownHp = currentHp + absorption;
          String hpNum = String.format(Locale.US, "%.1f", shownHp);
          float hpNumW = Fonts.SFMEDIUM.get().getWidth(hpNum, 6.5F);
-         float hpNumX = MathHelper.method_15363(arrowX - hpNumW / 2.0F, x + 3.0F, x + width - hpNumW - 3.0F);
+         float hpNumX = MathHelper.clamp(arrowX - hpNumW / 2.0F, x + 3.0F, x + width - hpNumW - 3.0F);
          DrawUtil.drawText(Fonts.SFMEDIUM.get(), hpNum, hpNumX, arrowTopY - 8.0F, ColorProvider.rgba(255, 255, 255, (float)alphaInt), 6.5F);
          float armorAlpha = this.armorAnim.getValue();
          if (this.thShowItems.getValue() && armorAlpha > 0.05F) {
             List<ItemStack> armorList = new ArrayList<>();
 
-            for (ItemStack stack : livingEntity.method_5661()) {
+            for (ItemStack stack : livingEntity.getArmorItems()) {
                armorList.add(stack);
             }
 
             Collections.reverse(armorList);
             List<ItemStack> handsList = new ArrayList<>();
-            handsList.add(livingEntity.method_6047());
-            handsList.add(livingEntity.method_6079());
+            handsList.add(livingEntity.getMainHandStack());
+            handsList.add(livingEntity.getOffHandStack());
             float cell = 13.0F;
             float boxPad = 2.0F;
             float boxH = cell + boxPad * 2.0F;
@@ -2620,12 +2620,12 @@ public class Interface extends Module {
             this.drawElementBackground(this.targetHudPopup, x, boxesY, armorBoxW, boxH, 3.0F, armorAlpha);
             this.drawElementBackground(this.targetHudPopup, handsBoxX, boxesY, handsBoxW, boxH, 3.0F, armorAlpha);
             float itemScale = 0.6875F;
-            context.method_51448().method_22903();
-            context.method_51448().method_46416(0.0F, 0.0F, 100.0F);
-            TextRenderer textRenderer = MinecraftClient.method_1551().field_1772;
+            context.getMatrices().push();
+            context.getMatrices().translate(0.0F, 0.0F, 100.0F);
+            TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
             this.drawItemSlots(context, textRenderer, armorList, x + boxPad, boxesY + boxPad, cell, itemScale);
             this.drawItemSlots(context, textRenderer, handsList, handsBoxX + boxPad, boxesY + boxPad, cell, itemScale);
-            context.method_51448().method_22909();
+            context.getMatrices().pop();
          }
 
          this.targetHUDDrag.setWidth(width);
@@ -2636,14 +2636,14 @@ public class Interface extends Module {
    private Identifier getEntityFaceTexture(LivingEntity entity, AbstractClientPlayerEntity player) {
       try {
          if (player != null) {
-            return player.method_52814().comp_1626();
+            return player.getSkinTextures().comp_1626();
          }
 
-         if (this.mc.method_1561().method_3953(entity) instanceof LivingEntityRenderer renderer) {
-            float tickDelta = this.mc.method_61966().method_60637(false);
-            LivingEntityRenderState state = (LivingEntityRenderState)renderer.method_62425(entity, tickDelta);
+         if (this.mc.getEntityRenderDispatcher().getRenderer(entity) instanceof LivingEntityRenderer renderer) {
+            float tickDelta = this.mc.getRenderTickCounter().getTickDelta(false);
+            LivingEntityRenderState state = (LivingEntityRenderState)renderer.getAndUpdateRenderState(entity, tickDelta);
             if (state != null) {
-               return renderer.method_3885(state);
+               return renderer.getTexture(state);
             }
          }
       } catch (Exception var7) {
@@ -2654,43 +2654,43 @@ public class Interface extends Module {
 
    public void drawEntity(float x, float y, float scale, float yawAngle, float pitchAngle, LivingEntity entity) {
       MatrixStack matrices = new MatrixStack();
-      matrices.method_22903();
-      matrices.method_22904((double)x, (double)y, 50.0);
-      matrices.method_22905(-scale, scale, scale);
-      matrices.method_22907(RotationAxis.field_40718.rotationDegrees(180.0F));
-      matrices.method_22907(RotationAxis.field_40716.rotationDegrees(yawAngle));
-      matrices.method_22907(RotationAxis.field_40714.rotationDegrees(pitchAngle));
-      float bodyYaw = entity.field_6283;
-      float prevBodyYaw = entity.field_6220;
-      float headYaw = entity.field_6241;
-      float prevHeadYaw = entity.field_6259;
-      float yaw = entity.method_36454();
-      float prevYaw = entity.field_5982;
-      float pitch = entity.method_36455();
-      float prevPitch = entity.field_6004;
-      entity.field_6283 = 0.0F;
-      entity.field_6220 = 0.0F;
-      entity.field_6241 = 0.0F;
-      entity.field_6259 = 0.0F;
-      entity.method_36456(0.0F);
-      entity.field_5982 = 0.0F;
-      entity.method_36457(0.0F);
-      entity.field_6004 = 0.0F;
-      DiffuseLighting.method_24210();
-      Immediate immediate = this.mc.method_22940().method_23000();
-      float tickDelta = this.mc.method_61966().method_60637(true);
-      this.mc.method_1561().method_62424(entity, 0.0, 0.0, 0.0, tickDelta, matrices, immediate, 15728880);
-      immediate.method_22993();
-      DiffuseLighting.method_24211();
-      entity.field_6283 = bodyYaw;
-      entity.field_6220 = prevBodyYaw;
-      entity.field_6241 = headYaw;
-      entity.field_6259 = prevHeadYaw;
-      entity.method_36456(yaw);
-      entity.field_5982 = prevYaw;
-      entity.method_36457(pitch);
-      entity.field_6004 = prevPitch;
-      matrices.method_22909();
+      matrices.push();
+      matrices.translate((double)x, (double)y, 50.0);
+      matrices.scale(-scale, scale, scale);
+      matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(180.0F));
+      matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(yawAngle));
+      matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(pitchAngle));
+      float bodyYaw = entity.bodyYaw;
+      float prevBodyYaw = entity.prevBodyYaw;
+      float headYaw = entity.headYaw;
+      float prevHeadYaw = entity.prevHeadYaw;
+      float yaw = entity.getYaw();
+      float prevYaw = entity.prevYaw;
+      float pitch = entity.getPitch();
+      float prevPitch = entity.prevPitch;
+      entity.bodyYaw = 0.0F;
+      entity.prevBodyYaw = 0.0F;
+      entity.headYaw = 0.0F;
+      entity.prevHeadYaw = 0.0F;
+      entity.setYaw(0.0F);
+      entity.prevYaw = 0.0F;
+      entity.setPitch(0.0F);
+      entity.prevPitch = 0.0F;
+      DiffuseLighting.disableGuiDepthLighting();
+      Immediate immediate = this.mc.getBufferBuilders().getEntityVertexConsumers();
+      float tickDelta = this.mc.getRenderTickCounter().getTickDelta(true);
+      this.mc.getEntityRenderDispatcher().render(entity, 0.0, 0.0, 0.0, tickDelta, matrices, immediate, 15728880);
+      immediate.draw();
+      DiffuseLighting.enableGuiDepthLighting();
+      entity.bodyYaw = bodyYaw;
+      entity.prevBodyYaw = prevBodyYaw;
+      entity.headYaw = headYaw;
+      entity.prevHeadYaw = prevHeadYaw;
+      entity.setYaw(yaw);
+      entity.prevYaw = prevYaw;
+      entity.setPitch(pitch);
+      entity.prevPitch = prevPitch;
+      matrices.pop();
    }
 
    private Color lerpColor(Color a, Color b, float t) {
@@ -2703,15 +2703,15 @@ public class Interface extends Module {
 
    private void updatePotions() {
       Map<String, StatusEffectInstance> currentEffects = this.mc
-         .field_1724
-         .method_6026()
+         .player
+         .getStatusEffects()
          .stream()
-         .collect(Collectors.toMap(e -> Text.method_43471(e.method_5586()).getString() + ":" + e.method_5578(), e -> (StatusEffectInstance)e, (e1, e2) -> e1));
+         .collect(Collectors.toMap(e -> Text.translatable(e.getTranslationKey()).getString() + ":" + e.getAmplifier(), e -> (StatusEffectInstance)e, (e1, e2) -> e1));
       this.potionItems.forEach(item -> {
          String key = item.name + ":" + item.amplifier;
          StatusEffectInstance effect = currentEffects.get(key);
          if (effect != null) {
-            item.durationTicks = effect.method_5584();
+            item.durationTicks = effect.getDuration();
             if (item.durationTicks > item.maxDurationTicks) {
                item.maxDurationTicks = item.durationTicks;
             }
@@ -2731,7 +2731,7 @@ public class Interface extends Module {
          (key, effect) -> this.potionItems
                .add(
                   new Interface.PotionItem(
-                     Text.method_43471(effect.method_5586()).getString(), effect.method_5578(), effect.method_5584(), effect.method_5579()
+                     Text.translatable(effect.getTranslationKey()).getString(), effect.getAmplifier(), effect.getDuration(), effect.getEffectType()
                   )
                )
       );
@@ -2742,16 +2742,16 @@ public class Interface extends Module {
    }
 
    private void updateCooldowns() {
-      if (this.mc.field_1724 != null) {
+      if (this.mc.player != null) {
          for (Interface.CooldownItem ci : this.cooldownItems) {
-            boolean cooling = this.mc.field_1724.method_7357().method_7904(ci.item.method_7854());
+            boolean cooling = this.mc.player.getItemCooldownManager().isCoolingDown(ci.item.getDefaultStack());
             if (!cooling || System.currentTimeMillis() >= ci.endTimeMs) {
                ci.active = false;
             }
          }
 
          this.cooldownItems.removeIf(cix -> !cix.active && cix.animation.getValue() == 0.0F);
-         if (this.cooldownItems.isEmpty() && this.mc.field_1755 instanceof ChatScreen) {
+         if (this.cooldownItems.isEmpty() && this.mc.currentScreen instanceof ChatScreen) {
             long now = System.currentTimeMillis();
             if (now - this.cooldownExampleChange >= 1500L) {
                this.cooldownExampleIndex = (this.cooldownExampleIndex + 1) % COOLDOWN_EXAMPLE_ITEMS.length;
@@ -2762,8 +2762,8 @@ public class Interface extends Module {
    }
 
    private void renderCoolDowns(DrawContext context) {
-      if (this.mc.field_1724 != null) {
-         boolean chatOpen = this.mc.field_1755 instanceof ChatScreen;
+      if (this.mc.player != null) {
+         boolean chatOpen = this.mc.currentScreen instanceof ChatScreen;
          if (!chatOpen) {
             this.cooldownsPopup.open = false;
             this.cooldownsPopup.draggingSlider = null;
@@ -2778,17 +2778,17 @@ public class Interface extends Module {
 
    private void drawCooldownIcon(DrawContext context, ItemStack stack, float x, float y, float size, int alpha) {
       float scale = size / 16.0F;
-      context.method_51448().method_22903();
-      context.method_51448().method_46416(x, y, 0.0F);
-      context.method_51448().method_22905(scale, scale, 1.0F);
+      context.getMatrices().push();
+      context.getMatrices().translate(x, y, 0.0F);
+      context.getMatrices().scale(scale, scale, 1.0F);
       RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, (float)alpha / 255.0F);
-      context.method_51427(stack, 0, 0);
+      context.drawItem(stack, 0, 0);
       RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-      context.method_51448().method_22909();
+      context.getMatrices().pop();
    }
 
    private void renderCoolDownsNew(DrawContext context) {
-      if (this.mc.field_1724 != null) {
+      if (this.mc.player != null) {
          float posX = this.cooldownsDrag.getX();
          float posY = this.cooldownsDrag.getY();
          float headerHeight = 14.0F;
@@ -2806,8 +2806,8 @@ public class Interface extends Module {
             }
          }
 
-         boolean showExample = this.mc.field_1755 instanceof ChatScreen && !isFound;
-         if (!isFound && !(this.mc.field_1755 instanceof ChatScreen)) {
+         boolean showExample = this.mc.currentScreen instanceof ChatScreen && !isFound;
+         if (!isFound && !(this.mc.currentScreen instanceof ChatScreen)) {
             this.cdAlpha.run(0.0F);
          } else {
             this.cdAlpha.run(1.0F);
@@ -2824,7 +2824,7 @@ public class Interface extends Module {
                float animVal = itemx.animation.getValue();
                if (animVal > 0.001F) {
                   contentHeight += itemHeight * itemx.rowAnim.getValue();
-                  String name = itemx.item.method_63680().getString();
+                  String name = itemx.item.getName().getString();
                   float nameW = Fonts.SFMEDIUM.get().getWidth(name, 7.0F);
                   float nw = nameW + 8.0F + 12.0F + 10.0F;
                   if (nw > maxNameBoxW) {
@@ -2884,18 +2884,18 @@ public class Interface extends Module {
                   if (!(rowAnimVal <= 0.001F)) {
                      int sec = itemxx.remainingSeconds();
                      String timeStr = String.format("%d:%02d", sec / 60, sec % 60);
-                     String nameStr = itemxx.item.method_63680().getString();
+                     String nameStr = itemxx.item.getName().getString();
                      int itemAlpha = (int)Math.min(255.0F, Math.max(0.0F, 255.0F * animVal * globalAlpha));
                      if (itemAlpha >= 5) {
                         float timeW = Fonts.SFMEDIUM.get().getWidth(timeStr, 6.75F);
                         float timeBoxW = timeW + 10.0F;
                         float rowHeight = itemHeight * rowAnimVal;
-                        context.method_51448().method_22903();
-                        context.method_51448().method_46416(posX + totalRowWidth / 2.0F, curY + rowHeight / 2.0F, 0.0F);
-                        context.method_51448().method_22905(rowAnimVal, rowAnimVal, rowAnimVal);
-                        context.method_51448().method_46416(-(posX + totalRowWidth / 2.0F), -(curY + rowHeight / 2.0F), 0.0F);
+                        context.getMatrices().push();
+                        context.getMatrices().translate(posX + totalRowWidth / 2.0F, curY + rowHeight / 2.0F, 0.0F);
+                        context.getMatrices().scale(rowAnimVal, rowAnimVal, rowAnimVal);
+                        context.getMatrices().translate(-(posX + totalRowWidth / 2.0F), -(curY + rowHeight / 2.0F), 0.0F);
                         float cdMid = textMidY(curY + 2.75F, 7.0F);
-                        this.drawCooldownIcon(context, itemxx.item.method_7854(), posX + padX + 1.0F, cdMid - 5.0F, 10.0F, itemAlpha);
+                        this.drawCooldownIcon(context, itemxx.item.getDefaultStack(), posX + padX + 1.0F, cdMid - 5.0F, 10.0F, itemAlpha);
                         float dotX = posX + padX + 13.0F;
                         float dotY = cdMid - 1.5F;
                         DrawUtil.drawRound(dotX, dotY, 3.0F, 3.0F, 1.5F, ColorProvider.rgba(120, 120, 120, (float)itemAlpha));
@@ -2908,7 +2908,7 @@ public class Interface extends Module {
                            float progress = 1.0F;
                            if (itemxx.maxDurationMs > 0L) {
                               long rem = itemxx.endTimeMs - System.currentTimeMillis();
-                              progress = MathHelper.method_15363((float)rem / (float)itemxx.maxDurationMs, 0.0F, 1.0F);
+                              progress = MathHelper.clamp((float)rem / (float)itemxx.maxDurationMs, 0.0F, 1.0F);
                            }
 
                            DrawUtil.drawRingArc(ringCX, cdMid, ringRadius, 1.4F, -90.0F, 270.0F, ColorProvider.rgba(80, 80, 80, (float)itemAlpha));
@@ -2925,7 +2925,7 @@ public class Interface extends Module {
                            }
                         }
 
-                        String timerKey = "cooldowns_duration_" + itemxx.item.method_7876();
+                        String timerKey = "cooldowns_duration_" + itemxx.item.getTranslationKey();
                         TimerTextAnimator.draw(
                            Fonts.SFMEDIUM.get(),
                            timerKey,
@@ -2935,7 +2935,7 @@ public class Interface extends Module {
                            ColorProvider.rgba(255, 255, 255, (float)itemAlpha),
                            6.75F
                         );
-                        context.method_51448().method_22909();
+                        context.getMatrices().pop();
                         curY += rowHeight;
                      }
                   }
@@ -2945,7 +2945,7 @@ public class Interface extends Module {
             if (showExample) {
                String nameStr = "Example";
                String timeStr = "**:**";
-               ItemStack stack = COOLDOWN_EXAMPLE_ITEMS[this.cooldownExampleIndex].method_7854();
+               ItemStack stack = COOLDOWN_EXAMPLE_ITEMS[this.cooldownExampleIndex].getDefaultStack();
                float timeW = Fonts.SFMEDIUM.get().getWidth(timeStr, 6.75F);
                float timeBoxW = timeW + 10.0F;
                float cdExMid = textMidY(curY + 3.5F, 7.0F);
@@ -3005,15 +3005,15 @@ public class Interface extends Module {
 
       for (int i = 0; i < items.size(); i++) {
          ItemStack stack = items.get(i);
-         if (stack != null && !stack.method_7960()) {
+         if (stack != null && !stack.isEmpty()) {
             float cx = startX + (float)i * cell + inset;
             float cy = startY + inset;
-            context.method_51448().method_22903();
-            context.method_51448().method_46416(cx, cy, 0.0F);
-            context.method_51448().method_22905(itemScale, itemScale, 1.0F);
-            context.method_51427(stack, 0, 0);
-            context.method_51431(textRenderer, stack, 0, 0);
-            context.method_51448().method_22909();
+            context.getMatrices().push();
+            context.getMatrices().translate(cx, cy, 0.0F);
+            context.getMatrices().scale(itemScale, itemScale, 1.0F);
+            context.drawItem(stack, 0, 0);
+            context.drawStackOverlay(textRenderer, stack, 0, 0);
+            context.getMatrices().pop();
          }
       }
    }
@@ -3062,8 +3062,8 @@ public class Interface extends Module {
    }
 
    private void renderNotificationsExample(DrawContext context) {
-      if (this.mc.field_1724 != null) {
-         boolean chatOpen = this.mc.field_1755 instanceof ChatScreen;
+      if (this.mc.player != null) {
+         boolean chatOpen = this.mc.currentScreen instanceof ChatScreen;
          if (!chatOpen) {
             this.notificationsPopup.open = false;
             this.notificationsPopup.draggingSlider = null;
@@ -3097,8 +3097,8 @@ public class Interface extends Module {
    }
 
    private void renderServerHelper(DrawContext context) {
-      if (this.mc.field_1724 != null) {
-         boolean chatOpen = this.mc.field_1755 instanceof ChatScreen;
+      if (this.mc.player != null) {
+         boolean chatOpen = this.mc.currentScreen instanceof ChatScreen;
          if (!chatOpen) {
             this.serverHelperPopup.open = false;
             this.serverHelperPopup.draggingSlider = null;
@@ -3112,10 +3112,10 @@ public class Interface extends Module {
    }
 
    private void renderServerHelperNew(DrawContext context) {
-      if (this.mc.field_1724 != null) {
+      if (this.mc.player != null) {
          ServerHelper serverHelper = AlphaDLC.getInstance().getModuleStorage().get(ServerHelper.class);
          if (serverHelper != null) {
-            boolean chatOpen = this.mc.field_1755 instanceof ChatScreen;
+            boolean chatOpen = this.mc.currentScreen instanceof ChatScreen;
             boolean showExample = chatOpen && !serverHelper.isEnabled();
             float posX = this.serverHelperDrag.getX();
             float posY = this.serverHelperDrag.getY();
@@ -3124,50 +3124,50 @@ public class Interface extends Module {
             float padding = 2.0F;
             List<Interface.ServerHelperItem> items = new ArrayList<>();
             if (showExample) {
-               items.add(new Interface.ServerHelperItem(Items.field_8450, "G", "\u0410\u043d\u0442\u0438\u041f\u043e\u043b\u0435\u0442"));
-               items.add(new Interface.ServerHelperItem(Items.field_8436, "H", "\u0413\u0440\u0438\u043d\u0447"));
-               items.add(new Interface.ServerHelperItem(Items.field_8575, "J", "Shift"));
-               items.add(new Interface.ServerHelperItem(Items.field_8207, "K", "\u0422\u0440\u0430\u043f\u043a\u0430"));
+               items.add(new Interface.ServerHelperItem(Items.FIREWORK_STAR, "G", "\u0410\u043d\u0442\u0438\u041f\u043e\u043b\u0435\u0442"));
+               items.add(new Interface.ServerHelperItem(Items.SPLASH_POTION, "H", "\u0413\u0440\u0438\u043d\u0447"));
+               items.add(new Interface.ServerHelperItem(Items.PLAYER_HEAD, "J", "Shift"));
+               items.add(new Interface.ServerHelperItem(Items.HEART_OF_THE_SEA, "K", "\u0422\u0440\u0430\u043f\u043a\u0430"));
             } else if (serverHelper.isEnabled()) {
                int antiFlyKey = serverHelper.getAntiFlyKey();
-               if (antiFlyKey != -1 && this.hasItemInInventory(Items.field_8450)) {
+               if (antiFlyKey != -1 && this.hasItemInInventory(Items.FIREWORK_STAR)) {
                   items.add(
                      new Interface.ServerHelperItem(
-                        Items.field_8450, this.getKeyNameEnglish(antiFlyKey), "\u0410\u043d\u0442\u0438\u041f\u043e\u043b\u0435\u0442"
+                        Items.FIREWORK_STAR, this.getKeyNameEnglish(antiFlyKey), "\u0410\u043d\u0442\u0438\u041f\u043e\u043b\u0435\u0442"
                      )
                   );
                }
 
                int grinchKey = serverHelper.getGrinchPotionKey();
-               if (grinchKey != -1 && this.hasItemInInventory(Items.field_8436)) {
-                  items.add(new Interface.ServerHelperItem(Items.field_8436, this.getKeyNameEnglish(grinchKey), "\u0413\u0440\u0438\u043d\u0447"));
+               if (grinchKey != -1 && this.hasItemInInventory(Items.SPLASH_POTION)) {
+                  items.add(new Interface.ServerHelperItem(Items.SPLASH_POTION, this.getKeyNameEnglish(grinchKey), "\u0413\u0440\u0438\u043d\u0447"));
                }
 
                int autoShiftKey = serverHelper.getAutoShiftKey();
-               if (autoShiftKey != -1 && this.hasItemInInventory(Items.field_8575)) {
-                  items.add(new Interface.ServerHelperItem(Items.field_8575, this.getKeyNameEnglish(autoShiftKey), "Shift"));
+               if (autoShiftKey != -1 && this.hasItemInInventory(Items.PLAYER_HEAD)) {
+                  items.add(new Interface.ServerHelperItem(Items.PLAYER_HEAD, this.getKeyNameEnglish(autoShiftKey), "Shift"));
                }
 
                int horrorKey = serverHelper.getNewYearHorrorKey();
-               if (horrorKey != -1 && this.hasItemInInventory(Items.field_8436)) {
-                  items.add(new Interface.ServerHelperItem(Items.field_8436, this.getKeyNameEnglish(horrorKey), "\u0423\u0436\u0430\u0441"));
+               if (horrorKey != -1 && this.hasItemInInventory(Items.SPLASH_POTION)) {
+                  items.add(new Interface.ServerHelperItem(Items.SPLASH_POTION, this.getKeyNameEnglish(horrorKey), "\u0423\u0436\u0430\u0441"));
                }
 
                int essenceKey = serverHelper.getDarkEssenceKey();
-               if (essenceKey != -1 && this.hasItemInInventory(Items.field_8436)) {
+               if (essenceKey != -1 && this.hasItemInInventory(Items.SPLASH_POTION)) {
                   items.add(
-                     new Interface.ServerHelperItem(Items.field_8436, this.getKeyNameEnglish(essenceKey), "\u042d\u0441\u0441\u0435\u043d\u0446\u0438\u044f")
+                     new Interface.ServerHelperItem(Items.SPLASH_POTION, this.getKeyNameEnglish(essenceKey), "\u042d\u0441\u0441\u0435\u043d\u0446\u0438\u044f")
                   );
                }
 
                int snowballKey = serverHelper.getSnowballKey();
-               if (snowballKey != -1 && this.hasItemInInventory(Items.field_8436)) {
-                  items.add(new Interface.ServerHelperItem(Items.field_8436, this.getKeyNameEnglish(snowballKey), "\u0421\u043d\u0435\u0436\u043e\u043a"));
+               if (snowballKey != -1 && this.hasItemInInventory(Items.SPLASH_POTION)) {
+                  items.add(new Interface.ServerHelperItem(Items.SPLASH_POTION, this.getKeyNameEnglish(snowballKey), "\u0421\u043d\u0435\u0436\u043e\u043a"));
                }
 
                int trapKey = serverHelper.getTrapKey();
-               if (trapKey != -1 && this.hasItemInInventory(Items.field_8207)) {
-                  items.add(new Interface.ServerHelperItem(Items.field_8207, this.getKeyNameEnglish(trapKey), "\u0422\u0440\u0430\u043f\u043a\u0430"));
+               if (trapKey != -1 && this.hasItemInInventory(Items.HEART_OF_THE_SEA)) {
+                  items.add(new Interface.ServerHelperItem(Items.HEART_OF_THE_SEA, this.getKeyNameEnglish(trapKey), "\u0422\u0440\u0430\u043f\u043a\u0430"));
                }
             }
 
@@ -3204,7 +3204,7 @@ public class Interface extends Module {
 
                   if (this.serverHelperPopup.shine.getValue()) {
                      HudShine.render(
-                        context.method_51448(),
+                        context.getMatrices(),
                         curX,
                         posY,
                         boxSize,
@@ -3217,17 +3217,17 @@ public class Interface extends Module {
                      );
                   }
 
-                  ItemStack stack = item.item.method_7854();
+                  ItemStack stack = item.item.getDefaultStack();
                   float iconSize = 18.0F;
                   float iconX = curX + (boxSize - iconSize) / 2.0F;
                   float iconY = posY + padding + 2.0F;
-                  context.method_51448().method_22903();
-                  context.method_51448().method_46416(iconX, iconY, 0.0F);
+                  context.getMatrices().push();
+                  context.getMatrices().translate(iconX, iconY, 0.0F);
                   float iconScale = iconSize / 16.0F;
-                  context.method_51448().method_22905(iconScale, iconScale, 1.0F);
+                  context.getMatrices().scale(iconScale, iconScale, 1.0F);
                   RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-                  context.method_51427(stack, 0, 0);
-                  context.method_51448().method_22909();
+                  context.drawItem(stack, 0, 0);
+                  context.getMatrices().pop();
                   float keyW = Fonts.SFMEDIUM.get().getWidth(item.keyBind, 8.5F);
                   float keyX = curX + (boxSize - keyW) / 2.0F;
                   float keyY = posY + boxSize - padding - 10.0F;
@@ -3342,23 +3342,23 @@ public class Interface extends Module {
    }
 
    private boolean hasItemInInventory(Item item) {
-      if (this.mc.field_1724 == null) {
+      if (this.mc.player == null) {
          return false;
       } else {
-         for (ItemStack stack : this.mc.field_1724.method_31548().field_7547) {
-            if (!stack.method_7960() && stack.method_7909() == item) {
+         for (ItemStack stack : this.mc.player.getInventory().main) {
+            if (!stack.isEmpty() && stack.getItem() == item) {
                return true;
             }
          }
 
-         for (ItemStack stackx : this.mc.field_1724.method_31548().field_7548) {
-            if (!stackx.method_7960() && stackx.method_7909() == item) {
+         for (ItemStack stackx : this.mc.player.getInventory().armor) {
+            if (!stackx.isEmpty() && stackx.getItem() == item) {
                return true;
             }
          }
 
-         ItemStack offhand = this.mc.field_1724.method_6079();
-         return !offhand.method_7960() && offhand.method_7909() == item;
+         ItemStack offhand = this.mc.player.getOffHandStack();
+         return !offhand.isEmpty() && offhand.getItem() == item;
       }
    }
 

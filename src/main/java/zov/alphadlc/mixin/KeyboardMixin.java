@@ -16,7 +16,7 @@ public class KeyboardMixin {
       at = {@At("HEAD")}
    )
    private void onKey(long window, int key, int scancode, int action, int modifiers, CallbackInfo ci) {
-      if (MinecraftClient.method_1551().field_1755 == null && key != -1 && action != 2) {
+      if (MinecraftClient.getInstance().currentScreen == null && key != -1 && action != 2) {
          AlphaDLC.getInstance().getEventBus().post(new EventKeyInput(key, action));
       }
    }

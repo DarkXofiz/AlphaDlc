@@ -42,14 +42,14 @@ public class TargetPearl extends Module {
 
    @Subscribe
    private void onUpdate(EventPlayerUpdate ignored) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null && this.mc.field_1761 != null) {
-         if (!this.mc.field_1724.method_6128()) {
+      if (this.mc.player != null && this.mc.world != null && this.mc.interactionManager != null) {
+         if (!this.mc.player.isGliding()) {
             if (System.currentTimeMillis() - this.lastThrow >= (long)this.throwDelay.getValue()) {
-               if (!this.mc.field_1724.method_7357().method_7904(new ItemStack(Items.field_8634))) {
-                  if (InventoryUtil.searchItemHotbar(Items.field_8634) != -1) {
+               if (!this.mc.player.getItemCooldownManager().isCoolingDown(new ItemStack(Items.ENDER_PEARL))) {
+                  if (InventoryUtil.searchItemHotbar(Items.ENDER_PEARL) != -1) {
                      LivingEntity target = this.resolveTarget();
                      if (target != null) {
-                        Vec3d landing = target.method_19538();
+                        Vec3d landing = target.getPos();
                         float[] rot = this.findRotation(landing);
                         if (rot != null) {
                            this.throwPearl(rot[0], rot[1]);
@@ -74,9 +74,9 @@ public class TargetPearl extends Module {
          double min = this.minDistance.getValue();
          double max = this.maxRange.getValue();
 
-         for (PlayerEntity player : this.mc.field_1687.method_18456()) {
+         for (PlayerEntity player : this.mc.world.getPlayers()) {
             if (this.isValid(player)) {
-               double distance = (double)this.mc.field_1724.method_5739(player);
+               double distance = (double)this.mc.player.distanceTo(player);
                if (!(distance < min) && !(distance > max) && distance < bestDist) {
                   bestDist = distance;
                   best = player;
@@ -89,8 +89,8 @@ public class TargetPearl extends Module {
    }
 
    private boolean isValid(LivingEntity entity) {
-      if (entity != null && entity != this.mc.field_1724 && entity.method_5805()) {
-         if (entity instanceof PlayerEntity player && FriendRepository.isFriend(player.method_5820())) {
+      if (entity != null && entity != this.mc.player && entity.isAlive()) {
+         if (entity instanceof PlayerEntity player && FriendRepository.isFriend(player.getNameForScoreboard())) {
             return false;
          }
 
@@ -101,9 +101,9 @@ public class TargetPearl extends Module {
    }
 
    private float[] findRotation(Vec3d target) {
-      Vec3d eye = this.mc.field_1724.method_33571();
-      double dx = target.field_1352 - eye.field_1352;
-      double dz = target.field_1350 - eye.field_1350;
+      Vec3d eye = this.mc.player.getEyePos();
+      double dx = target.x - eye.x;
+      double dz = target.z - eye.z;
       float yaw = (float)Math.toDegrees(Math.atan2(dz, dx)) - 90.0F;
       float bestPitch = 0.0F;
       double bestError = Double.MAX_VALUE;
@@ -111,7 +111,7 @@ public class TargetPearl extends Module {
       for (float pitch = 80.0F; pitch >= -30.0F; pitch -= 0.5F) {
          Vec3d landing = this.simulate(yaw, pitch);
          if (landing != null) {
-            double error = landing.method_1025(target);
+            double error = landing.squaredDistanceTo(target);
             if (error < bestError) {
                bestError = error;
                bestPitch = pitch;
@@ -122,20 +122,20 @@ public class TargetPearl extends Module {
       if (bestError == Double.MAX_VALUE) {
          return null;
       } else {
-         return bestError > 36.0 ? null : new float[]{yaw, MathHelper.method_15363(bestPitch, -90.0F, 90.0F)};
+         return bestError > 36.0 ? null : new float[]{yaw, MathHelper.clamp(bestPitch, -90.0F, 90.0F)};
       }
    }
 
    private Vec3d simulate(float yaw, float pitch) {
       double yr = Math.toRadians((double)yaw);
       double pr = Math.toRadians((double)pitch);
-      double x = this.mc.field_1724.method_23317() - Math.cos(yr) * 0.16;
-      double y = this.mc.field_1724.method_23318() + (double)this.mc.field_1724.method_18381(this.mc.field_1724.method_18376()) - 0.1;
-      double z = this.mc.field_1724.method_23321() - Math.sin(yr) * 0.16;
+      double x = this.mc.player.getX() - Math.cos(yr) * 0.16;
+      double y = this.mc.player.getY() + (double)this.mc.player.getEyeHeight(this.mc.player.getPose()) - 0.1;
+      double z = this.mc.player.getZ() - Math.sin(yr) * 0.16;
       double vx = -Math.sin(yr) * Math.cos(pr) * 1.5;
-      double vy = -Math.sin(pr) * 1.5 + this.mc.field_1724.method_18798().field_1351;
+      double vy = -Math.sin(pr) * 1.5 + this.mc.player.getVelocity().y;
       double vz = Math.cos(yr) * Math.cos(pr) * 1.5;
-      double bottom = (double)this.mc.field_1687.method_31607();
+      double bottom = (double)this.mc.world.getBottomY();
 
       for (int i = 0; i < 160; i++) {
          x += vx;
@@ -148,8 +148,8 @@ public class TargetPearl extends Module {
             return this.snap(x, y, z);
          }
 
-         BlockPos bp = BlockPos.method_49637(x, y, z);
-         if (!this.mc.field_1687.method_8320(bp).method_26220(this.mc.field_1687, bp).method_1110()) {
+         BlockPos bp = BlockPos.ofFloored(x, y, z);
+         if (!this.mc.world.getBlockState(bp).getCollisionShape(this.mc.world, bp).isEmpty()) {
             return this.snap(x, y, z);
          }
       }
@@ -158,32 +158,32 @@ public class TargetPearl extends Module {
    }
 
    private Vec3d snap(double x, double y, double z) {
-      return new Vec3d((double)MathHelper.method_15357(x) + 0.5, (double)MathHelper.method_15357(y), (double)MathHelper.method_15357(z) + 0.5);
+      return new Vec3d((double)MathHelper.floor(x) + 0.5, (double)MathHelper.floor(y), (double)MathHelper.floor(z) + 0.5);
    }
 
    private void throwPearl(float yaw, float pitch) {
-      int slot = InventoryUtil.searchItemHotbar(Items.field_8634);
+      int slot = InventoryUtil.searchItemHotbar(Items.ENDER_PEARL);
       if (slot != -1) {
-         int previous = this.mc.field_1724.method_31548().field_7545;
-         float prevYaw = this.mc.field_1724.method_36454();
-         float prevPitch = this.mc.field_1724.method_36455();
+         int previous = this.mc.player.getInventory().selectedSlot;
+         float prevYaw = this.mc.player.getYaw();
+         float prevPitch = this.mc.player.getPitch();
          if (slot != previous) {
-            this.mc.field_1724.method_31548().field_7545 = slot;
-            this.mc.field_1761.method_2911();
+            this.mc.player.getInventory().selectedSlot = slot;
+            this.mc.interactionManager.syncSelectedSlot();
          }
 
-         this.mc.field_1724.method_36456(yaw);
-         this.mc.field_1724.method_36457(pitch);
-         this.mc.field_1761.method_2919(this.mc.field_1724, Hand.field_5808);
-         this.mc.field_1724.method_6104(Hand.field_5808);
+         this.mc.player.setYaw(yaw);
+         this.mc.player.setPitch(pitch);
+         this.mc.interactionManager.interactItem(this.mc.player, Hand.MAIN_HAND);
+         this.mc.player.swingHand(Hand.MAIN_HAND);
          if (slot != previous) {
-            this.mc.field_1724.method_31548().field_7545 = previous;
-            this.mc.field_1761.method_2911();
+            this.mc.player.getInventory().selectedSlot = previous;
+            this.mc.interactionManager.syncSelectedSlot();
          }
 
          if (this.restoreLook.getValue()) {
-            this.mc.field_1724.method_36456(prevYaw);
-            this.mc.field_1724.method_36457(prevPitch);
+            this.mc.player.setYaw(prevYaw);
+            this.mc.player.setPitch(prevPitch);
          }
       }
    }

@@ -25,7 +25,7 @@ public class Strafe extends Module {
 
    @Subscribe
    public void onTick(EventTick event) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
+      if (this.mc.player != null && this.mc.world != null) {
          boolean moving = MoveUtil.hasPlayerMovement();
          if (this.mode.is("\u041c\u0430\u0442\u0440\u0438\u043a\u0441")) {
             MoveUtil.setMotion(moving ? this.speed.getValue() * 1.5 : 0.0);
@@ -35,11 +35,11 @@ public class Strafe extends Module {
             }
 
             MoveUtil.setMotion(this.speed.getValue() * 1.5);
-            float forward = this.mc.field_1724.field_3913.field_3905;
-            float strafe = this.mc.field_1724.field_3913.field_3907;
-            float moveYaw = (float)Math.toDegrees(RotationComponent.direction(this.mc.field_1724.method_36454(), forward, strafe));
-            moveYaw = MathHelper.method_15393(moveYaw);
-            RotationComponent.update(new Rotation(moveYaw, this.mc.field_1724.method_36455()), 360.0F, 360.0F, 2, 0);
+            float forward = this.mc.player.input.movementForward;
+            float strafe = this.mc.player.input.movementSideways;
+            float moveYaw = (float)Math.toDegrees(RotationComponent.direction(this.mc.player.getYaw(), forward, strafe));
+            moveYaw = MathHelper.wrapDegrees(moveYaw);
+            RotationComponent.update(new Rotation(moveYaw, this.mc.player.getPitch()), 360.0F, 360.0F, 2, 0);
          }
       }
    }

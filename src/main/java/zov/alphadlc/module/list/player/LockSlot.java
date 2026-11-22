@@ -38,13 +38,13 @@ public class LockSlot extends Module {
 
    @Subscribe
    private void onPacket(EventPacket e2) {
-      if (this.mc.field_1724 != null && e2.getType() == EventPacket.Type.SEND) {
-         if (!(this.mc.field_1755 instanceof HandledScreen)) {
+      if (this.mc.player != null && e2.getType() == EventPacket.Type.SEND) {
+         if (!(this.mc.currentScreen instanceof HandledScreen)) {
             if (e2.getPacket() instanceof PlayerActionC2SPacket packet3) {
-               if (packet3.method_12363() == Action.field_12975 || packet3.method_12363() == Action.field_12970) {
+               if (packet3.getAction() == Action.DROP_ITEM || packet3.getAction() == Action.DROP_ALL_ITEMS) {
                   if (this.isCurrentSlotLockedForDrop()) {
                      e2.cancelEvent();
-                     this.sendLockedMessage(this.mc.field_1724.method_31548().field_7545);
+                     this.sendLockedMessage(this.mc.player.getInventory().selectedSlot);
                   }
                }
             } else {
@@ -52,8 +52,8 @@ public class LockSlot extends Module {
                int hotbarSlot;
                ClickSlotC2SPacket packet;
                if (var6 instanceof ClickSlotC2SPacket
-                  && (packet = (ClickSlotC2SPacket)var6).method_12195() == SlotActionType.field_7795
-                  && (hotbarSlot = this.getHotbarSlotFromClick(packet.method_12192())) >= 0
+                  && (packet = (ClickSlotC2SPacket)var6).getActionType() == SlotActionType.THROW
+                  && (hotbarSlot = this.getHotbarSlotFromClick(packet.getSlot())) >= 0
                   && this.isHotbarSlotLocked(hotbarSlot)) {
                   e2.cancelEvent();
                   this.sendLockedMessage(hotbarSlot);
@@ -64,10 +64,10 @@ public class LockSlot extends Module {
    }
 
    public boolean isCurrentSlotLockedForDrop() {
-      if (!this.isEnabled() || this.mc.field_1724 == null || this.mc.field_1724.method_6047().method_7960()) {
+      if (!this.isEnabled() || this.mc.player == null || this.mc.player.getMainHandStack().isEmpty()) {
          return false;
       } else {
-         return this.mc.field_1755 instanceof HandledScreen ? false : this.isHotbarSlotLocked(this.mc.field_1724.method_31548().field_7545);
+         return this.mc.currentScreen instanceof HandledScreen ? false : this.isHotbarSlotLocked(this.mc.player.getInventory().selectedSlot);
       }
    }
 
@@ -76,11 +76,11 @@ public class LockSlot extends Module {
    }
 
    private int getHotbarSlotFromClick(int slotId) {
-      if (this.mc.field_1724 != null && slotId >= 0 && slotId < this.mc.field_1724.field_7512.field_7761.size()) {
-         Slot slot = this.mc.field_1724.field_7512.method_7611(slotId);
+      if (this.mc.player != null && slotId >= 0 && slotId < this.mc.player.currentScreenHandler.slots.size()) {
+         Slot slot = this.mc.player.currentScreenHandler.getSlot(slotId);
          SlotAccessor accessor = (SlotAccessor)slot;
          int inventoryIndex = accessor.getIndex();
-         return accessor.getInventory() == this.mc.field_1724.method_31548() && inventoryIndex >= 0 && inventoryIndex <= 9 ? inventoryIndex : -1;
+         return accessor.getInventory() == this.mc.player.getInventory() && inventoryIndex >= 0 && inventoryIndex <= 9 ? inventoryIndex : -1;
       } else {
          return -1;
       }

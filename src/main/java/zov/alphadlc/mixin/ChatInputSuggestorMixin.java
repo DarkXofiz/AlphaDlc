@@ -25,18 +25,18 @@ import zov.alphadlc.event.list.TabCompleteEvent;
 public class ChatInputSuggestorMixin {
    @Shadow
    @Final
-   TextFieldWidget field_21599;
+   TextFieldWidget textField;
    @Shadow
    @Final
-   private List<OrderedText> field_21607;
+   private List<OrderedText> messages;
    @Shadow
-   private ParseResults<CommandSource> field_21610;
+   private ParseResults<CommandSource> parse;
    @Shadow
-   private CompletableFuture<Suggestions> field_21611;
+   private CompletableFuture<Suggestions> pendingSuggestions;
    @Shadow
-   private SuggestionWindow field_21612;
+   private SuggestionWindow window;
    @Shadow
-   boolean field_21614;
+   boolean completingSuggestions;
 
    @Inject(
       method = {"refresh"},
@@ -44,7 +44,7 @@ public class ChatInputSuggestorMixin {
       cancellable = true
    )
    private void preUpdateSuggestion(CallbackInfo ci) {
-      String prefix = this.field_21599.method_1882().substring(0, Math.min(this.field_21599.method_1882().length(), this.field_21599.method_1881()));
+      String prefix = this.textField.getText().substring(0, Math.min(this.textField.getText().length(), this.textField.getCursor()));
       TabCompleteEvent event = new TabCompleteEvent(prefix);
       event.post();
       if (event.isCancelled()) {
@@ -52,25 +52,25 @@ public class ChatInputSuggestorMixin {
       } else {
          if (event.completions != null) {
             ci.cancel();
-            this.field_21610 = null;
-            if (this.field_21614) {
+            this.parse = null;
+            if (this.completingSuggestions) {
                return;
             }
 
-            this.field_21599.method_1887(null);
-            this.field_21612 = null;
-            this.field_21607.clear();
+            this.textField.setSuggestion(null);
+            this.window = null;
+            this.messages.clear();
             if (event.completions.length == 0) {
-               this.field_21611 = Suggestions.empty();
+               this.pendingSuggestions = Suggestions.empty();
             } else {
                StringRange range = StringRange.between(prefix.lastIndexOf(" ") + 1, prefix.length());
                List<Suggestion> suggestionList = Stream.of(event.completions).map(s -> new Suggestion(range, s)).collect(Collectors.toList());
                Suggestions suggestions = new Suggestions(range, suggestionList);
-               this.field_21611 = new CompletableFuture<>();
-               this.field_21611.complete(suggestions);
+               this.pendingSuggestions = new CompletableFuture<>();
+               this.pendingSuggestions.complete(suggestions);
             }
 
-            ((ChatInputSuggestor)this).method_23920(true);
+            ((ChatInputSuggestor)this).show(true);
          }
       }
    }

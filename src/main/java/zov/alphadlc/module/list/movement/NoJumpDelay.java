@@ -14,8 +14,8 @@ import zov.alphadlc.module.ModuleInformation;
 public class NoJumpDelay extends Module {
    @Subscribe
    private void onUpdate(EventTick e) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
-         this.mc.field_1724.field_6228 = 0;
+      if (this.mc.player != null && this.mc.world != null) {
+         this.mc.player.jumpingCooldown = 0;
       }
    }
 }

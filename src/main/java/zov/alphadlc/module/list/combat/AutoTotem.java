@@ -53,7 +53,7 @@ public class AutoTotem extends Module {
 
    @Subscribe
    private void onUpdate(EventPlayerUpdate e) {
-      if (this.mc.field_1724 != null) {
+      if (this.mc.player != null) {
          if (this.cooldownTicks > 0.0F) {
             this.cooldownTicks--;
          }
@@ -64,26 +64,26 @@ public class AutoTotem extends Module {
 
    @Subscribe
    private void onPopTotem(EventPopTotem e) {
-      if (this.mc.field_1724 != null && e.getPlayer() == this.mc.field_1724) {
+      if (this.mc.player != null && e.getPlayer() == this.mc.player) {
          this.cooldownTicks = 5.0F;
       }
    }
 
    private boolean condition() {
-      if (!this.mc.field_1724.method_7337() && !this.mc.field_1724.method_7325()) {
+      if (!this.mc.player.isCreative() && !this.mc.player.isSpectator()) {
          boolean crystalsCheck = false;
 
-         for (Entity entity : this.mc.field_1687.method_18112()) {
+         for (Entity entity : this.mc.world.getEntities()) {
             if (entity instanceof EndCrystalEntity
-               && this.mc.field_1724.method_23318() >= entity.method_23318()
-               && this.mc.field_1724.method_33571().method_1022(entity.method_5829().method_1005()) <= 8.0) {
+               && this.mc.player.getY() >= entity.getY()
+               && this.mc.player.getEyePos().distanceTo(entity.getBoundingBox().getCenter()) <= 8.0) {
                crystalsCheck = true;
             }
          }
 
-         return (double)(this.mc.field_1724.method_6032() + this.mc.field_1724.method_6067()) <= this.health.getValue()
-            || (double)(this.mc.field_1724.method_6032() + this.mc.field_1724.method_6067()) <= this.healthOnElytra.getValue()
-               && this.mc.field_1724.method_6118(EquipmentSlot.field_6174).method_7909() == Items.field_8833
+         return (double)(this.mc.player.getHealth() + this.mc.player.getAbsorptionAmount()) <= this.health.getValue()
+            || (double)(this.mc.player.getHealth() + this.mc.player.getAbsorptionAmount()) <= this.healthOnElytra.getValue()
+               && this.mc.player.getEquippedStack(EquipmentSlot.CHEST).getItem() == Items.ELYTRA
             || this.crystalsCheck.getValue() && crystalsCheck;
       } else {
          return false;
@@ -91,17 +91,17 @@ public class AutoTotem extends Module {
    }
 
    private void updateSwap() {
-      ItemStack offHand = this.mc.field_1724.method_6079();
-      int totemSlot = InventoryUtil.searchItem(Items.field_8288);
-      if (this.condition() && this.totemStopWatch.isReached(300L) && totemSlot != -1 && offHand.method_7909() != Items.field_8288) {
-         if (this.swapBackItem == -1 && !offHand.method_7960()) {
+      ItemStack offHand = this.mc.player.getOffHandStack();
+      int totemSlot = InventoryUtil.searchItem(Items.TOTEM_OF_UNDYING);
+      if (this.condition() && this.totemStopWatch.isReached(300L) && totemSlot != -1 && offHand.getItem() != Items.TOTEM_OF_UNDYING) {
+         if (this.swapBackItem == -1 && !offHand.isEmpty()) {
             this.swapBackItem = totemSlot;
          }
 
          if (totemSlot >= 0 && totemSlot <= 8) {
-            this.swapTotem(() -> this.mc.field_1761.method_2906(0, 45, totemSlot, SlotActionType.field_7791, this.mc.field_1724));
+            this.swapTotem(() -> this.mc.interactionManager.clickSlot(0, 45, totemSlot, SlotActionType.SWAP, this.mc.player));
          } else if (totemSlot >= 8 && totemSlot <= 45) {
-            this.swapTotem(() -> this.mc.field_1761.method_2906(0, totemSlot, 40, SlotActionType.field_7791, this.mc.field_1724));
+            this.swapTotem(() -> this.mc.interactionManager.clickSlot(0, totemSlot, 40, SlotActionType.SWAP, this.mc.player));
          }
 
          this.totemStopWatch.reset();
@@ -110,9 +110,9 @@ public class AutoTotem extends Module {
       if (!this.condition() && this.swapBackItem != -1 && this.cooldownTicks == 0.0F) {
          int swapBackSlot = this.swapBackItem;
          if (swapBackSlot >= 0 && swapBackSlot <= 8) {
-            this.swapTotem(() -> this.mc.field_1761.method_2906(0, 45, swapBackSlot, SlotActionType.field_7791, this.mc.field_1724));
+            this.swapTotem(() -> this.mc.interactionManager.clickSlot(0, 45, swapBackSlot, SlotActionType.SWAP, this.mc.player));
          } else if (swapBackSlot >= 8 && swapBackSlot <= 45) {
-            this.swapTotem(() -> this.mc.field_1761.method_2906(0, swapBackSlot, 40, SlotActionType.field_7791, this.mc.field_1724));
+            this.swapTotem(() -> this.mc.interactionManager.clickSlot(0, swapBackSlot, 40, SlotActionType.SWAP, this.mc.player));
          }
 
          this.swapBackItem = -1;

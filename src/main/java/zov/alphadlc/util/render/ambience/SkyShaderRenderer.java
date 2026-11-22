@@ -14,7 +14,7 @@ import zov.alphadlc.module.list.render.Ambience;
 import zov.alphadlc.util.render.providers.ResourceProvider;
 
 public final class SkyShaderRenderer {
-   private static final MinecraftClient MC = MinecraftClient.method_1551();
+   private static final MinecraftClient MC = MinecraftClient.getInstance();
    private static final ShaderProgramKey SKY = key("sky");
    private static final ShaderProgramKey AURORA = key("sky_aurora");
    private static final ShaderProgramKey NEBULA = key("sky_nebula");
@@ -26,7 +26,7 @@ public final class SkyShaderRenderer {
    }
 
    private static ShaderProgramKey key(String name) {
-      return new ShaderProgramKey(ResourceProvider.getShaderIdentifier(name), VertexFormats.field_1576, Defines.field_53930);
+      return new ShaderProgramKey(ResourceProvider.getShaderIdentifier(name), VertexFormats.POSITION_COLOR, Defines.EMPTY);
    }
 
    public static void updateConfig(Ambience module) {
@@ -133,40 +133,40 @@ public final class SkyShaderRenderer {
 
    private static void drawSkyCube() {
       float s = 100.0F;
-      BufferBuilder b = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1576);
+      BufferBuilder b = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_COLOR);
       face(b, -s, -s, s, s, -s, s, s, s, s, -s, s, s);
       face(b, s, -s, -s, -s, -s, -s, -s, s, -s, s, s, -s);
       face(b, -s, -s, -s, -s, -s, s, -s, s, s, -s, s, -s);
       face(b, s, -s, s, s, -s, -s, s, s, -s, s, s, s);
       face(b, -s, s, s, s, s, s, s, s, -s, -s, s, -s);
       face(b, -s, -s, -s, s, -s, -s, s, -s, s, -s, -s, s);
-      BufferRenderer.method_43433(b.method_60800());
+      BufferRenderer.drawWithGlobalProgram(b.end());
    }
 
    private static void face(
       BufferBuilder b, float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4
    ) {
-      b.method_22912(x1, y1, z1).method_39415(-1);
-      b.method_22912(x2, y2, z2).method_39415(-1);
-      b.method_22912(x3, y3, z3).method_39415(-1);
-      b.method_22912(x4, y4, z4).method_39415(-1);
+      b.vertex(x1, y1, z1).color(-1);
+      b.vertex(x2, y2, z2).color(-1);
+      b.vertex(x3, y3, z3).color(-1);
+      b.vertex(x4, y4, z4).color(-1);
    }
 
    private static void set(ShaderProgram shader, String name, float value) {
-      if (shader.method_34582(name) != null) {
-         shader.method_34582(name).method_1251(value);
+      if (shader.getUniform(name) != null) {
+         shader.getUniform(name).set(value);
       }
    }
 
    private static void set(ShaderProgram shader, String name, int value) {
-      if (shader.method_34582(name) != null) {
-         shader.method_34582(name).method_35649(value);
+      if (shader.getUniform(name) != null) {
+         shader.getUniform(name).set(value);
       }
    }
 
    private static void set(ShaderProgram shader, String name, float x, float y, float z) {
-      if (shader.method_34582(name) != null) {
-         shader.method_34582(name).method_1249(x, y, z);
+      if (shader.getUniform(name) != null) {
+         shader.getUniform(name).set(x, y, z);
       }
    }
 

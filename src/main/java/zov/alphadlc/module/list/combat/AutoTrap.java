@@ -45,8 +45,8 @@ public class AutoTrap extends Module {
 
    @Subscribe
    private void onUpdate(EventPlayerUpdate ignored) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
-         if (!this.pauseInGui.getValue() || this.mc.field_1755 == null) {
+      if (this.mc.player != null && this.mc.world != null) {
+         if (!this.pauseInGui.getValue() || this.mc.currentScreen == null) {
             if (this.timer.isReached((long)(this.delay.getValue() * 50.0))) {
                PlayerEntity target = this.findTarget();
                if (target != null) {
@@ -54,7 +54,7 @@ public class AutoTrap extends Module {
                   if (placePos != null) {
                      BlockHitResult hit = this.buildHit(placePos);
                      if (hit != null) {
-                        Vec2f rot = RotationUtil.calculate(this.mc.field_1724.method_33571(), hit.method_17784());
+                        Vec2f rot = RotationUtil.calculate(this.mc.player.getEyePos(), hit.getPos());
                         RotationComponent.update(new Rotation(rot), 65.0F, 65.0F, 180.0F, 2, 6);
                      }
                   }
@@ -66,25 +66,25 @@ public class AutoTrap extends Module {
 
    @Subscribe
    private void onSyncEnd(EventPlayerSyncEnd ignored) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
-         if (!this.pauseInGui.getValue() || this.mc.field_1755 == null) {
+      if (this.mc.player != null && this.mc.world != null) {
+         if (!this.pauseInGui.getValue() || this.mc.currentScreen == null) {
             if (this.timer.isReached((long)(this.delay.getValue() * 50.0))) {
                PlayerEntity target = this.findTarget();
                if (target != null) {
-                  int slot = InventoryUtil.searchItemHotbar(Items.field_8786);
+                  int slot = InventoryUtil.searchItemHotbar(Items.COBWEB);
                   if (slot != -1) {
                      BlockPos trapPos = this.getTrapPosition(target);
                      if (trapPos != null) {
-                        BlockPos headPos = trapPos.method_10084();
+                        BlockPos headPos = trapPos.up();
                         boolean placedAny = false;
-                        if (this.mc.field_1687.method_8320(trapPos).method_26215()) {
+                        if (this.mc.world.getBlockState(trapPos).isAir()) {
                            BlockHitResult hit = this.buildHit(trapPos);
                            if (hit != null && this.placeWeb(hit, slot)) {
                               placedAny = true;
                            }
                         }
 
-                        if (this.mc.field_1687.method_8320(headPos).method_26215()) {
+                        if (this.mc.world.getBlockState(headPos).isAir()) {
                            BlockHitResult hit = this.buildHit(headPos);
                            if (hit != null && this.placeWeb(hit, slot)) {
                               placedAny = true;
@@ -103,16 +103,16 @@ public class AutoTrap extends Module {
    }
 
    private boolean placeWeb(BlockHitResult hit, int slot) {
-      int previous = this.mc.field_1724.method_31548().field_7545;
-      this.mc.field_1724.method_31548().field_7545 = slot;
-      this.mc.field_1761.method_2911();
-      ActionResult result = this.mc.field_1761.method_2896(this.mc.field_1724, Hand.field_5808, hit);
+      int previous = this.mc.player.getInventory().selectedSlot;
+      this.mc.player.getInventory().selectedSlot = slot;
+      this.mc.interactionManager.syncSelectedSlot();
+      ActionResult result = this.mc.interactionManager.interactBlock(this.mc.player, Hand.MAIN_HAND, hit);
       if (result instanceof Success) {
-         this.mc.field_1724.method_6104(Hand.field_5808);
+         this.mc.player.swingHand(Hand.MAIN_HAND);
       }
 
-      this.mc.field_1724.method_31548().field_7545 = previous;
-      this.mc.field_1761.method_2911();
+      this.mc.player.getInventory().selectedSlot = previous;
+      this.mc.interactionManager.syncSelectedSlot();
       return result instanceof Success;
    }
 
@@ -120,9 +120,9 @@ public class AutoTrap extends Module {
       PlayerEntity best = null;
       double bestDistance = Double.MAX_VALUE;
 
-      for (PlayerEntity player : this.mc.field_1687.method_18456()) {
-         if (player != this.mc.field_1724 && player.method_5805() && !FriendRepository.isFriend(player.method_5820())) {
-            double distance = (double)this.mc.field_1724.method_5739(player);
+      for (PlayerEntity player : this.mc.world.getPlayers()) {
+         if (player != this.mc.player && player.isAlive() && !FriendRepository.isFriend(player.getNameForScoreboard())) {
+            double distance = (double)this.mc.player.distanceTo(player);
             if (!(distance > this.range.getValue()) && distance < bestDistance) {
                bestDistance = distance;
                best = player;
@@ -135,33 +135,33 @@ public class AutoTrap extends Module {
 
    private BlockPos getTrapPosition(PlayerEntity target) {
       if (!this.predict.getValue()) {
-         return target.method_24515();
+         return target.getBlockPos();
       } else {
          Vec3d velocity = new Vec3d(
-            target.method_23317() - target.field_6014, target.method_23318() - target.field_6036, target.method_23321() - target.field_5969
+            target.getX() - target.prevX, target.getY() - target.prevY, target.getZ() - target.prevZ
          );
-         if (velocity.method_1027() < 0.001) {
-            return target.method_24515();
+         if (velocity.lengthSquared() < 0.001) {
+            return target.getBlockPos();
          } else {
-            Vec3d predictedPos = target.method_19538().method_1019(velocity.method_1021(this.predictTicks.getValue()));
-            return BlockPos.method_49638(predictedPos);
+            Vec3d predictedPos = target.getPos().add(velocity.multiply(this.predictTicks.getValue()));
+            return BlockPos.ofFloored(predictedPos);
          }
       }
    }
 
    private BlockHitResult buildHit(BlockPos placePos) {
-      if (!this.mc.field_1687.method_8320(placePos).method_26215()) {
+      if (!this.mc.world.getBlockState(placePos).isAir()) {
          return null;
       } else {
          for (Direction dir : Direction.values()) {
-            BlockPos support = placePos.method_10093(dir);
-            BlockState state = this.mc.field_1687.method_8320(support);
-            if (!state.method_26215() && !state.method_27852(Blocks.field_10343)) {
-               Direction face = dir.method_10153();
+            BlockPos support = placePos.offset(dir);
+            BlockState state = this.mc.world.getBlockState(support);
+            if (!state.isAir() && !state.isOf(Blocks.COBWEB)) {
+               Direction face = dir.getOpposite();
                Vec3d center = new Vec3d(
-                  (double)support.method_10263() + 0.5 + (double)face.method_10148() * 0.5,
-                  (double)support.method_10264() + 0.5 + (double)face.method_10164() * 0.5,
-                  (double)support.method_10260() + 0.5 + (double)face.method_10165() * 0.5
+                  (double)support.getX() + 0.5 + (double)face.getOffsetX() * 0.5,
+                  (double)support.getY() + 0.5 + (double)face.getOffsetY() * 0.5,
+                  (double)support.getZ() + 0.5 + (double)face.getOffsetZ() * 0.5
                );
                return new BlockHitResult(center, face, support, false);
             }

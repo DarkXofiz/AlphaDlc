@@ -23,7 +23,7 @@ public class Module implements IMinecraft, QuickLogger {
    private int key;
    private boolean enabled;
    private final Animation animation = new Animation(Easing.BACK_OUT, 450L);
-   public final MinecraftClient mc = MinecraftClient.method_1551();
+   public final MinecraftClient mc = MinecraftClient.getInstance();
    private final List<Setting> settings = new ArrayList<>();
    private boolean settingsCached = false;
 

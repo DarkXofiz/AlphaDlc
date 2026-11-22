@@ -30,32 +30,32 @@ public class NoRender extends Module {
 
    @Subscribe
    public void onUpdate(EventTick e) {
-      if (this.mc.field_1724 != null) {
+      if (this.mc.player != null) {
          if (this.elements.isEnabled("\u0422\u0440\u044f\u0441\u043a\u0430 \u043a\u0430\u043c\u0435\u0440\u044b")) {
-            this.mc.field_1690.method_48974().method_41748(0.0);
+            this.mc.options.getDamageTiltStrength().setValue(0.0);
          } else {
-            this.mc.field_1690.method_48974().method_41748(0.5);
+            this.mc.options.getDamageTiltStrength().setValue(0.5);
          }
 
          if (this.elements.isEnabled("\u041f\u043b\u043e\u0445\u0438\u0435 \u044d\u0444\u0444\u0435\u043a\u0442\u044b")) {
-            this.mc.field_1724.method_6016(StatusEffects.field_5919);
-            this.mc.field_1724.method_6016(StatusEffects.field_5916);
-            this.mc.field_1724.method_6016(StatusEffects.field_5901);
-            this.mc.field_1724.method_6016(StatusEffects.field_5911);
-            this.mc.field_1724.method_6016(StatusEffects.field_5909);
-            this.mc.field_1724.method_6016(StatusEffects.field_5920);
-            this.mc.field_1724.method_6016(StatusEffects.field_5899);
-            this.mc.field_1724.method_6016(StatusEffects.field_5903);
-            this.mc.field_1724.method_6016(StatusEffects.field_5902);
-            this.mc.field_1724.method_6016(StatusEffects.field_5908);
-            this.mc.field_1724.method_6016(StatusEffects.field_38092);
+            this.mc.player.removeStatusEffect(StatusEffects.BLINDNESS);
+            this.mc.player.removeStatusEffect(StatusEffects.NAUSEA);
+            this.mc.player.removeStatusEffect(StatusEffects.MINING_FATIGUE);
+            this.mc.player.removeStatusEffect(StatusEffects.WEAKNESS);
+            this.mc.player.removeStatusEffect(StatusEffects.SLOWNESS);
+            this.mc.player.removeStatusEffect(StatusEffects.WITHER);
+            this.mc.player.removeStatusEffect(StatusEffects.POISON);
+            this.mc.player.removeStatusEffect(StatusEffects.HUNGER);
+            this.mc.player.removeStatusEffect(StatusEffects.LEVITATION);
+            this.mc.player.removeStatusEffect(StatusEffects.UNLUCK);
+            this.mc.player.removeStatusEffect(StatusEffects.DARKNESS);
          }
       }
    }
 
    @Override
    public void onDisable() {
-      this.mc.field_1690.method_48974().method_41748(0.5);
+      this.mc.options.getDamageTiltStrength().setValue(0.5);
       super.onDisable();
    }
 }

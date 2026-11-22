@@ -26,38 +26,38 @@ public class AntiBot extends Module {
 
    @Subscribe
    public void onUpdate(EventTick e) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
-         for (Entity entity : this.mc.field_1687.method_18112()) {
+      if (this.mc.player != null && this.mc.world != null) {
+         for (Entity entity : this.mc.world.getEntities()) {
             if (entity instanceof PlayerEntity) {
                PlayerEntity player = (PlayerEntity)entity;
-               if (!player.equals(this.mc.field_1724)) {
+               if (!player.equals(this.mc.player)) {
                   boolean isBot = false;
                   if (this.mode.is("ReallyWorld")) {
-                     boolean hasValidArmor = player.method_31548()
-                        .field_7548
+                     boolean hasValidArmor = player.getInventory()
+                        .armor
                         .stream()
-                        .allMatch(armorItem -> armorItem.method_7909() != Items.field_8162 && armorItem.method_7923() && !armorItem.method_7986());
-                     boolean hasValidEquipment = player.method_6079().method_7909() == Items.field_8162
-                        && player.method_31548()
-                           .field_7548
+                        .allMatch(armorItem -> armorItem.getItem() != Items.AIR && armorItem.isEnchantable() && !armorItem.isDamaged());
+                     boolean hasValidEquipment = player.getOffHandStack().getItem() == Items.AIR
+                        && player.getInventory()
+                           .armor
                            .stream()
                            .anyMatch(
-                              armorItem -> armorItem.method_7909() == Items.field_8370
-                                    || armorItem.method_7909() == Items.field_8570
-                                    || armorItem.method_7909() == Items.field_8577
-                                    || armorItem.method_7909() == Items.field_8267
-                                    || armorItem.method_7909() == Items.field_8660
-                                    || armorItem.method_7909() == Items.field_8396
-                                    || armorItem.method_7909() == Items.field_8523
-                                    || armorItem.method_7909() == Items.field_8743
+                              armorItem -> armorItem.getItem() == Items.LEATHER_BOOTS
+                                    || armorItem.getItem() == Items.LEATHER_LEGGINGS
+                                    || armorItem.getItem() == Items.LEATHER_CHESTPLATE
+                                    || armorItem.getItem() == Items.LEATHER_HELMET
+                                    || armorItem.getItem() == Items.IRON_BOOTS
+                                    || armorItem.getItem() == Items.IRON_LEGGINGS
+                                    || armorItem.getItem() == Items.IRON_CHESTPLATE
+                                    || armorItem.getItem() == Items.IRON_HELMET
                            );
-                     boolean hasFullFood = player.method_7344().method_7586() == 20;
+                     boolean hasFullFood = player.getHungerManager().getFoodLevel() == 20;
                      isBot = hasValidArmor && hasValidEquipment && hasFullFood;
                   } else if (this.mode.is("Matrix")) {
-                     UUID offlineUuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + player.method_5477().getString()).getBytes(StandardCharsets.UTF_8));
-                     isBot = player.method_5805() && !bot.contains(player) && !player.method_5667().equals(offlineUuid);
+                     UUID offlineUuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + player.getName().getString()).getBytes(StandardCharsets.UTF_8));
+                     isBot = player.isAlive() && !bot.contains(player) && !player.getUuid().equals(offlineUuid);
                   } else if (this.mode.is("LonyGrief")) {
-                     String playerName = player.method_5476().getString().trim();
+                     String playerName = player.getDisplayName().getString().trim();
                      String[] nameParts = playerName.split("\\s+");
                      boolean isBotCandidate = nameParts.length == 1 && !playerName.contains("?");
                      isBot = isBotCandidate;

@@ -15,8 +15,8 @@ import zov.alphadlc.module.ModuleInformation;
 public class FastExp extends Module {
    @Subscribe
    private void onPlayerUpdate(EventPlayerUpdate e) {
-      if (this.mc.field_1724.method_6047().method_7909() == Items.field_8287 || this.mc.field_1724.method_6079().method_7909() == Items.field_8287) {
-         this.mc.field_1752 = 0;
+      if (this.mc.player.getMainHandStack().getItem() == Items.EXPERIENCE_BOTTLE || this.mc.player.getOffHandStack().getItem() == Items.EXPERIENCE_BOTTLE) {
+         this.mc.itemUseCooldown = 0;
       }
    }
 }

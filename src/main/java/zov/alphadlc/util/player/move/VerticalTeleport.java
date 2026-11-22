@@ -8,17 +8,17 @@ import zov.alphadlc.util.packet.NetworkUtils;
 
 public final class VerticalTeleport implements IMinecraft {
    public static void teleport(double offset) {
-      if (mc.field_1724 != null && mc.method_1562() != null) {
-         double x = mc.field_1724.method_23317();
-         double y = mc.field_1724.method_23318();
-         double z = mc.field_1724.method_23321();
+      if (mc.player != null && mc.getNetworkHandler() != null) {
+         double x = mc.player.getX();
+         double y = mc.player.getY();
+         double z = mc.player.getZ();
 
          for (int i = 0; i < 3; i++) {
-            NetworkUtils.sendSilentPacket(new OnGroundOnly(mc.field_1724.method_24828(), mc.field_1724.field_5976));
+            NetworkUtils.sendSilentPacket(new OnGroundOnly(mc.player.isOnGround(), mc.player.horizontalCollision));
          }
 
-         NetworkUtils.sendSilentPacket(new PositionAndOnGround(x, y + offset, z, false, mc.field_1724.field_5976));
-         mc.field_1724.method_5814(x, y + offset, z);
+         NetworkUtils.sendSilentPacket(new PositionAndOnGround(x, y + offset, z, false, mc.player.horizontalCollision));
+         mc.player.setPosition(x, y + offset, z);
       }
    }
 

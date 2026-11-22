@@ -39,12 +39,12 @@ public class ItemRendererMixin {
       NoRender removals = Instance.get(NoRender.class);
       if (removals != null
          && removals.isEnabled()
-         && (mode == ModelTransformationMode.field_4321 || mode == ModelTransformationMode.field_4322)
-         && stack.method_31574(Items.field_8378)
+         && (mode == ModelTransformationMode.FIRST_PERSON_LEFT_HAND || mode == ModelTransformationMode.FIRST_PERSON_RIGHT_HAND)
+         && stack.isOf(Items.FISHING_ROD)
          && removals.elements.isEnabled("\u0423\u0434\u043e\u0447\u043a\u0430")) {
-         renderedStack = ItemStack.field_8037;
+         renderedStack = ItemStack.EMPTY;
       }
 
-      manager.method_65598(state, renderedStack, mode, leftHanded, world, entity, seed);
+      manager.update(state, renderedStack, mode, leftHanded, world, entity, seed);
    }
 }

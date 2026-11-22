@@ -16,15 +16,15 @@ public class DeathCoords extends Module {
 
    @Subscribe
    private void onUpdate(EventTick e) {
-      if (this.mc.field_1724 != null) {
-         if (this.mc.field_1724.method_29504()) {
+      if (this.mc.player != null) {
+         if (this.mc.player.isDead()) {
             if (!this.send) {
                this.logDirect(
                   String.format(
                         "\u0412\u044b \u0443\u043c\u0435\u0440\u043b\u0438 \u043d\u0430 XYZ: %.0f %.0f %.0f",
-                        this.mc.field_1724.method_23317(),
-                        this.mc.field_1724.method_23318(),
-                        this.mc.field_1724.method_23321()
+                        this.mc.player.getX(),
+                        this.mc.player.getY(),
+                        this.mc.player.getZ()
                      )
                      .replace(",", ".")
                );

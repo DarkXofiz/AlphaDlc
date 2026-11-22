@@ -23,7 +23,7 @@ import zov.alphadlc.util.render.renderers.IRenderer;
 
 public record BuiltBlur(SizeState size, QuadRadiusState radius, QuadColorState color, float smoothness, float blurRadius) implements IRenderer {
    private static final ShaderProgramKey BLUR_SHADER_KEY = new ShaderProgramKey(
-      ResourceProvider.getShaderIdentifier("blur"), VertexFormats.field_1576, Defines.field_53930
+      ResourceProvider.getShaderIdentifier("blur"), VertexFormats.POSITION_COLOR, Defines.EMPTY
    );
    private static final Supplier<SimpleFramebuffer> TEMP_FBO_SUPPLIER = Suppliers.memoize(() -> new SimpleFramebuffer(1920, 1024, false));
    private static boolean frameSnapshotCaptured = false;
@@ -34,40 +34,40 @@ public record BuiltBlur(SizeState size, QuadRadiusState radius, QuadColorState c
 
    @Override
    public void render(Matrix4f matrix, float x, float y, float z) {
-      MinecraftClient client = MinecraftClient.method_1551();
-      Framebuffer main = client.method_1522();
+      MinecraftClient client = MinecraftClient.getInstance();
+      Framebuffer main = client.getFramebuffer();
       SimpleFramebuffer fbo = (SimpleFramebuffer)TEMP_FBO_SUPPLIER.get();
       boolean resized = false;
-      if (fbo.field_1482 != main.field_1482 || fbo.field_1481 != main.field_1481) {
-         fbo.method_1234(main.field_1482, main.field_1481);
+      if (fbo.textureWidth != main.textureWidth || fbo.textureHeight != main.textureHeight) {
+         fbo.resize(main.textureWidth, main.textureHeight);
          resized = true;
       }
 
       RenderSystem.enableBlend();
       RenderSystem.defaultBlendFunc();
       RenderSystem.disableCull();
-      boolean canReuse = client.field_1755 == null;
+      boolean canReuse = client.currentScreen == null;
       if (!canReuse || resized || !frameSnapshotCaptured) {
-         fbo.method_1235(false);
-         main.method_1237(fbo.field_1482, fbo.field_1481);
+         fbo.beginWrite(false);
+         main.draw(fbo.textureWidth, fbo.textureHeight);
          frameSnapshotCaptured = canReuse;
       }
 
-      main.method_1235(false);
-      RenderSystem.setShaderTexture(0, fbo.method_30277());
+      main.beginWrite(false);
+      RenderSystem.setShaderTexture(0, fbo.getColorAttachment());
       float width = this.size.width();
       float height = this.size.height();
       ShaderProgram shader = RenderSystem.setShader(BLUR_SHADER_KEY);
-      shader.method_34582("Size").method_1255(width, height);
-      shader.method_34582("Radius").method_35657(this.radius.radius1(), this.radius.radius2(), this.radius.radius3(), this.radius.radius4());
-      shader.method_34582("Smoothness").method_1251(this.smoothness);
-      shader.method_34582("BlurRadius").method_1251(this.blurRadius);
-      BufferBuilder builder = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1576);
-      builder.method_22918(matrix, x, y, z).method_39415(this.color.color1());
-      builder.method_22918(matrix, x, y + height, z).method_39415(this.color.color2());
-      builder.method_22918(matrix, x + width, y + height, z).method_39415(this.color.color3());
-      builder.method_22918(matrix, x + width, y, z).method_39415(this.color.color4());
-      BufferRenderer.method_43433(builder.method_60800());
+      shader.getUniform("Size").set(width, height);
+      shader.getUniform("Radius").set(this.radius.radius1(), this.radius.radius2(), this.radius.radius3(), this.radius.radius4());
+      shader.getUniform("Smoothness").set(this.smoothness);
+      shader.getUniform("BlurRadius").set(this.blurRadius);
+      BufferBuilder builder = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+      builder.vertex(matrix, x, y, z).color(this.color.color1());
+      builder.vertex(matrix, x, y + height, z).color(this.color.color2());
+      builder.vertex(matrix, x + width, y + height, z).color(this.color.color3());
+      builder.vertex(matrix, x + width, y, z).color(this.color.color4());
+      BufferRenderer.drawWithGlobalProgram(builder.end());
       RenderSystem.setShaderTexture(0, 0);
       RenderSystem.enableCull();
       RenderSystem.disableBlend();

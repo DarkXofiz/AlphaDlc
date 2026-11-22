@@ -189,7 +189,7 @@ public class KillAura extends Module {
    private boolean renderListenerRegistered = false;
    private final Last renderListener = context -> {
       if (this.isEnabled() && this.showPredictPoint.getValue()) {
-         this.renderPredictPoint(context.matrixStack(), context.camera(), context.tickCounter().method_60637(true));
+         this.renderPredictPoint(context.matrixStack(), context.camera(), context.tickCounter().getTickDelta(true));
       }
    };
 
@@ -202,9 +202,9 @@ public class KillAura extends Module {
    }
 
    private void findResolverPoint() {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
-         Vec3d eye = this.mc.field_1724.method_33571();
-         float oppositeYaw = this.mc.field_1724.method_36454() + 180.0F;
+      if (this.mc.player != null && this.mc.world != null) {
+         Vec3d eye = this.mc.player.getEyePos();
+         float oppositeYaw = this.mc.player.getYaw() + 180.0F;
          float searchPitch = -50.0F;
          int[] yawOffsets = new int[]{0, 30, -30, 45, -45, 60, -60, 90, -90};
 
@@ -215,13 +215,13 @@ public class KillAura extends Module {
             double x = -Math.sin((double)radYaw) * Math.cos((double)radPitch);
             double y = -Math.sin((double)radPitch);
             double z = Math.cos((double)radYaw) * Math.cos((double)radPitch);
-            Vec3d checkVec = new Vec3d(x, y, z).method_1029().method_1021(8.0);
-            Vec3d endPoint = eye.method_1019(checkVec);
+            Vec3d checkVec = new Vec3d(x, y, z).normalize().multiply(8.0);
+            Vec3d endPoint = eye.add(checkVec);
             if (this.mc
-                  .field_1687
-                  .method_17742(new RaycastContext(eye, endPoint, ShapeType.field_17558, FluidHandling.field_1348, this.mc.field_1724))
-                  .method_17783()
-               == Type.field_1333) {
+                  .world
+                  .raycast(new RaycastContext(eye, endPoint, ShapeType.COLLIDER, FluidHandling.NONE, this.mc.player))
+                  .getType()
+               == Type.MISS) {
                this.resolverPoint = endPoint;
                return;
             }
@@ -233,7 +233,7 @@ public class KillAura extends Module {
 
    @Subscribe
    private void onGameUpdate(EventGameUpdate e) {
-      if (this.mc.field_1724 != null && this.target != null) {
+      if (this.mc.player != null && this.target != null) {
          AlphaDLC.getInstance().getModuleStorage().setRandomness(1.0F);
          if (!AIRotationRecorder.isRecording()) {
             if (this.isResolving) {
@@ -249,13 +249,13 @@ public class KillAura extends Module {
             }
 
             if (this.rotationBehavior.is("\u0421\u043d\u0430\u043f\u044b")) {
-               boolean isReadyToAttack = this.mc.field_1724.method_7261(1.0F) >= 0.95F && this.ticksToAttack <= 1;
+               boolean isReadyToAttack = this.mc.player.getAttackCooldownProgress(1.0F) >= 0.95F && this.ticksToAttack <= 1;
                if (!isReadyToAttack) {
                   return;
                }
             }
 
-            boolean playerOnElytra = this.mc.field_1724.method_6128();
+            boolean playerOnElytra = this.mc.player.isGliding();
             if (!playerOnElytra || this.elytraTarget != null && this.elytraTarget.isEnabled()) {
                String var3 = this.rotation.getValue();
                switch (var3) {
@@ -279,17 +279,17 @@ public class KillAura extends Module {
 
    @Subscribe
    private void onMoveInput(MoveInputEvent event) {
-      if (this.mc.field_1724 != null) {
+      if (this.mc.player != null) {
          if (this.moveFix.is("\u0422\u0430\u0440\u0433\u0435\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u0430\u044f")) {
             if (this.target != null) {
-               if (this.mc.field_1724.method_6128()) {
+               if (this.mc.player.isGliding()) {
                   event.forward = 0.0F;
                   event.strafe = 0.0F;
                } else if (event.forward != 0.0F || event.strafe != 0.0F) {
-                  float yaw = MathHelper.method_15393(this.mc.field_1773.method_19418().method_19330());
-                  double dx = this.target.method_23317() - this.mc.field_1724.method_23317();
-                  double dz = this.target.method_23321() - this.mc.field_1724.method_23321();
-                  double targetAngle = MathHelper.method_15338(Math.toDegrees(Math.atan2(dz, dx)) - 90.0);
+                  float yaw = MathHelper.wrapDegrees(this.mc.gameRenderer.getCamera().getYaw());
+                  double dx = this.target.getX() - this.mc.player.getX();
+                  double dz = this.target.getZ() - this.mc.player.getZ();
+                  double targetAngle = MathHelper.wrapDegrees(Math.toDegrees(Math.atan2(dz, dx)) - 90.0);
                   float bestForward = 0.0F;
                   float bestStrafe = 0.0F;
                   float smallestDiff = Float.MAX_VALUE;
@@ -297,8 +297,8 @@ public class KillAura extends Module {
                   for (float f = -1.0F; f <= 1.0F; f++) {
                      for (float s = -1.0F; s <= 1.0F; s++) {
                         if (f != 0.0F || s != 0.0F) {
-                           double predictedAngle = MathHelper.method_15338(Math.toDegrees(RotationComponent.direction(yaw, f, s)));
-                           float diff = Math.abs(MathHelper.method_15393((float)(targetAngle - predictedAngle)));
+                           double predictedAngle = MathHelper.wrapDegrees(Math.toDegrees(RotationComponent.direction(yaw, f, s)));
+                           float diff = Math.abs(MathHelper.wrapDegrees((float)(targetAngle - predictedAngle)));
                            if (diff < smallestDiff) {
                               smallestDiff = diff;
                               bestForward = f;
@@ -318,7 +318,7 @@ public class KillAura extends Module {
 
    @Subscribe
    private void onUpdate(EventTick ignored) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
+      if (this.mc.player != null && this.mc.world != null) {
          if (this.ticksToAttack > 0) {
             this.ticksToAttack--;
          }
@@ -326,7 +326,7 @@ public class KillAura extends Module {
          this.updateTarget();
          if (this.target != null) {
             lastTarget = this.target;
-            if (!this.elytraSlowdown.getValue() || !this.mc.field_1724.method_6128()) {
+            if (!this.elytraSlowdown.getValue() || !this.mc.player.isGliding()) {
                isSlowdownActive = false;
             } else if (this.slowdownMode.is("\u041f\u0435\u0440\u0435\u0434 \u0443\u0434\u0430\u0440\u043e\u043c")) {
                isSlowdownActive = (double)this.ticksToAttack <= this.preHitTicks.getValue();
@@ -335,8 +335,8 @@ public class KillAura extends Module {
             }
 
             Vec3d predict = PredictUtils.predict(this.target, this.predictValue.getValue());
-            double distToPredict = this.mc.field_1724.method_33571().method_1022(predict);
-            if (!this.elytraSlowdown.getValue() || !this.mc.field_1724.method_6128()) {
+            double distToPredict = this.mc.player.getEyePos().distanceTo(predict);
+            if (!this.elytraSlowdown.getValue() || !this.mc.player.isGliding()) {
                isSlowdownActive = false;
             } else if (this.slowdownMode.is("\u041f\u0435\u0440\u0435\u0434 \u0443\u0434\u0430\u0440\u043e\u043c")) {
                isSlowdownActive = (double)this.ticksToAttack <= this.preHitTicks.getValue();
@@ -345,12 +345,12 @@ public class KillAura extends Module {
             }
 
             if (this.canStopSprinting()) {
-               this.mc.field_1724.method_5728(false);
+               this.mc.player.setSprinting(false);
             }
 
             if (this.canAttack()) {
-               if (useResolver.getValue() && this.mc.field_1724.method_6128()) {
-                  this.mc.field_1724.method_18800(0.0, 0.0, 0.0);
+               if (useResolver.getValue() && this.mc.player.isGliding()) {
+                  this.mc.player.setVelocity(0.0, 0.0, 0.0);
                   this.findResolverPoint();
                   if (this.resolverPoint != null) {
                      this.isResolving = true;
@@ -358,10 +358,10 @@ public class KillAura extends Module {
                   }
                }
 
-               this.mc.method_1562().method_52787(new PlayerInputC2SPacket(new PlayerInput(false, false, false, false, false, false, false)));
-               this.mc.field_1761.method_2918(this.mc.field_1724, this.target);
-               this.mc.field_1724.method_6104(Hand.field_5808);
-               this.mc.method_1562().method_52787(new PlayerInputC2SPacket(this.mc.field_1724.field_3913.field_54155));
+               this.mc.getNetworkHandler().sendPacket(new PlayerInputC2SPacket(new PlayerInput(false, false, false, false, false, false, false)));
+               this.mc.interactionManager.attackEntity(this.mc.player, this.target);
+               this.mc.player.swingHand(Hand.MAIN_HAND);
+               this.mc.getNetworkHandler().sendPacket(new PlayerInputC2SPacket(this.mc.player.input.playerInput));
                this.ticksToAttack = 10;
             }
          } else {
@@ -371,12 +371,12 @@ public class KillAura extends Module {
    }
 
    private boolean isValidEntity(Entity entity) {
-      if (!entity.method_5805()) {
+      if (!entity.isAlive()) {
          return false;
       } else {
          PlayerEntity player = (PlayerEntity)(AlphaDLC.getInstance().getModuleStorage().get(FreeCamera.class).fakePlayer != null
             ? AlphaDLC.getInstance().getModuleStorage().get(FreeCamera.class).fakePlayer
-            : this.mc.field_1724);
+            : this.mc.player);
          if (entity == AlphaDLC.getInstance().getModuleStorage().get(FreeCamera.class).fakePlayer) {
             return false;
          } else if (entity instanceof ClientPlayerEntity) {
@@ -384,11 +384,11 @@ public class KillAura extends Module {
          } else if (entity instanceof ArmorStandEntity) {
             return false;
          } else {
-            if (entity instanceof PlayerEntity p && p.method_6096() != 0 && !this.targets.isEnabled("\u0418\u0433\u0440\u043e\u043a\u0438")) {
+            if (entity instanceof PlayerEntity p && p.getArmor() != 0 && !this.targets.isEnabled("\u0418\u0433\u0440\u043e\u043a\u0438")) {
                return false;
             }
 
-            if (entity instanceof PlayerEntity p && p.method_6096() == 0 && !this.targets.isEnabled("\u0413\u043e\u043b\u044b\u0435")) {
+            if (entity instanceof PlayerEntity p && p.getArmor() == 0 && !this.targets.isEnabled("\u0413\u043e\u043b\u044b\u0435")) {
                return false;
             }
 
@@ -403,8 +403,8 @@ public class KillAura extends Module {
                }
 
                return !(
-                  player.method_33571().method_1022(BestPoint.getNearestPoint(entity))
-                     > (player.method_6128() ? 50.0 : this.distance.getValue() + this.preRotation.getValue())
+                  player.getEyePos().distanceTo(BestPoint.getNearestPoint(entity))
+                     > (player.isGliding() ? 50.0 : this.distance.getValue() + this.preRotation.getValue())
                );
             }
          }
@@ -418,13 +418,13 @@ public class KillAura extends Module {
          this.isTurnaroundActive = false;
          PlayerEntity player = (PlayerEntity)(AlphaDLC.getInstance().getModuleStorage().get(FreeCamera.class).fakePlayer != null
             ? AlphaDLC.getInstance().getModuleStorage().get(FreeCamera.class).fakePlayer
-            : this.mc.field_1724);
-         boolean playerElytra = this.mc.field_1724.method_6128();
-         boolean targetElytra = this.target.method_6128();
+            : this.mc.player);
+         boolean playerElytra = this.mc.player.isGliding();
+         boolean targetElytra = this.target.isGliding();
          boolean anyElytra = playerElytra || targetElytra;
-         if (this.target.method_6128()) {
+         if (this.target.isGliding()) {
             Vec3d predict = PredictUtils.predict(this.target, this.predictValue.getValue());
-            double distToPredict = player.method_33571().method_1022(predict);
+            double distToPredict = player.getEyePos().distanceTo(predict);
             this.preddict = this.hitAfterOvertake.getValue() ? 2.7F : 4.0F;
             if (distToPredict <= (double)this.preddict && this.elytraTurnaround.getValue()) {
                this.isTurnaroundActive = true;
@@ -437,10 +437,10 @@ public class KillAura extends Module {
             return false;
          } else if (anyElytra) {
             return this.elytraTarget != null && this.elytraTarget.isEnabled() ? this.elytraTarget.canAttack(this.target) : false;
-         } else if (!RaytraceUtil.rayTrace(player.method_5720(), this.distance.getValue(), this.target.method_5829()) && this.raycastCheck.getValue()) {
+         } else if (!RaytraceUtil.rayTrace(player.getRotationVector(), this.distance.getValue(), this.target.getBoundingBox()) && this.raycastCheck.getValue()) {
             return false;
          } else {
-            return player.method_33571().method_1022(BestPoint.getNearestPoint(this.target)) > this.distance.getValue() - 0.2F
+            return player.getEyePos().distanceTo(BestPoint.getNearestPoint(this.target)) > this.distance.getValue() - 0.2F
                ? false
                : AlphaDLC.getInstance().getIdealHitUtils().canCritical();
          }
@@ -460,13 +460,13 @@ public class KillAura extends Module {
    private void updateTarget() {
       LivingEntity best = null;
       double bestFovDot = -1.0;
-      Vec3d eyePos = this.mc.field_1724.method_33571();
-      Vec3d lookVec = this.mc.field_1724.method_5828(1.0F);
+      Vec3d eyePos = this.mc.player.getEyePos();
+      Vec3d lookVec = this.mc.player.getRotationVec(1.0F);
 
-      for (Entity entity : this.mc.field_1687.method_18112()) {
+      for (Entity entity : this.mc.world.getEntities()) {
          if (entity instanceof LivingEntity && this.isValidEntity(entity)) {
-            Vec3d targetVec = BestPoint.getNearestPoint(entity).method_1020(eyePos).method_1029();
-            double dot = lookVec.method_1026(targetVec);
+            Vec3d targetVec = BestPoint.getNearestPoint(entity).subtract(eyePos).normalize();
+            double dot = lookVec.dotProduct(targetVec);
             if (dot > bestFovDot) {
                bestFovDot = dot;
                best = (LivingEntity)entity;
@@ -496,9 +496,9 @@ public class KillAura extends Module {
       this.slothFirstSeenTime = 0L;
       this.slothReactionComplete = false;
       this.slothReactionMs = 0;
-      if (this.mc.field_1724 != null) {
-         this.slothCurrentYaw = this.mc.field_1724.method_36454();
-         this.slothCurrentPitch = this.mc.field_1724.method_36455();
+      if (this.mc.player != null) {
+         this.slothCurrentYaw = this.mc.player.getYaw();
+         this.slothCurrentPitch = this.mc.player.getPitch();
          this.slothLastSentYaw = this.slothCurrentYaw;
          this.slothLastSentPitch = this.slothCurrentPitch;
          this.slothSmoothYaw = this.slothCurrentYaw;
@@ -511,15 +511,15 @@ public class KillAura extends Module {
    }
 
    private float slCalcGcd() {
-      double s = (Double)this.mc.field_1690.method_42495().method_41753() * 0.6 + 0.2;
+      double s = (Double)this.mc.options.getMouseSensitivity().getValue() * 0.6 + 0.2;
       return (float)(s * s * s * 1.2);
    }
 
    private void slPickAimPoint(LivingEntity e) {
-      Box bb = e.method_5829();
-      double w = bb.field_1320 - bb.field_1323;
-      double h = bb.field_1325 - bb.field_1322;
-      double d = bb.field_1324 - bb.field_1321;
+      Box bb = e.getBoundingBox();
+      double w = bb.maxX - bb.minX;
+      double h = bb.maxY - bb.minY;
+      double d = bb.maxZ - bb.minZ;
       this.slothAimPointX = (Math.random() - 0.5) * w * 0.12;
       this.slothAimPointY = (Math.random() - 0.5) * h * 0.11;
       this.slothAimPointZ = (Math.random() - 0.5) * d * 0.12;
@@ -532,16 +532,16 @@ public class KillAura extends Module {
    }
 
    private float slMeasureAngle(LivingEntity e) {
-      if (this.mc.field_1724 == null) {
+      if (this.mc.player == null) {
          return 0.0F;
       } else {
-         Vec3d eyes = this.mc.field_1724.method_33571();
-         Vec3d mid = e.method_5829().method_1005();
-         Vec3d delta = mid.method_1020(eyes);
-         float needYaw = (float)Math.toDegrees(Math.atan2(delta.field_1350, delta.field_1352)) - 90.0F;
-         float needPitch = (float)(-Math.toDegrees(Math.atan2(delta.field_1351, delta.method_37267())));
-         float dYaw = Math.abs(MathHelper.method_15393(needYaw - this.mc.field_1724.method_36454()));
-         float dPitch = Math.abs(needPitch - this.mc.field_1724.method_36455());
+         Vec3d eyes = this.mc.player.getEyePos();
+         Vec3d mid = e.getBoundingBox().getCenter();
+         Vec3d delta = mid.subtract(eyes);
+         float needYaw = (float)Math.toDegrees(Math.atan2(delta.z, delta.x)) - 90.0F;
+         float needPitch = (float)(-Math.toDegrees(Math.atan2(delta.y, delta.horizontalLength())));
+         float dYaw = Math.abs(MathHelper.wrapDegrees(needYaw - this.mc.player.getYaw()));
+         float dPitch = Math.abs(needPitch - this.mc.player.getPitch());
          return dYaw + dPitch;
       }
    }
@@ -557,26 +557,26 @@ public class KillAura extends Module {
    }
 
    private boolean slIsMovingForward() {
-      return this.mc.field_1724 == null ? false : this.mc.field_1690.field_1894.method_1434();
+      return this.mc.player == null ? false : this.mc.options.forwardKey.isPressed();
    }
 
    private boolean slIsOvertakingTarget(LivingEntity target) {
-      if (this.mc.field_1724 != null && target != null) {
-         Vec3d playerPos = this.mc.field_1724.method_19538();
-         Vec3d targetPos = target.method_19538();
+      if (this.mc.player != null && target != null) {
+         Vec3d playerPos = this.mc.player.getPos();
+         Vec3d targetPos = target.getPos();
          Vec3d playerVel = new Vec3d(
-            this.mc.field_1724.method_23317() - this.mc.field_1724.field_6014,
-            this.mc.field_1724.method_23318() - this.mc.field_1724.field_6036,
-            this.mc.field_1724.method_23321() - this.mc.field_1724.field_5969
+            this.mc.player.getX() - this.mc.player.prevX,
+            this.mc.player.getY() - this.mc.player.prevY,
+            this.mc.player.getZ() - this.mc.player.prevZ
          );
          Vec3d targetVel = new Vec3d(
-            target.method_23317() - target.field_6014, target.method_23318() - target.field_6036, target.method_23321() - target.field_5969
+            target.getX() - target.prevX, target.getY() - target.prevY, target.getZ() - target.prevZ
          );
-         Vec3d toTarget = targetPos.method_1020(playerPos).method_1029();
-         double playerSpeedToTarget = playerVel.method_1026(toTarget);
-         double targetSpeedToPlayer = targetVel.method_1026(toTarget.method_1021(-1.0));
+         Vec3d toTarget = targetPos.subtract(playerPos).normalize();
+         double playerSpeedToTarget = playerVel.dotProduct(toTarget);
+         double targetSpeedToPlayer = targetVel.dotProduct(toTarget.multiply(-1.0));
          double relativeSpeed = playerSpeedToTarget + targetSpeedToPlayer;
-         double distance = Math.sqrt(Math.pow(playerPos.field_1352 - targetPos.field_1352, 2.0) + Math.pow(playerPos.field_1350 - targetPos.field_1350, 2.0));
+         double distance = Math.sqrt(Math.pow(playerPos.x - targetPos.x, 2.0) + Math.pow(playerPos.z - targetPos.z, 2.0));
          return relativeSpeed > 0.05 && distance < 4.0;
       } else {
          return false;
@@ -585,7 +585,7 @@ public class KillAura extends Module {
 
    private float[] slGenerateNoise(float dist) {
       this.slothNoiseAngle = this.slothNoiseAngle + 0.042F + (float)(Math.random() * 0.018F);
-      float scale = MathHelper.method_15363(dist / 4.5F, 0.25F, 1.0F);
+      float scale = MathHelper.clamp(dist / 4.5F, 0.25F, 1.0F);
       float amp = 1.8F * scale;
       float n1 = (float)Math.sin((double)this.slothNoiseAngle * 0.87) * 0.38F;
       float n2 = (float)Math.sin((double)this.slothNoiseAngle * 1.43 + 0.75) * 0.28F;
@@ -599,12 +599,12 @@ public class KillAura extends Module {
    }
 
    private float slSmoothStep(float x) {
-      x = MathHelper.method_15363(x, 0.0F, 1.0F);
+      x = MathHelper.clamp(x, 0.0F, 1.0F);
       return x * x * (3.0F - 2.0F * x);
    }
 
    private float slAccelCurve(float x) {
-      x = MathHelper.method_15363(x, 0.0F, 1.0F);
+      x = MathHelper.clamp(x, 0.0F, 1.0F);
       return 1.0F - (1.0F - x) * (1.0F - x);
    }
 
@@ -615,24 +615,24 @@ public class KillAura extends Module {
    }
 
    private float slSmoothLerp(float from, float to, float alpha) {
-      alpha = MathHelper.method_15363(alpha, 0.0F, 1.0F);
-      float delta = MathHelper.method_15393(to - from);
+      alpha = MathHelper.clamp(alpha, 0.0F, 1.0F);
+      float delta = MathHelper.wrapDegrees(to - from);
       return from + delta * alpha;
    }
 
    private Vec3d slGetTargetPosition(LivingEntity target, boolean bothGliding) {
-      return target.method_6128() ? PredictUtils.predict(target, this.predictValue.getValue()) : PredictUtils.predict(target, this.predictValue.getValue());
+      return target.isGliding() ? PredictUtils.predict(target, this.predictValue.getValue()) : PredictUtils.predict(target, this.predictValue.getValue());
    }
 
    private void updateSlothRotation(LivingEntity target) {
-      if (this.mc.field_1724 != null && target != null) {
-         boolean playerFlying = this.mc.field_1724.method_6128();
-         boolean targetFlying = target.method_6128();
+      if (this.mc.player != null && target != null) {
+         boolean playerFlying = this.mc.player.isGliding();
+         boolean targetFlying = target.isGliding();
          boolean bothGliding = playerFlying && targetFlying;
          if (this.slothTrackedTarget != target) {
             this.slothTrackedTarget = target;
-            this.slothCurrentYaw = this.mc.field_1724.method_36454();
-            this.slothCurrentPitch = this.mc.field_1724.method_36455();
+            this.slothCurrentYaw = this.mc.player.getYaw();
+            this.slothCurrentPitch = this.mc.player.getPitch();
             this.slothLastSentYaw = this.slothCurrentYaw;
             this.slothLastSentPitch = this.slothCurrentPitch;
             this.slothSmoothYaw = this.slothCurrentYaw;
@@ -647,9 +647,9 @@ public class KillAura extends Module {
             this.slothReactionComplete = false;
          }
 
-         Vec3d eyePos = this.mc.field_1724.method_33571();
+         Vec3d eyePos = this.mc.player.getEyePos();
          Vec3d targetCenter = this.slGetTargetPosition(target, bothGliding);
-         float distance = (float)eyePos.method_1022(targetCenter);
+         float distance = (float)eyePos.distanceTo(targetCenter);
          float gcd = this.slCalcGcd();
          if (!this.slothReactionComplete) {
             long elapsed = System.currentTimeMillis() - this.slothFirstSeenTime;
@@ -657,7 +657,7 @@ public class KillAura extends Module {
                float jitterY = ((float)Math.random() - 0.5F) * 0.22F;
                float jitterP = ((float)Math.random() - 0.5F) * 0.14F;
                float outY = this.slothLastSentYaw + jitterY;
-               float outP = MathHelper.method_15363(this.slothLastSentPitch + jitterP, -89.0F, 89.0F);
+               float outP = MathHelper.clamp(this.slothLastSentPitch + jitterP, -89.0F, 89.0F);
                outY -= (outY - this.slothLastSentYaw) % gcd;
                outP -= (outP - this.slothLastSentPitch) % gcd;
                this.slothLastSentYaw = outY;
@@ -677,9 +677,9 @@ public class KillAura extends Module {
             float targetPitchUp = -89.0F;
             if (this.slothHitPhase == 1) {
                float t = (float)this.slothHitTimer / (float)upDuration;
-               t = MathHelper.method_15363(t, 0.0F, 1.0F);
+               t = MathHelper.clamp(t, 0.0F, 1.0F);
                float curved = this.slAccelCurve(t);
-               this.slothCurrentPitch = MathHelper.method_16439(curved, this.slothPitchBeforeHit, targetPitchUp);
+               this.slothCurrentPitch = MathHelper.lerp(curved, this.slothPitchBeforeHit, targetPitchUp);
                if (this.slothHitTimer >= upDuration) {
                   this.slothHitPhase = 2;
                   this.slothHitTimer = 0;
@@ -687,9 +687,9 @@ public class KillAura extends Module {
             } else if (this.slothHitPhase == 2) {
                float goal = this.slothPitchBeforeHit;
                float t = (float)this.slothHitTimer / (float)downDuration;
-               t = MathHelper.method_15363(t, 0.0F, 1.0F);
+               t = MathHelper.clamp(t, 0.0F, 1.0F);
                float curved = this.slSmoothStep(t);
-               this.slothCurrentPitch = MathHelper.method_16439(curved, targetPitchUp, goal);
+               this.slothCurrentPitch = MathHelper.lerp(curved, targetPitchUp, goal);
                if (this.slothHitTimer >= downDuration) {
                   this.slothHitPhase = 0;
                   this.slothHitTimer = 0;
@@ -697,7 +697,7 @@ public class KillAura extends Module {
             }
 
             float outY = this.slothCurrentYaw + noise[0];
-            float outP = MathHelper.method_15363(this.slothCurrentPitch + noise[1], -89.0F, 89.0F);
+            float outP = MathHelper.clamp(this.slothCurrentPitch + noise[1], -89.0F, 89.0F);
             outY -= (outY - this.slothLastSentYaw) % gcd;
             outP -= (outP - this.slothLastSentPitch) % gcd;
             this.slothLastSentYaw = outY;
@@ -708,11 +708,11 @@ public class KillAura extends Module {
                this.slPickAimPoint(target);
             }
 
-            Vec3d aimPos = targetCenter.method_1031(this.slothAimPointX, this.slothAimPointY, this.slothAimPointZ);
-            Vec3d direction = aimPos.method_1020(eyePos);
-            float wantYaw = (float)MathHelper.method_15338(Math.toDegrees(Math.atan2(direction.field_1350, direction.field_1352)) - 90.0);
-            float wantPitch = (float)(-Math.toDegrees(Math.atan2(direction.field_1351, direction.method_37267())));
-            float diffYaw = MathHelper.method_15393(wantYaw - this.slothCurrentYaw);
+            Vec3d aimPos = targetCenter.add(this.slothAimPointX, this.slothAimPointY, this.slothAimPointZ);
+            Vec3d direction = aimPos.subtract(eyePos);
+            float wantYaw = (float)MathHelper.wrapDegrees(Math.toDegrees(Math.atan2(direction.z, direction.x)) - 90.0);
+            float wantPitch = (float)(-Math.toDegrees(Math.atan2(direction.y, direction.horizontalLength())));
+            float diffYaw = MathHelper.wrapDegrees(wantYaw - this.slothCurrentYaw);
             float diffPitch = wantPitch - this.slothCurrentPitch;
             float speedMultiplier = 1.0F;
             boolean movingForward = this.slIsMovingForward();
@@ -734,22 +734,22 @@ public class KillAura extends Module {
                stiffness *= 0.48F;
             }
 
-            stiffness += MathHelper.method_15363((distance - 1.6F) / 7.5F, 0.0F, 0.045F) * speedMultiplier;
+            stiffness += MathHelper.clamp((distance - 1.6F) / 7.5F, 0.0F, 0.045F) * speedMultiplier;
             this.slothVelocityYaw = this.slSpringInterp(this.slothCurrentYaw, this.slothCurrentYaw + diffYaw, this.slothVelocityYaw, stiffness, damping);
             this.slothVelocityPitch = this.slSpringInterp(this.slothCurrentPitch, wantPitch, this.slothVelocityPitch, stiffness * 0.87F, damping);
             float maxVelYaw = 7.1659F * speedMultiplier;
             float maxVelPitch = 5.5416F * speedMultiplier;
-            this.slothVelocityYaw = MathHelper.method_15363(this.slothVelocityYaw, -maxVelYaw, maxVelYaw);
-            this.slothVelocityPitch = MathHelper.method_15363(this.slothVelocityPitch, -maxVelPitch, maxVelPitch);
+            this.slothVelocityYaw = MathHelper.clamp(this.slothVelocityYaw, -maxVelYaw, maxVelYaw);
+            this.slothVelocityPitch = MathHelper.clamp(this.slothVelocityPitch, -maxVelPitch, maxVelPitch);
             this.slothCurrentYaw = this.slothCurrentYaw + this.slothVelocityYaw;
             this.slothCurrentPitch = this.slothCurrentPitch + this.slothVelocityPitch;
-            this.slothCurrentPitch = MathHelper.method_15363(this.slothCurrentPitch, -89.0F, 89.0F);
+            this.slothCurrentPitch = MathHelper.clamp(this.slothCurrentPitch, -89.0F, 89.0F);
             float smoothFactor = bothGliding ? 0.35F : 0.85F;
             this.slothSmoothYaw = this.slSmoothLerp(this.slothSmoothYaw, this.slothCurrentYaw, smoothFactor);
             this.slothSmoothPitch = this.slSmoothLerp(this.slothSmoothPitch, this.slothCurrentPitch, smoothFactor * 0.95F);
             float outY = this.slothSmoothYaw + noise[0];
             float outP = this.slothSmoothPitch + noise[1];
-            outP = MathHelper.method_15363(outP, -89.0F, 89.0F);
+            outP = MathHelper.clamp(outP, -89.0F, 89.0F);
             outY -= (outY - this.slothLastSentYaw) % gcd;
             outP -= (outP - this.slothLastSentPitch) % gcd;
             this.slothLastSentYaw = outY;
@@ -762,20 +762,20 @@ public class KillAura extends Module {
    private void updateLonyJirRotation(LivingEntity target) {
       double time = (double)System.nanoTime() * 1.0E-9;
       Rotation angle = new Rotation(
-         RotationUtil.calculate(target.method_5829().method_1005().method_1031(0.0, (double)((float)Math.abs(Math.sin(time * 19.0)) / 2.0F), 0.0))
+         RotationUtil.calculate(target.getBoundingBox().getCenter().add(0.0, (double)((float)Math.abs(Math.sin(time * 19.0)) / 2.0F), 0.0))
       );
       Vec3d predict = PredictUtils.predict(target, this.predictValue.getValue() + 2.5);
-      if (target.method_6128() && this.predictate.getValue() && !this.isTurnaroundActive) {
+      if (target.isGliding() && this.predictate.getValue() && !this.isTurnaroundActive) {
          angle = new Rotation(predict);
       }
 
-      if (!RaytraceUtil.rayTrace(this.mc.field_1724.method_5720(), 999.0, target.method_5829().method_1014(-0.2F))) {
+      if (!RaytraceUtil.rayTrace(this.mc.player.getRotationVector(), 999.0, target.getBoundingBox().expand(-0.2F))) {
          this.speedAcceleration = this.speedAcceleration + (float)Math.abs(Math.sin(time * 19.0)) / 666.0F;
       } else if (this.speedAcceleration >= 0.02F) {
          this.speedAcceleration -= 0.02F;
       }
 
-      float deltaYaw = MathHelper.method_15393(angle.getYaw() - this.lastYaw);
+      float deltaYaw = MathHelper.wrapDegrees(angle.getYaw() - this.lastYaw);
       float deltaPitch = angle.getPitch() - this.lastPitch;
       float smooth = Math.min(Math.max(this.speedAcceleration, 0.0F), 0.2F);
       float newYaw = this.lastYaw + deltaYaw * smooth;
@@ -783,14 +783,14 @@ public class KillAura extends Module {
       newYaw -= (newYaw - this.lastYaw) % GCDFixer.getGCDValue();
       newPitch -= (newPitch - this.lastPitch) % GCDFixer.getGCDValue();
       Rotation smoothRot = new Rotation(newYaw, newPitch);
-      float deltaYaw2 = MathHelper.method_15393(this.mc.field_1773.method_19418().method_19330() - this.lastYaw);
-      float deltaPitch2 = this.mc.field_1773.method_19418().method_19329() - this.lastPitch;
-      if (this.mc.field_1690.method_31044() == Perspective.field_26666) {
-         deltaYaw2 = MathHelper.method_15393(this.mc.field_1773.method_19418().method_19330() - 180.0F - this.lastYaw);
-         deltaPitch2 = -this.mc.field_1773.method_19418().method_19329() - this.lastPitch;
+      float deltaYaw2 = MathHelper.wrapDegrees(this.mc.gameRenderer.getCamera().getYaw() - this.lastYaw);
+      float deltaPitch2 = this.mc.gameRenderer.getCamera().getPitch() - this.lastPitch;
+      if (this.mc.options.getPerspective() == Perspective.THIRD_PERSON_FRONT) {
+         deltaYaw2 = MathHelper.wrapDegrees(this.mc.gameRenderer.getCamera().getYaw() - 180.0F - this.lastYaw);
+         deltaPitch2 = -this.mc.gameRenderer.getCamera().getPitch() - this.lastPitch;
       }
 
-      if (this.mc.field_1724.method_6128() && target.method_6128()) {
+      if (this.mc.player.isGliding() && target.isGliding()) {
          RotationComponent.update(smoothRot, 360.0F, 360.0F, 360.0F, 360.0F, 0, 1, this.clientLook.getValue());
       }
 
@@ -801,18 +801,18 @@ public class KillAura extends Module {
    private void updateSmoothRotation(LivingEntity target) {
       if (target != null) {
          Vec3d targetPoint;
-         if (target.method_6128() && this.predictate.getValue()) {
+         if (target.isGliding() && this.predictate.getValue()) {
             Vec3d predicted = PredictUtils.predict(target, this.predictValue.getValue());
-            double boxHeight = target.method_5829().field_1325 - target.method_5829().field_1322;
-            targetPoint = new Vec3d(predicted.field_1352, predicted.field_1351 + boxHeight * 0.8, predicted.field_1350);
+            double boxHeight = target.getBoundingBox().maxY - target.getBoundingBox().minY;
+            targetPoint = new Vec3d(predicted.x, predicted.y + boxHeight * 0.8, predicted.z);
          } else {
-            targetPoint = target.method_33571();
+            targetPoint = target.getEyePos();
          }
 
          Rotation angle = new Rotation(RotationUtil.calculate(targetPoint));
          float targetYaw = angle.getYaw();
          float targetPitch = angle.getPitch();
-         float deltaYaw = MathHelper.method_15393(targetYaw - this.lastYaw);
+         float deltaYaw = MathHelper.wrapDegrees(targetYaw - this.lastYaw);
          float deltaPitch = targetPitch - this.lastPitch;
          float speed = 1.0F;
          float newYaw = this.lastYaw + deltaYaw * speed;
@@ -820,7 +820,7 @@ public class KillAura extends Module {
          float gcd = GCDFixer.getGCDValue();
          newYaw -= (newYaw - this.lastYaw) % gcd;
          newPitch -= (newPitch - this.lastPitch) % gcd;
-         newPitch = MathHelper.method_15363(newPitch, -90.0F, 90.0F);
+         newPitch = MathHelper.clamp(newPitch, -90.0F, 90.0F);
          Rotation smoothRot = new Rotation(newYaw, newPitch);
          RotationComponent.update(smoothRot, 360.0F, 360.0F, 360.0F, 360.0F, 0, 1, this.clientLook.getValue());
          this.lastYaw = smoothRot.getYaw();
@@ -831,19 +831,19 @@ public class KillAura extends Module {
    private void slothTest(LivingEntity target) {
       if (target != null) {
          Vec3d point = this.resolveMultipoint(target, BestPoint.getPoint2(target), 6.0);
-         if (target.method_6128() && this.predictate.getValue() && !this.isTurnaroundActive) {
+         if (target.isGliding() && this.predictate.getValue() && !this.isTurnaroundActive) {
             point = PredictUtils.predict(target, this.predictValue.getValue());
          }
 
-         boolean isLooking = RaytraceUtil.rayTrace(this.mc.field_1724.method_5720(), 6.0, target.method_5829().method_1009(0.0, -1.0, 0.0));
+         boolean isLooking = RaytraceUtil.rayTrace(this.mc.player.getRotationVector(), 6.0, target.getBoundingBox().expand(0.0, -1.0, 0.0));
          Rotation idealRotation = new Rotation(RotationUtil.calculate(point));
          float targetYaw = idealRotation.getYaw();
          float targetPitch = idealRotation.getPitch();
          float randomFactor = (float)Math.random();
-         float deltaYaw = MathHelper.method_15393(targetYaw - this.lastYaw);
+         float deltaYaw = MathHelper.wrapDegrees(targetYaw - this.lastYaw);
          float deltaPitch = targetPitch - this.lastPitch;
-         float distance = this.mc.field_1724.method_5739(target) / 30.0F;
-         if (!isLooking && this.mc.field_1724.method_7261(1.0F) >= 0.7F) {
+         float distance = this.mc.player.distanceTo(target) / 30.0F;
+         if (!isLooking && this.mc.player.getAttackCooldownProgress(1.0F) >= 0.7F) {
             distance += 0.02F;
             stopWatch.reset();
          }
@@ -861,7 +861,7 @@ public class KillAura extends Module {
          float gcd = GCDFixer.getGCDValue();
          newYaw -= (newYaw - this.lastYaw) % gcd;
          newPitch -= (newPitch - this.lastPitch) % gcd;
-         newPitch = MathHelper.method_15363(newPitch, -90.0F, 90.0F);
+         newPitch = MathHelper.clamp(newPitch, -90.0F, 90.0F);
          Rotation legitRot = new Rotation(newYaw, newPitch);
          RotationComponent.update(legitRot, 360.0F, 360.0F, 360.0F, 360.0F, 0, 1, this.clientLook.getValue());
          this.lastYaw = legitRot.getYaw();
@@ -870,22 +870,22 @@ public class KillAura extends Module {
    }
 
    private void updateLonyGriefRotation(LivingEntity target) {
-      Vec3d point = target.method_6128() && this.predictate.getValue() && !this.isTurnaroundActive
+      Vec3d point = target.isGliding() && this.predictate.getValue() && !this.isTurnaroundActive
          ? PredictUtils.predict(target, this.predictValue.getValue())
          : this.resolveMultipoint(target, BestPoint.getPoint(target), 6.0);
       Rotation angle = new Rotation(RotationUtil.calculate(point));
       float targetYaw = angle.getYaw();
       float targetPitch = angle.getPitch();
       if (!this.back) {
-         float pon = this.mc.field_1724.method_6128() ? 1.35F : 1.0F;
-         this.speedAcceleration = this.speedAcceleration + (Math.abs(MathHelper.method_15393(targetYaw - this.lastYaw)) > 40.0F ? 0.005F / pon : 0.0038F / pon);
-         boolean isLooking = RaytraceUtil.rayTrace(this.mc.field_1724.method_5720(), 6.0, target.method_5829().method_1009(-0.2, -0.3, -0.2));
+         float pon = this.mc.player.isGliding() ? 1.35F : 1.0F;
+         this.speedAcceleration = this.speedAcceleration + (Math.abs(MathHelper.wrapDegrees(targetYaw - this.lastYaw)) > 40.0F ? 0.005F / pon : 0.0038F / pon);
+         boolean isLooking = RaytraceUtil.rayTrace(this.mc.player.getRotationVector(), 6.0, target.getBoundingBox().expand(-0.2, -0.3, -0.2));
          if (this.speedAcceleration >= 0.16F / pon || isLooking) {
             this.back = true;
          }
       } else {
          if (this.speedAcceleration >= -0.01F) {
-            this.speedAcceleration = this.speedAcceleration - (Math.abs(MathHelper.method_15393(targetYaw - this.lastYaw)) > 60.0F ? 0.06F : 0.01F);
+            this.speedAcceleration = this.speedAcceleration - (Math.abs(MathHelper.wrapDegrees(targetYaw - this.lastYaw)) > 60.0F ? 0.06F : 0.01F);
          }
 
          if (this.speedAcceleration <= -0.01F) {
@@ -893,7 +893,7 @@ public class KillAura extends Module {
          }
       }
 
-      float deltaYaw = MathHelper.method_15393(targetYaw - this.lastYaw);
+      float deltaYaw = MathHelper.wrapDegrees(targetYaw - this.lastYaw);
       float deltaPitch = targetPitch - this.lastPitch;
       float smooth = Math.max(this.speedAcceleration, 0.0F);
       float newYaw = this.lastYaw + deltaYaw * Math.min(Math.max(smooth, 0.0F), 1.0F);
@@ -908,37 +908,37 @@ public class KillAura extends Module {
    }
 
    private void updateWellmineRotation(LivingEntity target) {
-      Box box = target.method_5829();
+      Box box = target.getBoundingBox();
       Vec3d vector = this.resolveMultipoint(target, BestPoint.getMultipoint(target, 6.0), 6.0);
-      if (target.method_6128() && this.predictate.getValue() && !this.isTurnaroundActive) {
+      if (target.isGliding() && this.predictate.getValue() && !this.isTurnaroundActive) {
          vector = PredictUtils.predict(target, this.predictValue.getValue());
       }
 
       Vec2f angle = RotationUtil.calculate(vector);
-      float targetYaw = angle.field_1343;
-      float targetPitch = angle.field_1342;
+      float targetYaw = angle.x;
+      float targetPitch = angle.y;
       if (!this.back) {
          if (this.speedAcceleration >= 1.0F) {
             this.speedAcceleration = 0.0F;
-         } else if (this.mc.field_1724.method_6128()) {
-            float diff = Math.abs(MathHelper.method_15393(angle.field_1343 - this.mc.field_1724.method_36454()));
+         } else if (this.mc.player.isGliding()) {
+            float diff = Math.abs(MathHelper.wrapDegrees(angle.x - this.mc.player.getYaw()));
             this.speedAcceleration += diff > 40.0F ? 0.0025F : 0.005F;
          } else {
             this.speedAcceleration += 0.005F;
          }
 
-         Vec3d offset = Vec3d.field_1353;
-         if (this.mc.field_1724.method_6128() && target instanceof PlayerEntity && target.method_6128()) {
+         Vec3d offset = Vec3d.ZERO;
+         if (this.mc.player.isGliding() && target instanceof PlayerEntity && target.isGliding()) {
             offset = PredictUtils.predict(target, this.predictValue.getValue());
          }
 
          if ((double)this.speedAcceleration >= 0.18
-            || RaytraceUtil.rayTrace(this.mc.field_1724.method_5720(), 6.0, box.method_997(offset).method_1009(-0.5, -1.0, -0.5))) {
+            || RaytraceUtil.rayTrace(this.mc.player.getRotationVector(), 6.0, box.offset(offset).expand(-0.5, -1.0, -0.5))) {
             this.back = true;
          }
       } else {
          if (this.speedAcceleration >= -0.01F) {
-            float diff = Math.abs(MathHelper.method_15393(targetYaw - this.mc.field_1724.method_36454()));
+            float diff = Math.abs(MathHelper.wrapDegrees(targetYaw - this.mc.player.getYaw()));
             this.speedAcceleration -= diff > 40.0F ? 0.04F : 0.01F;
          }
 
@@ -952,10 +952,10 @@ public class KillAura extends Module {
       targetYaw += randomYaw;
       targetPitch += randomPitch;
       float smoothVal = Math.min(Math.max(this.speedAcceleration, -1.0F), 1.0F);
-      float changeYaw = MathHelper.method_15393(targetYaw - this.mc.field_1724.method_36454()) * smoothVal;
-      float changePitch = (targetPitch - this.mc.field_1724.method_36455()) * (smoothVal / 2.0F);
+      float changeYaw = MathHelper.wrapDegrees(targetYaw - this.mc.player.getYaw()) * smoothVal;
+      float changePitch = (targetPitch - this.mc.player.getPitch()) * (smoothVal / 2.0F);
       Rotation smoothRot = new Rotation(
-         this.mc.field_1724.method_36454() + changeYaw, MathHelper.method_15363(this.mc.field_1724.method_36455() + changePitch, -90.0F, 90.0F)
+         this.mc.player.getYaw() + changeYaw, MathHelper.clamp(this.mc.player.getPitch() + changePitch, -90.0F, 90.0F)
       );
       RotationComponent.update(smoothRot, 360.0F, 360.0F, 360.0F, 360.0F, 0, 1, this.clientLook.getValue());
       this.lastYaw = smoothRot.getYaw();
@@ -967,50 +967,50 @@ public class KillAura extends Module {
    }
 
    private float applyGCD(float deltaRotation) {
-      float sensitivity = (float)((Double)this.mc.field_1690.method_42495().method_41753() * 0.6F + 0.2F);
+      float sensitivity = (float)((Double)this.mc.options.getMouseSensitivity().getValue() * 0.6F + 0.2F);
       float multiplier = sensitivity * sensitivity * sensitivity * 8.0F * 0.15F;
       return (float)Math.round(deltaRotation / multiplier) * multiplier;
    }
 
    private void updateAssistRotation(LivingEntity target) {
       if (target != null) {
-         boolean elytraDuel = this.mc.field_1724.method_6128();
+         boolean elytraDuel = this.mc.player.isGliding();
          if (elytraDuel || System.currentTimeMillis() - lastPhysicalMoveTime <= 100L) {
             if (System.currentTimeMillis() - lastPhysicalMoveTime < 100L) {
-               this.lastYaw = this.mc.field_1724.method_36454();
-               this.lastPitch = this.mc.field_1724.method_36455();
+               this.lastYaw = this.mc.player.getYaw();
+               this.lastPitch = this.mc.player.getPitch();
             }
 
             Vec3d point = this.resolveMultipoint(target, BestPoint.getPoint(target), 6.0);
-            if (elytraDuel && target.method_6128() && this.predictate.getValue() && !this.isTurnaroundActive) {
+            if (elytraDuel && target.isGliding() && this.predictate.getValue() && !this.isTurnaroundActive) {
                point = PredictUtils.predict(target, this.predictValue.getValue());
             }
 
-            Vec3d eyePos = this.mc.field_1724.method_33571();
-            double deltaX = point.field_1352 - eyePos.field_1352;
-            double deltaY = point.field_1351 - eyePos.field_1351;
-            double deltaZ = point.field_1350 - eyePos.field_1350;
+            Vec3d eyePos = this.mc.player.getEyePos();
+            double deltaX = point.x - eyePos.x;
+            double deltaY = point.y - eyePos.y;
+            double deltaZ = point.z - eyePos.z;
             double distance = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ);
             float targetYaw = (float)(Math.toDegrees(Math.atan2(deltaZ, deltaX)) - 90.0);
             float targetPitch = (float)(-Math.toDegrees(Math.atan2(deltaY, distance)));
             float radius = 0.0F;
-            Box box = target.method_5829();
-            boolean isAimed = RaytraceUtil.rayTrace(this.mc.field_1724.method_5720(), 6.0, box.method_1009((double)radius, (double)radius, (double)radius));
+            Box box = target.getBoundingBox();
+            boolean isAimed = RaytraceUtil.rayTrace(this.mc.player.getRotationVector(), 6.0, box.expand((double)radius, (double)radius, (double)radius));
             float speed;
             if (isAimed) {
                speed = 0.0625F;
-            } else if (this.mc.field_1724.method_6128()) {
+            } else if (this.mc.player.isGliding()) {
                speed = 8.0F;
-            } else if (this.mc.field_1724.method_24828()) {
+            } else if (this.mc.player.isOnGround()) {
                speed = 0.5F;
             } else {
                speed = 0.5F;
             }
 
-            float cooldownMultiplier = this.mc.field_1724.method_7261(0.5F) > 0.85F ? 1.2F : 0.4F;
+            float cooldownMultiplier = this.mc.player.getAttackCooldownProgress(0.5F) > 0.85F ? 1.2F : 0.4F;
             speed *= cooldownMultiplier;
             if (!RaytraceUtil.rayTrace(
-               this.mc.field_1724.method_5720(), 6.0, box.method_1009((double)(radius + 0.1F), (double)(radius + 0.1F), (double)(radius + 0.1F))
+               this.mc.player.getRotationVector(), 6.0, box.expand((double)(radius + 0.1F), (double)(radius + 0.1F), (double)(radius + 0.1F))
             )) {
                this.speedAcceleration += 5.0E-4F * cooldownMultiplier;
             } else if (this.speedAcceleration >= -0.01F) {
@@ -1019,12 +1019,12 @@ public class KillAura extends Module {
 
             float smooth = Math.max(this.speedAcceleration, 0.0F);
             speed += smooth + (float)((Math.random() - 0.5) * 0.02);
-            float yawDelta = MathHelper.method_15393(targetYaw - this.lastYaw);
+            float yawDelta = MathHelper.wrapDegrees(targetYaw - this.lastYaw);
             float pitchDelta = targetPitch - this.lastPitch;
-            float clampedYawDelta = MathHelper.method_15363(yawDelta, -speed, speed);
-            float clampedPitchDelta = MathHelper.method_15363(pitchDelta, -speed, speed);
+            float clampedYawDelta = MathHelper.clamp(yawDelta, -speed, speed);
+            float clampedPitchDelta = MathHelper.clamp(pitchDelta, -speed, speed);
             float newYaw = this.lastYaw + clampedYawDelta;
-            float newPitch = MathHelper.method_15363(this.lastPitch + clampedPitchDelta, -89.9F, 89.9F);
+            float newPitch = MathHelper.clamp(this.lastPitch + clampedPitchDelta, -89.9F, 89.9F);
             float gcd = GCDFixer.getGCDValue();
             if (gcd > 0.0F) {
                newYaw = this.lastYaw + (float)Math.round((newYaw - this.lastYaw) / gcd) * gcd;
@@ -1040,57 +1040,57 @@ public class KillAura extends Module {
    }
 
    private void renderPredictPoint(MatrixStack matrices, Camera camera, float tickDelta) {
-      if (this.target != null && this.target.method_6128()) {
+      if (this.target != null && this.target.isGliding()) {
          Vec3d predictPos = PredictUtils.predict(this.target, this.predictValue.getValue());
-         Vec3d camPos = camera.method_19326();
-         double renderX = predictPos.field_1352 - camPos.field_1352;
-         double renderY = predictPos.field_1351 - camPos.field_1351;
-         double renderZ = predictPos.field_1350 - camPos.field_1350;
+         Vec3d camPos = camera.getPos();
+         double renderX = predictPos.x - camPos.x;
+         double renderY = predictPos.y - camPos.y;
+         double renderZ = predictPos.z - camPos.z;
          float size = 0.35F;
          int color = ColorProvider.getColorClient();
-         matrices.method_22903();
-         matrices.method_22904(renderX, renderY, renderZ);
+         matrices.push();
+         matrices.translate(renderX, renderY, renderZ);
          RenderSystem.enableBlend();
          RenderSystem.defaultBlendFunc();
          RenderSystem.disableDepthTest();
          RenderSystem.disableCull();
-         RenderSystem.setShader(ShaderProgramKeys.field_53876);
-         Matrix4f matrix = matrices.method_23760().method_23761();
-         Tessellator tessellator = Tessellator.method_1348();
-         BufferBuilder buffer = tessellator.method_60827(DrawMode.field_29344, VertexFormats.field_1576);
+         RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
+         Matrix4f matrix = matrices.peek().getPositionMatrix();
+         Tessellator tessellator = Tessellator.getInstance();
+         BufferBuilder buffer = tessellator.begin(DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
          float r = (float)(color >> 16 & 0xFF) / 255.0F;
          float g = (float)(color >> 8 & 0xFF) / 255.0F;
          float b = (float)(color & 0xFF) / 255.0F;
          float a = 1.0F;
-         buffer.method_22918(matrix, -size, -size, -size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, size, -size, -size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, size, -size, -size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, size, -size, size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, size, -size, size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, -size, -size, size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, -size, -size, size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, -size, -size, -size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, -size, size, -size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, size, size, -size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, size, size, -size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, size, size, size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, size, size, size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, -size, size, size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, -size, size, size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, -size, size, -size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, -size, -size, -size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, -size, size, -size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, size, -size, -size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, size, size, -size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, size, -size, size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, size, size, size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, -size, -size, size).method_22915(r, g, b, a);
-         buffer.method_22918(matrix, -size, size, size).method_22915(r, g, b, a);
-         BufferRenderer.method_43433(buffer.method_60800());
+         buffer.vertex(matrix, -size, -size, -size).color(r, g, b, a);
+         buffer.vertex(matrix, size, -size, -size).color(r, g, b, a);
+         buffer.vertex(matrix, size, -size, -size).color(r, g, b, a);
+         buffer.vertex(matrix, size, -size, size).color(r, g, b, a);
+         buffer.vertex(matrix, size, -size, size).color(r, g, b, a);
+         buffer.vertex(matrix, -size, -size, size).color(r, g, b, a);
+         buffer.vertex(matrix, -size, -size, size).color(r, g, b, a);
+         buffer.vertex(matrix, -size, -size, -size).color(r, g, b, a);
+         buffer.vertex(matrix, -size, size, -size).color(r, g, b, a);
+         buffer.vertex(matrix, size, size, -size).color(r, g, b, a);
+         buffer.vertex(matrix, size, size, -size).color(r, g, b, a);
+         buffer.vertex(matrix, size, size, size).color(r, g, b, a);
+         buffer.vertex(matrix, size, size, size).color(r, g, b, a);
+         buffer.vertex(matrix, -size, size, size).color(r, g, b, a);
+         buffer.vertex(matrix, -size, size, size).color(r, g, b, a);
+         buffer.vertex(matrix, -size, size, -size).color(r, g, b, a);
+         buffer.vertex(matrix, -size, -size, -size).color(r, g, b, a);
+         buffer.vertex(matrix, -size, size, -size).color(r, g, b, a);
+         buffer.vertex(matrix, size, -size, -size).color(r, g, b, a);
+         buffer.vertex(matrix, size, size, -size).color(r, g, b, a);
+         buffer.vertex(matrix, size, -size, size).color(r, g, b, a);
+         buffer.vertex(matrix, size, size, size).color(r, g, b, a);
+         buffer.vertex(matrix, -size, -size, size).color(r, g, b, a);
+         buffer.vertex(matrix, -size, size, size).color(r, g, b, a);
+         BufferRenderer.drawWithGlobalProgram(buffer.end());
          RenderSystem.enableDepthTest();
          RenderSystem.enableCull();
          RenderSystem.disableBlend();
-         matrices.method_22909();
+         matrices.pop();
       }
    }
 

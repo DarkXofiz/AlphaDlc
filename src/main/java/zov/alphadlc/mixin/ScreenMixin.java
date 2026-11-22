@@ -22,9 +22,9 @@ public class ScreenMixin {
       cancellable = true
    )
    public void handleCustomClickEvent(Style style, CallbackInfoReturnable<Boolean> cir) {
-      ClickEvent clickEvent = style.method_10970();
+      ClickEvent clickEvent = style.getClickEvent();
       if (clickEvent != null) {
-         new ChatEvent(clickEvent.method_10844()).post();
+         new ChatEvent(clickEvent.getValue()).post();
          cir.setReturnValue(true);
          cir.cancel();
       }

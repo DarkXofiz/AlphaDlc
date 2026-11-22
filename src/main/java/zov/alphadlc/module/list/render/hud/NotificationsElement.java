@@ -33,12 +33,12 @@ public class NotificationsElement implements IMinecraft {
    }
 
    public void postTotem(Text tagText, boolean enchanted) {
-      MutableText full = Text.method_43470("\u0418\u0433\u0440\u043e\u043a ")
-         .method_10862(Style.field_24360.method_36139(16777215))
-         .method_10852(tagText)
-         .method_10852(
-            Text.method_43470(" \u043f\u043e\u0442\u0435\u0440\u044f\u043b \u0422\u043e\u0442\u0435\u043c")
-               .method_10862(Style.field_24360.method_36139(16777215))
+      MutableText full = Text.literal("\u0418\u0433\u0440\u043e\u043a ")
+         .setStyle(Style.EMPTY.withColor(16777215))
+         .append(tagText)
+         .append(
+            Text.literal(" \u043f\u043e\u0442\u0435\u0440\u044f\u043b \u0422\u043e\u0442\u0435\u043c")
+               .setStyle(Style.EMPTY.withColor(16777215))
          );
       NotificationsElement.Notification n = new NotificationsElement.Notification(full.getString(), true, true);
       n.isTotem = true;
@@ -49,8 +49,8 @@ public class NotificationsElement implements IMinecraft {
 
    public void render(DrawContext context) {
       Interface iface = Instance.get(Interface.class);
-      float baseX = iface != null ? iface.getNotificationsCenterX() : (float)MinecraftClient.method_1551().method_22683().method_4486() / 2.0F;
-      float baseY = iface != null ? iface.getNotificationsY() : (float)MinecraftClient.method_1551().method_22683().method_4502() / 2.0F + 20.0F;
+      float baseX = iface != null ? iface.getNotificationsCenterX() : (float)MinecraftClient.getInstance().getWindow().getScaledWidth() / 2.0F;
+      float baseY = iface != null ? iface.getNotificationsY() : (float)MinecraftClient.getInstance().getWindow().getScaledHeight() / 2.0F + 20.0F;
       float offset = 0.0F;
       float scale = iface != null ? iface.getNotificationsScale() : 1.0F;
       boolean scaled = Math.abs(scale - 1.0F) > 0.001F;
@@ -105,10 +105,10 @@ public class NotificationsElement implements IMinecraft {
                float x = baseX - width / 2.0F;
                float y = baseY + offset;
                float cx = x + width / 2.0F;
-               context.method_51448().method_22903();
-               context.method_51448().method_46416(cx, y + height / 2.0F, 0.0F);
-               context.method_51448().method_22905((float)animValue, (float)animValue, 1.0F);
-               context.method_51448().method_46416(-cx, -(y + height / 2.0F), 0.0F);
+               context.getMatrices().push();
+               context.getMatrices().translate(cx, y + height / 2.0F, 0.0F);
+               context.getMatrices().scale((float)animValue, (float)animValue, 1.0F);
+               context.getMatrices().translate(-cx, -(y + height / 2.0F), 0.0F);
                if (iface != null) {
                   iface.drawNotifBackground(context, x, y, width, height, 2.5F, clampedAlpha);
                }
@@ -127,11 +127,11 @@ public class NotificationsElement implements IMinecraft {
                   float totalWidth = textWidth_full + 4.0F + 10.0F;
                   float textX = x + (width - totalWidth) / 2.0F;
                   DrawUtil.drawText(Fonts.SFMEDIUM.get(), n.totemTagText, textX, textY, 7.0F, alphaInt);
-                  context.method_51448().method_22903();
-                  context.method_51448().method_46416(textX + textWidth_full + 4.0F, y + 2.5F, 0.0F);
-                  context.method_51448().method_22905(0.6F, 0.6F, 1.0F);
-                  context.method_51427(new ItemStack(Items.field_8288), 0, 0);
-                  context.method_51448().method_22909();
+                  context.getMatrices().push();
+                  context.getMatrices().translate(textX + textWidth_full + 4.0F, y + 2.5F, 0.0F);
+                  context.getMatrices().scale(0.6F, 0.6F, 1.0F);
+                  context.drawItem(new ItemStack(Items.TOTEM_OF_UNDYING), 0, 0);
+                  context.getMatrices().pop();
                } else if (n.isWarning) {
                   float warningTextWidth = Fonts.SFMEDIUM.get().getWidth(fullText, 7.0F);
                   float warningIconWidth = Fonts.ICONS_NURIK.get().getWidth(iconCode, iconSize);
@@ -162,7 +162,7 @@ public class NotificationsElement implements IMinecraft {
                   }
                }
 
-               context.method_51448().method_22909();
+               context.getMatrices().pop();
                offset += (height + 3.0F) * clampedAlpha;
             }
          }

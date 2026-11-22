@@ -31,7 +31,7 @@ public class TPSGetter {
       long delay = System.nanoTime() - this.timestamp;
       float maxTPS = 20.0F;
       float rawTPS = maxTPS * (1.0E9F / (float)delay);
-      float boundedTPS = MathHelper.method_15363(rawTPS, 0.0F, maxTPS);
+      float boundedTPS = MathHelper.clamp(rawTPS, 0.0F, maxTPS);
       this.TPS = (float)this.round((double)boundedTPS);
       this.adjustTicks = boundedTPS - maxTPS;
       this.timestamp = System.nanoTime();

@@ -30,8 +30,8 @@ public class GameRendererMixin {
    )
    public void hookWorldRender(RenderTickCounter tickCounter, CallbackInfo ci, @Local(ordinal = 2) Matrix4f matrix4f) {
       MatrixStack matrixStack = new MatrixStack();
-      matrixStack.method_34425(matrix4f);
-      EventWorldRender event = new EventWorldRender(matrixStack, tickCounter.method_60637(false));
+      matrixStack.multiplyPositionMatrix(matrix4f);
+      EventWorldRender event = new EventWorldRender(matrixStack, tickCounter.getTickDelta(false));
       event.post();
       DrawUtil.onRender3D(event.getMatrixStack());
       AmbiencePostProcessor.apply(Instance.get(Ambience.class));

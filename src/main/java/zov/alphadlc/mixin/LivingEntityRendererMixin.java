@@ -29,12 +29,12 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
    implements FeatureRendererContext<S, M>,
    IMinecraft {
    @Shadow
-   private static float method_62482(LivingEntity entity, float degrees, float tickDelta) {
+   private static float clampBodyYaw(LivingEntity entity, float degrees, float tickDelta) {
       return 0.0F;
    }
 
    @Shadow
-   public static boolean method_38563(LivingEntity entity) {
+   public static boolean shouldFlipUpsideDown(LivingEntity entity) {
       return false;
    }
 
@@ -43,78 +43,78 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
    }
 
    @Overwrite
-   public void method_62355(T livingEntity, S livingEntityRenderState, float f) {
-      super.method_62354(livingEntity, livingEntityRenderState, f);
-      float yaw = MathHelper.method_17821(f, livingEntity.field_6259, livingEntity.field_6241);
-      livingEntityRenderState.field_53446 = method_62482(livingEntity, yaw, f);
-      livingEntityRenderState.field_53447 = MathHelper.method_15393(yaw - livingEntityRenderState.field_53446);
-      livingEntityRenderState.field_53448 = livingEntity.method_61414(f);
-      livingEntityRenderState.field_53464 = livingEntity.method_5797();
-      livingEntityRenderState.field_53455 = method_38563(livingEntity);
-      if (livingEntityRenderState.field_53455) {
-         livingEntityRenderState.field_53448 *= -1.0F;
-         livingEntityRenderState.field_53447 *= -1.0F;
+   public void updateRenderState(T livingEntity, S livingEntityRenderState, float f) {
+      super.updateRenderState(livingEntity, livingEntityRenderState, f);
+      float yaw = MathHelper.lerpAngleDegrees(f, livingEntity.prevHeadYaw, livingEntity.headYaw);
+      livingEntityRenderState.bodyYaw = clampBodyYaw(livingEntity, yaw, f);
+      livingEntityRenderState.yawDegrees = MathHelper.wrapDegrees(yaw - livingEntityRenderState.bodyYaw);
+      livingEntityRenderState.pitch = livingEntity.getLerpedPitch(f);
+      livingEntityRenderState.customName = livingEntity.getCustomName();
+      livingEntityRenderState.flipUpsideDown = shouldFlipUpsideDown(livingEntity);
+      if (livingEntityRenderState.flipUpsideDown) {
+         livingEntityRenderState.pitch *= -1.0F;
+         livingEntityRenderState.yawDegrees *= -1.0F;
       }
 
-      if (!livingEntity.method_5765() && livingEntity.method_5805()) {
-         livingEntityRenderState.field_53450 = livingEntity.field_42108.method_48572(f);
-         livingEntityRenderState.field_53451 = livingEntity.field_42108.method_48570(f);
+      if (!livingEntity.hasVehicle() && livingEntity.isAlive()) {
+         livingEntityRenderState.limbFrequency = livingEntity.limbAnimator.getPos(f);
+         livingEntityRenderState.limbAmplitudeMultiplier = livingEntity.limbAnimator.getSpeed(f);
       } else {
-         livingEntityRenderState.field_53450 = 0.0F;
-         livingEntityRenderState.field_53451 = 0.0F;
+         livingEntityRenderState.limbFrequency = 0.0F;
+         livingEntityRenderState.limbAmplitudeMultiplier = 0.0F;
       }
 
-      if (livingEntity.method_5854() instanceof LivingEntity livingEntity2) {
-         livingEntityRenderState.field_53452 = livingEntity2.field_42108.method_48572(f);
+      if (livingEntity.getVehicle() instanceof LivingEntity livingEntity2) {
+         livingEntityRenderState.headItemAnimationProgress = livingEntity2.limbAnimator.getPos(f);
       } else {
-         livingEntityRenderState.field_53452 = livingEntityRenderState.field_53450;
+         livingEntityRenderState.headItemAnimationProgress = livingEntityRenderState.limbFrequency;
       }
 
-      livingEntityRenderState.field_53453 = livingEntity.method_55693();
-      livingEntityRenderState.field_53454 = livingEntity.method_17825();
-      livingEntityRenderState.field_53465 = livingEntity.method_18376();
-      livingEntityRenderState.field_53463 = livingEntity.method_18401();
-      if (livingEntityRenderState.field_53463 != null) {
-         livingEntityRenderState.field_53331 = livingEntity.method_18381(EntityPose.field_18076);
+      livingEntityRenderState.baseScale = livingEntity.getScale();
+      livingEntityRenderState.ageScale = livingEntity.getScaleFactor();
+      livingEntityRenderState.pose = livingEntity.getPose();
+      livingEntityRenderState.sleepingDirection = livingEntity.getSleepingDirection();
+      if (livingEntityRenderState.sleepingDirection != null) {
+         livingEntityRenderState.standingEyeHeight = livingEntity.getEyeHeight(EntityPose.STANDING);
       }
 
-      livingEntityRenderState.field_53456 = livingEntity.method_32314();
-      livingEntityRenderState.field_53457 = livingEntity.method_6109();
-      livingEntityRenderState.field_53458 = livingEntity.method_5799();
-      livingEntityRenderState.field_53459 = livingEntity.method_6123();
-      livingEntityRenderState.field_53460 = livingEntity.field_6235 > 0 || livingEntity.field_6213 > 0;
-      livingEntityRenderState.field_53449 = livingEntity.field_6213 > 0 ? (float)livingEntity.field_6213 + f : 0.0F;
-      livingEntityRenderState.field_53461 = livingEntityRenderState.field_53333 && livingEntity.method_5756(MinecraftClient.method_1551().field_1724);
-      livingEntityRenderState.field_53462 = MinecraftClient.method_1551().method_27022(livingEntity);
-      if (livingEntityRenderState.field_53333 && livingEntity instanceof PlayerEntity) {
+      livingEntityRenderState.shaking = livingEntity.isFrozen();
+      livingEntityRenderState.baby = livingEntity.isBaby();
+      livingEntityRenderState.touchingWater = livingEntity.isTouchingWater();
+      livingEntityRenderState.usingRiptide = livingEntity.isUsingRiptide();
+      livingEntityRenderState.hurt = livingEntity.hurtTime > 0 || livingEntity.deathTime > 0;
+      livingEntityRenderState.deathTime = livingEntity.deathTime > 0 ? (float)livingEntity.deathTime + f : 0.0F;
+      livingEntityRenderState.invisibleToPlayer = livingEntityRenderState.invisible && livingEntity.isInvisibleTo(MinecraftClient.getInstance().player);
+      livingEntityRenderState.hasOutline = MinecraftClient.getInstance().hasOutline(livingEntity);
+      if (livingEntityRenderState.invisible && livingEntity instanceof PlayerEntity) {
          SeeInvisible seeInvisible = Instance.get(SeeInvisible.class);
          if (seeInvisible != null && seeInvisible.isEnabled()) {
             if (seeInvisible.isOpaque()) {
-               livingEntityRenderState.field_53333 = false;
+               livingEntityRenderState.invisible = false;
             } else {
-               livingEntityRenderState.field_53461 = false;
+               livingEntityRenderState.invisibleToPlayer = false;
             }
          }
       }
 
-      if (livingEntity == mc.field_1724 && livingEntity.method_6128()) {
+      if (livingEntity == mc.player && livingEntity.isGliding()) {
          KillAura killAura = Instance.get(KillAura.class);
          if (killAura != null && killAura.isEnabled() && killAura.visualElytraRotation.getValue()) {
             LivingEntity target = killAura.getTarget();
-            if (target != null && target.method_5805() && target.method_6128()) {
-               Vec3d playerPos = livingEntity.method_30950(f);
-               Vec3d targetPos = target.method_30950(f);
-               Vec3d targetLook = target.method_5828(f).method_1029();
-               Vec3d targetToPlayer = playerPos.method_1020(targetPos);
-               double dot = targetToPlayer.method_1026(targetLook);
+            if (target != null && target.isAlive() && target.isGliding()) {
+               Vec3d playerPos = livingEntity.getLerpedPos(f);
+               Vec3d targetPos = target.getLerpedPos(f);
+               Vec3d targetLook = target.getRotationVec(f).normalize();
+               Vec3d targetToPlayer = playerPos.subtract(targetPos);
+               double dot = targetToPlayer.dotProduct(targetLook);
                Vec3d predict = PredictUtils.predict(target, killAura.predictValue.getValue());
-               double distToPredict = playerPos.method_1022(predict);
+               double distToPredict = playerPos.distanceTo(predict);
                if (dot > 0.0 && distToPredict < 6.0) {
-                  Vec3d center = targetPos.method_1031(0.0, (double)target.method_17682() / 2.0, 0.0);
+                  Vec3d center = targetPos.add(0.0, (double)target.getHeight() / 2.0, 0.0);
                   Vec2f rotation = RotationUtil.calculate(center);
-                  livingEntityRenderState.field_53446 = rotation.field_1343;
-                  livingEntityRenderState.field_53447 = 0.0F;
-                  livingEntityRenderState.field_53448 = rotation.field_1342;
+                  livingEntityRenderState.bodyYaw = rotation.x;
+                  livingEntityRenderState.yawDegrees = 0.0F;
+                  livingEntityRenderState.pitch = rotation.y;
                }
             }
          }

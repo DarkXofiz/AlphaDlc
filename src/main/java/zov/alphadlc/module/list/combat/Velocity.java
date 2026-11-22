@@ -16,7 +16,7 @@ public class Velocity extends Module {
    @Subscribe
    private void onPacket(EventPacket e) {
       if (e.getPacket() instanceof EntityVelocityUpdateS2CPacket packet) {
-         if (packet.method_11818() != this.mc.field_1724.method_5628()) {
+         if (packet.getEntityId() != this.mc.player.getId()) {
             return;
          }
 

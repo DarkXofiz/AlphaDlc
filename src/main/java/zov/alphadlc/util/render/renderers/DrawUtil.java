@@ -42,7 +42,7 @@ public class DrawUtil implements IMinecraft {
    public static final List<DrawUtil.Line> LINE = new ArrayList<>();
    public static final List<DrawUtil.Line> LINE_DEPTH = new ArrayList<>();
    private static final ShaderProgramKey CIRCLE_SHADER_KEY = new ShaderProgramKey(
-      ResourceProvider.getShaderIdentifier("circle"), VertexFormats.field_1576, Defines.field_53930
+      ResourceProvider.getShaderIdentifier("circle"), VertexFormats.POSITION_COLOR, Defines.EMPTY
    );
 
    public static void onRender3D(MatrixStack matrix) {
@@ -53,12 +53,12 @@ public class DrawUtil implements IMinecraft {
          RenderSystem.disableCull();
          RenderSystem.disableDepthTest();
          RenderSystem.blendFunc(SrcFactor.SRC_ALPHA, DstFactor.ONE_MINUS_CONSTANT_ALPHA);
-         RenderSystem.setShader(ShaderProgramKeys.field_53864);
+         RenderSystem.setShader(ShaderProgramKeys.RENDERTYPE_LINES);
          widths.forEach(width -> {
             RenderSystem.lineWidth(width);
-            BufferBuilder buffer = Tessellator.method_1348().method_60827(DrawMode.field_27377, VertexFormats.field_29337);
+            BufferBuilder buffer = Tessellator.getInstance().begin(DrawMode.LINES, VertexFormats.LINES);
             LINE.stream().filter(line -> line.width == width).forEach(line -> vertexLine(matrix, buffer, line.start, line.end, line.colorStart, line.colorEnd));
-            BufferRenderer.method_43433(buffer.method_60800());
+            BufferRenderer.drawWithGlobalProgram(buffer.end());
          });
          RenderSystem.enableDepthTest();
          RenderSystem.enableCull();
@@ -75,15 +75,15 @@ public class DrawUtil implements IMinecraft {
          RenderSystem.enableDepthTest();
          RenderSystem.depthMask(false);
          RenderSystem.blendFunc(SrcFactor.SRC_ALPHA, DstFactor.ONE_MINUS_CONSTANT_ALPHA);
-         RenderSystem.setShader(ShaderProgramKeys.field_53864);
+         RenderSystem.setShader(ShaderProgramKeys.RENDERTYPE_LINES);
          widths.forEach(
             width -> {
                RenderSystem.lineWidth(width);
-               BufferBuilder buffer = Tessellator.method_1348().method_60827(DrawMode.field_27377, VertexFormats.field_29337);
+               BufferBuilder buffer = Tessellator.getInstance().begin(DrawMode.LINES, VertexFormats.LINES);
                LINE_DEPTH.stream()
                   .filter(line -> line.width == width)
                   .forEach(line -> vertexLine(matrix, buffer, line.start, line.end, line.colorStart, line.colorEnd));
-               BufferRenderer.method_43433(buffer.method_60800());
+               BufferRenderer.drawWithGlobalProgram(buffer.end());
             }
          );
          RenderSystem.depthMask(true);
@@ -95,20 +95,20 @@ public class DrawUtil implements IMinecraft {
    }
 
    public static void vertexLine(@NotNull MatrixStack matrices, @NotNull VertexConsumer buffer, Vec3d start, Vec3d end, int lineColor) {
-      vertexLine(matrices, buffer, start.method_46409(), end.method_46409(), lineColor, lineColor);
+      vertexLine(matrices, buffer, start.toVector3f(), end.toVector3f(), lineColor, lineColor);
    }
 
    public static void vertexLine(@NotNull MatrixStack matrices, @NotNull VertexConsumer buffer, Vec3d start, Vec3d end, int startColor, int endColor) {
-      vertexLine(matrices, buffer, start.method_46409(), end.method_46409(), startColor, endColor);
+      vertexLine(matrices, buffer, start.toVector3f(), end.toVector3f(), startColor, endColor);
    }
 
    public static void vertexLine(@NotNull MatrixStack matrices, @NotNull VertexConsumer buffer, Vector3f start, Vector3f end, int startColor, int endColor) {
-      matrices.method_22903();
-      Entry entry = matrices.method_23760();
+      matrices.push();
+      Entry entry = matrices.peek();
       Vector3f vec = getNormal(start.x, start.y, start.z, end.x, end.y, end.z);
-      buffer.method_61032(entry, start).method_39415(startColor).method_60831(entry, vec.x(), vec.y(), vec.z());
-      buffer.method_61032(entry, end).method_39415(endColor).method_60831(entry, vec.x(), vec.y(), vec.z());
-      matrices.method_22909();
+      buffer.vertex(entry, start).color(startColor).normal(entry, vec.x(), vec.y(), vec.z());
+      buffer.vertex(entry, end).color(endColor).normal(entry, vec.x(), vec.y(), vec.z());
+      matrices.pop();
    }
 
    @NotNull
@@ -116,7 +116,7 @@ public class DrawUtil implements IMinecraft {
       float xNormal = x2 - x1;
       float yNormal = y2 - y1;
       float zNormal = z2 - z1;
-      float normalSqrt = MathHelper.method_15355(xNormal * xNormal + yNormal * yNormal + zNormal * zNormal);
+      float normalSqrt = MathHelper.sqrt(xNormal * xNormal + yNormal * yNormal + zNormal * zNormal);
       return new Vector3f(xNormal / normalSqrt, yNormal / normalSqrt, zNormal / normalSqrt);
    }
 
@@ -129,8 +129,8 @@ public class DrawUtil implements IMinecraft {
    }
 
    public static void drawLine(Vec3d start, Vec3d end, int colorStart, int colorEnd, float width, boolean depth) {
-      Vec3d cameraPos = mc.method_1561().field_4686.method_19326();
-      DrawUtil.Line line = new DrawUtil.Line(start.method_1020(cameraPos), end.method_1020(cameraPos), colorStart, colorEnd, width);
+      Vec3d cameraPos = mc.getEntityRenderDispatcher().camera.getPos();
+      DrawUtil.Line line = new DrawUtil.Line(start.subtract(cameraPos), end.subtract(cameraPos), colorStart, colorEnd, width);
       if (depth) {
          LINE_DEPTH.add(line);
       } else {
@@ -430,16 +430,16 @@ public class DrawUtil implements IMinecraft {
          RenderSystem.defaultBlendFunc();
          RenderSystem.disableCull();
          ShaderProgram shader = RenderSystem.setShader(CIRCLE_SHADER_KEY);
-         shader.method_34582("Size").method_1255(size, size);
-         shader.method_34582("Thickness").method_1251(thickness);
-         shader.method_34582("StartAngle").method_1251(start);
-         shader.method_34582("EndAngle").method_1251(end);
-         BufferBuilder buffer = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1576);
-         buffer.method_22918(IRenderer.DEFAULT_MATRIX, x, y, 0.0F).method_39415(color);
-         buffer.method_22918(IRenderer.DEFAULT_MATRIX, x, y + size, 0.0F).method_39415(color);
-         buffer.method_22918(IRenderer.DEFAULT_MATRIX, x + size, y + size, 0.0F).method_39415(color);
-         buffer.method_22918(IRenderer.DEFAULT_MATRIX, x + size, y, 0.0F).method_39415(color);
-         BufferRenderer.method_43433(buffer.method_60800());
+         shader.getUniform("Size").set(size, size);
+         shader.getUniform("Thickness").set(thickness);
+         shader.getUniform("StartAngle").set(start);
+         shader.getUniform("EndAngle").set(end);
+         BufferBuilder buffer = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+         buffer.vertex(IRenderer.DEFAULT_MATRIX, x, y, 0.0F).color(color);
+         buffer.vertex(IRenderer.DEFAULT_MATRIX, x, y + size, 0.0F).color(color);
+         buffer.vertex(IRenderer.DEFAULT_MATRIX, x + size, y + size, 0.0F).color(color);
+         buffer.vertex(IRenderer.DEFAULT_MATRIX, x + size, y, 0.0F).color(color);
+         BufferRenderer.drawWithGlobalProgram(buffer.end());
          RenderSystem.enableCull();
          RenderSystem.disableBlend();
       }

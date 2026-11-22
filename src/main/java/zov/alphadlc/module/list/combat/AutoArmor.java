@@ -26,32 +26,32 @@ public class AutoArmor extends Module {
 
    @Subscribe
    private void onUpdate(EventPlayerUpdate ignored) {
-      if (this.mc.field_1724 != null) {
-         if (this.mc.field_1755 == null || this.mc.field_1755 instanceof InventoryScreen) {
-            if (this.mc.field_1724.method_6118(EquipmentSlot.field_6169).method_7960()) {
-               this.swapArmor(EquipmentSlot.field_6169);
+      if (this.mc.player != null) {
+         if (this.mc.currentScreen == null || this.mc.currentScreen instanceof InventoryScreen) {
+            if (this.mc.player.getEquippedStack(EquipmentSlot.HEAD).isEmpty()) {
+               this.swapArmor(EquipmentSlot.HEAD);
             }
 
-            if (this.mc.field_1724.method_6118(EquipmentSlot.field_6174).method_7960()) {
-               this.swapArmor(EquipmentSlot.field_6174);
+            if (this.mc.player.getEquippedStack(EquipmentSlot.CHEST).isEmpty()) {
+               this.swapArmor(EquipmentSlot.CHEST);
             }
 
-            if (this.mc.field_1724.method_6118(EquipmentSlot.field_6172).method_7960()) {
-               this.swapArmor(EquipmentSlot.field_6172);
+            if (this.mc.player.getEquippedStack(EquipmentSlot.LEGS).isEmpty()) {
+               this.swapArmor(EquipmentSlot.LEGS);
             }
 
-            if (this.mc.field_1724.method_6118(EquipmentSlot.field_6166).method_7960()) {
-               this.swapArmor(EquipmentSlot.field_6166);
+            if (this.mc.player.getEquippedStack(EquipmentSlot.FEET).isEmpty()) {
+               this.swapArmor(EquipmentSlot.FEET);
             }
          }
       }
    }
 
    private void swapArmor(EquipmentSlot equipmentSlot) {
-      if ((equipmentSlot != EquipmentSlot.field_6169 || this.equipArmorCooldownHelmet.isReached(50L))
-         && (equipmentSlot != EquipmentSlot.field_6174 || this.equipArmorCooldownChestplate.isReached(50L))
-         && (equipmentSlot != EquipmentSlot.field_6172 || this.equipArmorCooldownLeggings.isReached(50L))
-         && (equipmentSlot != EquipmentSlot.field_6166 || this.equipArmorCooldownBoots.isReached(50L))) {
+      if ((equipmentSlot != EquipmentSlot.HEAD || this.equipArmorCooldownHelmet.isReached(50L))
+         && (equipmentSlot != EquipmentSlot.CHEST || this.equipArmorCooldownChestplate.isReached(50L))
+         && (equipmentSlot != EquipmentSlot.LEGS || this.equipArmorCooldownLeggings.isReached(50L))
+         && (equipmentSlot != EquipmentSlot.FEET || this.equipArmorCooldownBoots.isReached(50L))) {
          int slot = InventoryUtil.getBestArmorSlot(equipmentSlot);
          if (slot != -1) {
             if (slot < 9) {
@@ -62,25 +62,25 @@ public class AutoArmor extends Module {
             String var4 = this.mode.getValue();
             switch (var4) {
                case "Vanilla":
-                  this.mc.field_1761.method_2906(0, slot, 0, SlotActionType.field_7794, this.mc.field_1724);
+                  this.mc.interactionManager.clickSlot(0, slot, 0, SlotActionType.QUICK_MOVE, this.mc.player);
                   break;
                case "Grim":
-                  InventoryUtil.swapWithBypassGrim(() -> this.mc.field_1761.method_2906(0, finalSlot, 0, SlotActionType.field_7794, this.mc.field_1724));
+                  InventoryUtil.swapWithBypassGrim(() -> this.mc.interactionManager.clickSlot(0, finalSlot, 0, SlotActionType.QUICK_MOVE, this.mc.player));
             }
 
-            if (equipmentSlot == EquipmentSlot.field_6169) {
+            if (equipmentSlot == EquipmentSlot.HEAD) {
                this.equipArmorCooldownHelmet.reset();
             }
 
-            if (equipmentSlot == EquipmentSlot.field_6174) {
+            if (equipmentSlot == EquipmentSlot.CHEST) {
                this.equipArmorCooldownChestplate.reset();
             }
 
-            if (equipmentSlot == EquipmentSlot.field_6172) {
+            if (equipmentSlot == EquipmentSlot.LEGS) {
                this.equipArmorCooldownLeggings.reset();
             }
 
-            if (equipmentSlot == EquipmentSlot.field_6166) {
+            if (equipmentSlot == EquipmentSlot.FEET) {
                this.equipArmorCooldownBoots.reset();
             }
          }

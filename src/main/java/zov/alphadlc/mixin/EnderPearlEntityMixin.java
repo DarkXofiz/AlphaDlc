@@ -15,15 +15,15 @@ public class EnderPearlEntityMixin {
       at = {@At("RETURN")}
    )
    private void fixOwner(CallbackInfo ci) {
-      if (MinecraftClient.method_1551().field_1724 != null && MinecraftClient.method_1551().field_1687 != null) {
+      if (MinecraftClient.getInstance().player != null && MinecraftClient.getInstance().world != null) {
          EnderPearlEntity entity = (EnderPearlEntity)this;
-         entity.method_7432(
-            MinecraftClient.method_1551()
-               .field_1687
-               .method_18456()
+         entity.setOwner(
+            MinecraftClient.getInstance()
+               .world
+               .getPlayers()
                .stream()
-               .filter(me -> me.method_5739(entity) > 1.0F)
-               .min(Comparator.comparingDouble(me -> (double)me.method_5739(entity)))
+               .filter(me -> me.distanceTo(entity) > 1.0F)
+               .min(Comparator.comparingDouble(me -> (double)me.distanceTo(entity)))
                .orElse(null)
          );
       }

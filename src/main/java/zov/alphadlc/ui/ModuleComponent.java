@@ -189,7 +189,7 @@ public class ModuleComponent extends Component {
                Component component = (Component)var35.next();
                component.getAlphaAnim().setValue(Math.min(this.panel.getAnimationAlpha().getValue(), 1.0F) * this.animation.getValue());
                component.getAlphaAnimSetting().run(component.isVisible());
-               float visibleProgress = MathHelper.method_15363(component.getAlphaAnimSetting().getValue(), 0.0F, 1.0F);
+               float visibleProgress = MathHelper.clamp(component.getAlphaAnimSetting().getValue(), 0.0F, 1.0F);
                if (component.isVisible() || visibleProgress > 0.0F) {
                   component.setX(this.x);
                   component.setY(compY);
