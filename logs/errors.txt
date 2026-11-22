@@ -1,4 +1,1 @@
-/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/Predictions.java:385: error: the switch statement does not cover all possible input values
-> Task :compileJava FAILED
-                 ^Note: Some input files use or override a deprecated API./home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/Predictions.java:385: error: the switch statement does not cover all possible input values
-BUILD FAILED in 17s
+BUILD SUCCESSFUL in 27s

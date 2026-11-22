@@ -20,54 +20,29 @@ Fabric Loom: 1.10.5
 /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:179: warning: @Overwrite is missing javadoc comment
    public void renderItem(float tickDelta, MatrixStack matrices, Immediate vertexConsumers, ClientPlayerEntity player, int light) {
                ^
-/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/Predictions.java:385: error: the switch statement does not cover all possible input values
-      switch (entity) {
-      ^
 Note: Some input files use or override a deprecated API.
 Note: Recompile with -Xlint:deprecation for details.
 Note: Some input files use unchecked or unsafe operations.
 Note: Recompile with -Xlint:unchecked for details.
-1 error
 5 warnings
 
-> Task :compileJava FAILED
 > Task :processResources
+> Task :classes
+> Task :jar
+> Task :compileTestJava NO-SOURCE
 > Task :processIncludeJars
 > Task :remapSourcesJar SKIPPED
 > Task :processTestResources NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :test NO-SOURCE
 > Task :validateAccessWidener
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/build-1795367497117.json
+> Task :check
+> Task :remapJar
+> Task :assemble
+> Task :build
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/build-1795367873123.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/AlphaDlc/AlphaDlc/build/reports/problems/problems-report.html
 
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-Execution failed for task ':compileJava'.
-> Compilation failed; see the compiler output below.
-  Note: Recompile with -Xlint:deprecation for details.Note: Recompile with -Xlint:unchecked for details.Note: Some input files use unchecked or unsafe operations./home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/DeltaTrackerTimerMixin.java:11: warning: Unable to determine descriptor for @ModifyExpressionValue target method
-     @ModifyExpressionValue(
-     ^
-  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/DeltaTrackerTimerMixin.java:11: warning: Unable to locate method mapping for @At(INVOKE.<target>) 'Lit/unimi/dsi/fastutil/floats/FloatUnaryOperator;apply(F)F'
-     @ModifyExpressionValue(
-     ^
-  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/LivingEntityRendererMixin.java:46: warning: @Overwrite is missing javadoc comment
-     public void updateRenderState(T livingEntity, S livingEntityRenderState, float f) {
-                 ^
-  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ClientPlayerEntityMixin.java:108: warning: @Overwrite is missing javadoc comment
-     public void closeHandledScreen() {
-                 ^
-  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:179: warning: @Overwrite is missing javadoc comment
-     public void renderItem(float tickDelta, MatrixStack matrices, Immediate vertexConsumers, ClientPlayerEntity player, int light) {
-                 ^Note: Some input files use or override a deprecated API./home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/Predictions.java:385: error: the switch statement does not cover all possible input values
-        switch (entity) {
-        ^
-  1 error
-  5 warnings
-
-* Try:
-> Check your code and dependencies to fix the compilation error(s)
-> Run with --scan to get full insights.
-
-BUILD FAILED in 17s
-4 actionable tasks: 4 executed
+BUILD SUCCESSFUL in 27s
+6 actionable tasks: 6 executed
