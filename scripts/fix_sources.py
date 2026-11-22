@@ -25,7 +25,7 @@ THIS_CASTS = [
     (MIXIN + "KeyboardInputMixin.java", 31, "net.minecraft.client.input.KeyboardInput"),
     (MIXIN + "KeyboardInputMixin.java", 38, "net.minecraft.client.input.KeyboardInput"),
     (MIXIN + "ClientPlayerEntityMixin.java", 112, "net.minecraft.entity.player.PlayerEntity"),
-    (MIXIN + "HeldItemRendererMixin.java", 124, "net.minecraft.client.render.item.HeldItemRenderer"),
+    (MIXIN + "HeldItemRendererMixin.java", 124, "zov.alphadlc.module.list.render.HeldItemRendererAccessor"),
 ]
 
 # (dosya, satir, eski metin, yeni metin)
@@ -53,6 +53,10 @@ RENAMES = [
     ("zov/alphadlc/util/render/ambience/SkyShaderRenderer.java", [
         (r"String shader = c\.mode;", "String shaderName = c.mode;"),
         (r"switch \(shader\) \{(\s*case \"Aurora\")", r"switch (shaderName) {\1"),
+    ]),
+    ("zov/alphadlc/module/list/render/hud/Interface.java", [
+        (r"(?<!final String lambdaName = name;\n)([ \t]*)(Optional<Interface\.Staff> existingStaff = this\.staffPlayers\.stream\(\)\.filter\(s -> s\.name\.equals\()name(\)\)\.findFirst\(\);)",
+         r"\1final String lambdaName = name;\n\1\2lambdaName\3"),
     ]),
     ("zov/alphadlc/module/list/render/KillEffect.java", [
         (r"String player = this\.totemEffect\.getValue\(\);", "String totemMode = this.totemEffect.getValue();"),
