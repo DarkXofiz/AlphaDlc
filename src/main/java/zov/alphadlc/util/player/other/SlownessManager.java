@@ -10,13 +10,13 @@ import zov.alphadlc.util.IMinecraft;
 
 public final class SlownessManager implements IMinecraft {
    private static final KeyBinding[] keybindsList = new KeyBinding[]{
-      mc.field_1690.field_1894,
-      mc.field_1690.field_1913,
-      mc.field_1690.field_1849,
-      mc.field_1690.field_1881,
-      mc.field_1690.field_1903,
-      mc.field_1690.field_1867,
-      mc.field_1690.field_1832
+      mc.options.forwardKey,
+      mc.options.leftKey,
+      mc.options.rightKey,
+      mc.options.backKey,
+      mc.options.jumpKey,
+      mc.options.sprintKey,
+      mc.options.sneakKey
    };
    private static final List<SlownessManager.SlowTask> tasks = new ArrayList<>();
    private static final List<SlownessManager.TimeTask> timeTasks = new ArrayList<>();
@@ -42,19 +42,19 @@ public final class SlownessManager implements IMinecraft {
       if (lastTask != null) {
          if (now - lastTask.time < lastTask.duration) {
             for (KeyBinding key : new KeyBinding[]{
-               mc.field_1690.field_1894,
-               mc.field_1690.field_1913,
-               mc.field_1690.field_1849,
-               mc.field_1690.field_1881,
-               mc.field_1690.field_1903,
-               mc.field_1690.field_1867
+               mc.options.forwardKey,
+               mc.options.leftKey,
+               mc.options.rightKey,
+               mc.options.backKey,
+               mc.options.jumpKey,
+               mc.options.sprintKey
             }) {
-               key.method_23481(false);
+               key.setPressed(false);
             }
          } else {
             for (KeyBinding key : keybindsList) {
-               if (mc.field_1755 == null) {
-                  key.method_23481(InputUtil.method_15987(mc.method_22683().method_4490(), key.method_1429().method_1444()));
+               if (mc.currentScreen == null) {
+                  key.setPressed(InputUtil.isKeyPressed(mc.getWindow().getHandle(), key.getDefaultKey().getCode()));
                }
             }
          }

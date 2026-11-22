@@ -35,9 +35,9 @@ public class ServerManager implements IMinecraft {
 
    @Subscribe
    private void onTick(EventTick ignored) {
-      if (mc.field_1724 != null) {
-         double y = mc.field_1724.field_6036 - mc.field_1724.method_23318();
-         if (mc.field_1724.method_24828()) {
+      if (mc.player != null) {
+         double y = mc.player.prevY - mc.player.getY();
+         if (mc.player.isOnGround()) {
             this.fallDistance = 0.0F;
          } else if (y > 0.0) {
             this.fallDistance += (float)y;
@@ -53,44 +53,44 @@ public class ServerManager implements IMinecraft {
    @Subscribe
    public void onPacketSend(EventPacket e) {
       if (e.getPacket() instanceof PlayerMoveC2SPacket packet) {
-         if (packet.method_36171()) {
-            this.serverX = packet.method_12269(mc.field_1724.method_23317());
-            this.serverY = packet.method_12268(mc.field_1724.method_23318());
-            this.serverZ = packet.method_12274(mc.field_1724.method_23321());
+         if (packet.changesPosition()) {
+            this.serverX = packet.getX(mc.player.getX());
+            this.serverY = packet.getY(mc.player.getY());
+            this.serverZ = packet.getZ(mc.player.getZ());
          }
 
-         if (packet.method_36172()) {
-            this.serverYaw = packet.method_12271(mc.field_1724.method_36454());
-            this.serverPitch = packet.method_12270(mc.field_1724.method_36455());
+         if (packet.changesLook()) {
+            this.serverYaw = packet.getYaw(mc.player.getYaw());
+            this.serverPitch = packet.getPitch(mc.player.getPitch());
          }
 
-         this.serverOnGround = packet.method_12273();
-         this.serverHorizontalCollision = packet.method_61225();
+         this.serverOnGround = packet.isOnGround();
+         this.serverHorizontalCollision = packet.horizontalCollision();
       }
 
       if (e.getPacket() instanceof UpdateSelectedSlotC2SPacket packet) {
-         this.serverSlot = packet.method_12442();
+         this.serverSlot = packet.getSelectedSlot();
       }
 
       if (e.getPacket() instanceof ClientCommandC2SPacket packet) {
-         switch (packet.method_12365()) {
-            case field_12979:
+         switch (packet.getMode()) {
+            case PRESS_SHIFT_KEY:
                this.serverSneaking = true;
                break;
-            case field_12984:
+            case RELEASE_SHIFT_KEY:
                this.serverSneaking = false;
          }
       }
 
       if (e.getPacket() instanceof ClientCommandC2SPacket command) {
-         if (command.method_12365().equals(Mode.field_12981)) {
+         if (command.getMode().equals(Mode.START_SPRINTING)) {
             e.setCancelled(this.serverSprinting);
             if (!e.isCancelled()) {
                this.sprintingChangeTicks = 0.0F;
             }
 
             this.serverSprinting = true;
-         } else if (command.method_12365().equals(Mode.field_12985)) {
+         } else if (command.getMode().equals(Mode.STOP_SPRINTING)) {
             e.setCancelled(!this.serverSprinting);
             if (!e.isCancelled()) {
                this.sprintingChangeTicks = 0.0F;
@@ -103,8 +103,8 @@ public class ServerManager implements IMinecraft {
 
    @Subscribe
    public void onPacketReceive(EventPacket e) {
-      if (e.getPacket() instanceof EntityStatusS2CPacket packet && packet.method_11470() == 35) {
-         if (!(packet.method_11469(mc.field_1687) instanceof PlayerEntity player)) {
+      if (e.getPacket() instanceof EntityStatusS2CPacket packet && packet.getStatus() == 35) {
+         if (!(packet.getEntity(mc.world) instanceof PlayerEntity player)) {
             return;
          }
 

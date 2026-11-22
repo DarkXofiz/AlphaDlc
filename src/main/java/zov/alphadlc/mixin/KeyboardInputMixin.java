@@ -16,26 +16,26 @@ public abstract class KeyboardInputMixin extends Input {
       at = {@At("TAIL")}
    )
    private void onTick(CallbackInfo ci) {
-      float forward = this.field_3905;
-      float strafe = this.field_3907;
-      boolean jump = ((KeyboardInput)this).field_54155.comp_3163();
-      boolean sneak = ((KeyboardInput)this).field_54155.comp_3164();
+      float forward = this.movementForward;
+      float strafe = this.movementSideways;
+      boolean jump = ((KeyboardInput)this).playerInput.comp_3163();
+      boolean sneak = ((KeyboardInput)this).playerInput.comp_3164();
       MoveInputEvent event = new MoveInputEvent(forward, strafe, jump, sneak, 0.3);
       event.post();
       if (event.isCancelled()) {
-         this.field_3905 = 0.0F;
-         this.field_3907 = 0.0F;
+         this.movementForward = 0.0F;
+         this.movementSideways = 0.0F;
       } else {
-         this.field_3905 = event.getForward();
-         this.field_3907 = event.getStrafe();
-         ((KeyboardInput)this).field_54155 = new PlayerInput(
+         this.movementForward = event.getForward();
+         this.movementSideways = event.getStrafe();
+         ((KeyboardInput)this).playerInput = new PlayerInput(
             event.getForward() > 0.0F,
             event.getForward() < 0.0F,
             event.getStrafe() > 0.0F,
             event.getStrafe() < 0.0F,
             event.isJump(),
             event.isSneaking(),
-            ((KeyboardInput)this).field_54155.comp_3165()
+            ((KeyboardInput)this).playerInput.comp_3165()
          );
       }
    }

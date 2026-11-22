@@ -10,6 +10,6 @@ public interface ICommandException extends QuickLogger {
    String getMessage();
 
    default void handle(ICommand command, List<ICommandArgument> args) {
-      this.logDirect(this.getMessage(), Formatting.field_1061);
+      this.logDirect(this.getMessage(), Formatting.RED);
    }
 }

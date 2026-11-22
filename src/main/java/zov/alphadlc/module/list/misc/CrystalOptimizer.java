@@ -17,7 +17,7 @@ public class CrystalOptimizer extends Module {
    @Subscribe
    private void onAttack(EventAttack e) {
       if (e.getEntity() instanceof EndCrystalEntity entity) {
-         entity.method_5650(RemovalReason.field_26999);
+         entity.remove(RemovalReason.DISCARDED);
       }
    }
 }

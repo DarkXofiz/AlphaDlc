@@ -15,20 +15,20 @@ import zov.alphadlc.module.ModuleInformation;
 public class Criticals extends Module {
    @Subscribe
    private void onAttack(EventAttack e) {
-      if (this.mc.field_1724.field_6017 == 0.0F && !this.mc.field_1724.method_24828()) {
-         this.mc.field_1724.field_6017 = 0.001F;
+      if (this.mc.player.fallDistance == 0.0F && !this.mc.player.isOnGround()) {
+         this.mc.player.fallDistance = 0.001F;
          this.mc
-            .field_1724
-            .field_3944
-            .method_52787(
+            .player
+            .networkHandler
+            .sendPacket(
                new Full(
-                  this.mc.field_1724.method_23317(),
-                  this.mc.field_1724.method_23318() - 9.99999999E-5,
-                  this.mc.field_1724.method_23321(),
-                  this.mc.field_1724.method_36454(),
-                  this.mc.field_1724.method_36455(),
+                  this.mc.player.getX(),
+                  this.mc.player.getY() - 9.99999999E-5,
+                  this.mc.player.getZ(),
+                  this.mc.player.getYaw(),
+                  this.mc.player.getPitch(),
                   false,
-                  this.mc.field_1724.field_5976
+                  this.mc.player.horizontalCollision
                )
             );
       }

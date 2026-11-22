@@ -23,10 +23,10 @@ import zov.alphadlc.util.render.providers.ResourceProvider;
 )
 public class Chams extends Module {
    private static final ShaderProgramKey FILL_SHADER = new ShaderProgramKey(
-      ResourceProvider.getShaderIdentifier("chams_fill"), VertexFormats.field_1575, Defines.field_53930
+      ResourceProvider.getShaderIdentifier("chams_fill"), VertexFormats.POSITION_TEXTURE_COLOR, Defines.EMPTY
    );
    private static final ShaderProgramKey WAVE_SHADER = new ShaderProgramKey(
-      ResourceProvider.getShaderIdentifier("chams_wave"), VertexFormats.field_1575, Defines.field_53930
+      ResourceProvider.getShaderIdentifier("chams_wave"), VertexFormats.POSITION_TEXTURE_COLOR, Defines.EMPTY
    );
    private static Chams instance;
    private final ModeSetting mode = new ModeSetting("\u0420\u0435\u0436\u0438\u043c", "Vanilla", "Vanilla", "Animated Fill", "Wave");
@@ -54,7 +54,7 @@ public class Chams extends Module {
       instance = this;
       LivingEntityFeatureRendererRegistrationCallback.EVENT
          .register((LivingEntityFeatureRendererRegistrationCallback)(entityType, entityRenderer, registrationHelper, context) -> {
-            if (entityType == EntityType.field_6097) {
+            if (entityType == EntityType.PLAYER) {
                registrationHelper.register(new ChamsRenderer(entityRenderer));
             }
          });
@@ -134,8 +134,8 @@ public class Chams extends Module {
    }
 
    private static void setUniform(ShaderProgram shader, String name, float value) {
-      if (shader != null && shader.method_34582(name) != null) {
-         shader.method_34582(name).method_1251(value);
+      if (shader != null && shader.getUniform(name) != null) {
+         shader.getUniform(name).set(value);
       }
    }
 }

@@ -17,6 +17,6 @@ public abstract class PlayerEntityMixin {
       )
    )
    private boolean redirectNoClip(PlayerEntity instance) {
-      return instance.method_7325() || Instance.get(FreeCamera.class).isEnabled();
+      return instance.isSpectator() || Instance.get(FreeCamera.class).isEnabled();
    }
 }

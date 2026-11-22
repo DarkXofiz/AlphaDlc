@@ -56,7 +56,7 @@ import zov.alphadlc.util.render.renderers.DrawUtil;
    moduleCategory = ModuleCategory.RENDER
 )
 public class Predictions extends Module {
-   private static final Identifier GLOW = Identifier.method_60655("mre", "images/glow.png");
+   private static final Identifier GLOW = Identifier.of("mre", "images/glow.png");
    private final ModeSetting renderMode = new ModeSetting(
       "\u0420\u0435\u0436\u0438\u043c \u0440\u0435\u043d\u0434\u0435\u0440\u0430", "Default", "Default", "Glow"
    );
@@ -75,42 +75,42 @@ public class Predictions extends Module {
          double time = (double)(ticks * 50) / 1000.0;
          String text = String.format("%.1f", time) + " \u0441\u0435\u043a";
          float textWidth = Fonts.SFREGULAR.get().getWidth(text, 7.0F);
-         float centerX = vec2f.method_32118();
-         float centerY = vec2f.method_32119();
+         float centerX = vec2f.getX();
+         float centerY = vec2f.getY();
          float totalHeight = 5.75F;
          float rectX = centerX - textWidth / 2.0F;
          float rectY = centerY - totalHeight / 2.0F;
          float textY = rectY + 5.0F;
          DrawUtil.drawRound(rectX - 7.0F, textY - 2.0F, textWidth + 14.75F, totalHeight + 5.0F, 0.0F, ColorProvider.rgba(0, 0, 0, 120.0F));
-         e.getDrawContext().method_51448().method_22903();
-         e.getDrawContext().method_51448().method_46416(rectX - 5.0F, textY - 0.75F, 0.0F);
-         e.getDrawContext().method_51448().method_22905(0.5F, 0.5F, 1.0F);
-         e.getDrawContext().method_51427(point.stack(), 0, 0);
-         e.getDrawContext().method_51448().method_22905(1.0F, 1.0F, 1.0F);
-         e.getDrawContext().method_51448().method_46416(-(rectX - 5.0F), -(textY - 0.75F), 0.0F);
-         e.getDrawContext().method_51448().method_22909();
+         e.getDrawContext().getMatrices().push();
+         e.getDrawContext().getMatrices().translate(rectX - 5.0F, textY - 0.75F, 0.0F);
+         e.getDrawContext().getMatrices().scale(0.5F, 0.5F, 1.0F);
+         e.getDrawContext().drawItem(point.stack(), 0, 0);
+         e.getDrawContext().getMatrices().scale(1.0F, 1.0F, 1.0F);
+         e.getDrawContext().getMatrices().translate(-(rectX - 5.0F), -(textY - 0.75F), 0.0F);
+         e.getDrawContext().getMatrices().pop();
          DrawUtil.drawText(Fonts.SFREGULAR.get(), text.replace(",", "."), rectX + 4.5F, textY - 0.5F, ColorProvider.rgba(255, 255, 255, 255.0F), 6.75F);
       }
    }
 
    @Subscribe
    public void onWorldRender(EventWorldRender e) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
+      if (this.mc.player != null && this.mc.world != null) {
          this.points.clear();
          float tickDelta = e.getTickDelta();
          long now = System.currentTimeMillis();
          MatrixStack matrices = e.getMatrixStack();
-         Camera camera = this.mc.field_1773.method_19418();
+         Camera camera = this.mc.gameRenderer.getCamera();
          boolean depth = !this.walls.getValue();
          if (this.renderMode.is("Glow")) {
             RenderSystem.enableBlend();
             RenderSystem.blendFunc(SrcFactor.SRC_ALPHA, DstFactor.ONE);
             RenderSystem.setShaderTexture(0, GLOW);
-            RenderSystem.setShader(ShaderProgramKeys.field_53880);
+            RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX_COLOR);
             RenderSystem.enableDepthTest();
             RenderSystem.depthMask(false);
             RenderSystem.disableCull();
-            BufferBuilder buffer = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1575);
+            BufferBuilder buffer = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
 
             for (Entity entity : this.getProjectiles()) {
                Predictions.SimulatedPath simulated = this.simulatePath(entity, tickDelta);
@@ -129,7 +129,7 @@ public class Predictions extends Module {
             }
 
             try {
-               BufferRenderer.method_43433(buffer.method_60800());
+               BufferRenderer.drawWithGlobalProgram(buffer.end());
             } catch (Exception var15) {
             }
 
@@ -139,31 +139,31 @@ public class Predictions extends Module {
             RenderSystem.defaultBlendFunc();
          } else {
             this.getProjectiles().forEach(entityx -> {
-               Vec3d motion = entityx.method_18798();
-               Vec3d pos = entityx.method_19538();
+               Vec3d motion = entityx.getVelocity();
+               Vec3d pos = entityx.getPos();
                int ticks = 0;
 
                for (int i = 0; i < 300; i++) {
                   Vec3d prevPos = pos;
-                  pos = pos.method_1019(motion);
+                  pos = pos.add(motion);
                   motion = this.calculateMotion(entityx, prevPos, motion);
-                  HitResult result = RaytraceUtil.raycast(prevPos, pos, ShapeType.field_17558, entityx);
-                  if (!result.method_17783().equals(Type.field_1333)) {
-                     pos = result.method_17784();
+                  HitResult result = RaytraceUtil.raycast(prevPos, pos, ShapeType.COLLIDER, entityx);
+                  if (!result.getType().equals(Type.MISS)) {
+                     pos = result.getPos();
                   }
 
-                  float alpha = MathHelper.method_15363((float)i / 25.0F, 0.0F, 1.0F) * 255.0F;
+                  float alpha = MathHelper.clamp((float)i / 25.0F, 0.0F, 1.0F) * 255.0F;
                   int baseColor = ColorProvider.setAlpha(ColorProvider.getColorClient(), (double)alpha);
                   DrawUtil.drawLine(prevPos, pos, baseColor, 2.0F, depth);
                   Vec3d finalPos = pos;
-                  boolean inEntity = StreamSupport.<Entity>stream(this.mc.field_1687.method_18112().spliterator(), false).filter(ent -> {
-                     if (ent instanceof LivingEntity living && living != this.mc.field_1724 && living.method_5805()) {
+                  boolean inEntity = StreamSupport.<Entity>stream(this.mc.world.getEntities().spliterator(), false).filter(ent -> {
+                     if (ent instanceof LivingEntity living && living != this.mc.player && living.isAlive()) {
                         return true;
                      }
 
                      return false;
-                  }).anyMatch(ent -> ent.method_5829().method_1014(0.25).method_993(prevPos, finalPos));
-                  if (result.method_17783().equals(Type.field_1332) || pos.field_1351 < -128.0 || inEntity || result.method_17783().equals(Type.field_1331)) {
+                  }).anyMatch(ent -> ent.getBoundingBox().expand(0.25).intersects(prevPos, finalPos));
+                  if (result.getType().equals(Type.BLOCK) || pos.y < -128.0 || inEntity || result.getType().equals(Type.ENTITY)) {
                      this.breakingBad(entityx, pos, ticks);
                      break;
                   }
@@ -178,30 +178,30 @@ public class Predictions extends Module {
    private Predictions.SimulatedPath simulatePath(Entity entity, float tickDelta) {
       List<Vec3d> path = new ArrayList<>();
       Vec3d renderPos = this.getInterpolatedPos(entity, tickDelta);
-      Vec3d pos = entity.method_19538();
-      Vec3d motion = entity.method_18798();
+      Vec3d pos = entity.getPos();
+      Vec3d motion = entity.getVelocity();
       Vec3d hitPos = null;
       int hitTicks = 0;
       this.addIfFar(path, renderPos);
-      if (renderPos.method_1025(pos) > 1.0E-5) {
-         this.addIfFar(path, renderPos.method_35590(pos, 0.35));
-         this.addIfFar(path, renderPos.method_35590(pos, 0.7));
+      if (renderPos.squaredDistanceTo(pos) > 1.0E-5) {
+         this.addIfFar(path, renderPos.lerp(pos, 0.35));
+         this.addIfFar(path, renderPos.lerp(pos, 0.7));
       }
 
       this.addIfFar(path, pos);
 
       for (int i = 0; i < 220; i++) {
          Vec3d prevPos = pos;
-         pos = pos.method_1019(motion);
+         pos = pos.add(motion);
          motion = this.calculateMotion(entity, prevPos, motion);
-         HitResult result = RaytraceUtil.raycast(prevPos, pos, ShapeType.field_17558, entity);
-         if (result.method_17783() != Type.field_1333) {
-            pos = result.method_17784();
+         HitResult result = RaytraceUtil.raycast(prevPos, pos, ShapeType.COLLIDER, entity);
+         if (result.getType() != Type.MISS) {
+            pos = result.getPos();
          }
 
          this.addIfFar(path, pos);
          boolean hitEntity = this.hitsEntity(entity, prevPos, pos);
-         if (result.method_17783() == Type.field_1332 || result.method_17783() == Type.field_1331 || hitEntity || pos.field_1351 < -128.0) {
+         if (result.getType() == Type.BLOCK || result.getType() == Type.ENTITY || hitEntity || pos.y < -128.0) {
             hitPos = pos;
             hitTicks = i + 1;
             break;
@@ -213,14 +213,14 @@ public class Predictions extends Module {
 
    private Vec3d getInterpolatedPos(Entity entity, float tickDelta) {
       return new Vec3d(
-         MathHelper.method_16436((double)tickDelta, entity.field_6014, entity.method_23317()),
-         MathHelper.method_16436((double)tickDelta, entity.field_6036, entity.method_23318()),
-         MathHelper.method_16436((double)tickDelta, entity.field_5969, entity.method_23321())
+         MathHelper.lerp((double)tickDelta, entity.prevX, entity.getX()),
+         MathHelper.lerp((double)tickDelta, entity.prevY, entity.getY()),
+         MathHelper.lerp((double)tickDelta, entity.prevZ, entity.getZ())
       );
    }
 
    private void addIfFar(List<Vec3d> list, Vec3d point) {
-      if (list.isEmpty() || list.get(list.size() - 1).method_1025(point) > 1.0E-6) {
+      if (list.isEmpty() || list.get(list.size() - 1).squaredDistanceTo(point) > 1.0E-6) {
          list.add(point);
       }
    }
@@ -237,8 +237,8 @@ public class Predictions extends Module {
             Vec3d p1 = raw.get(i);
             Vec3d p2 = raw.get(i + 1);
             Vec3d p3 = raw.get(Math.min(raw.size() - 1, i + 2));
-            double dist = p1.method_1022(p2);
-            int steps = MathHelper.method_15340((int)Math.ceil(dist / 0.08), 3, 8);
+            double dist = p1.distanceTo(p2);
+            int steps = MathHelper.clamp((int)Math.ceil(dist / 0.08), 3, 8);
 
             for (int j = 1; j <= steps; j++) {
                float t = (float)j / (float)steps;
@@ -255,31 +255,31 @@ public class Predictions extends Module {
       double t3 = t2 * (double)t;
       double x = 0.5
          * (
-            2.0 * p1.field_1352
-               + (-p0.field_1352 + p2.field_1352) * (double)t
-               + (2.0 * p0.field_1352 - 5.0 * p1.field_1352 + 4.0 * p2.field_1352 - p3.field_1352) * t2
-               + (-p0.field_1352 + 3.0 * p1.field_1352 - 3.0 * p2.field_1352 + p3.field_1352) * t3
+            2.0 * p1.x
+               + (-p0.x + p2.x) * (double)t
+               + (2.0 * p0.x - 5.0 * p1.x + 4.0 * p2.x - p3.x) * t2
+               + (-p0.x + 3.0 * p1.x - 3.0 * p2.x + p3.x) * t3
          );
       double y = 0.5
          * (
-            2.0 * p1.field_1351
-               + (-p0.field_1351 + p2.field_1351) * (double)t
-               + (2.0 * p0.field_1351 - 5.0 * p1.field_1351 + 4.0 * p2.field_1351 - p3.field_1351) * t2
-               + (-p0.field_1351 + 3.0 * p1.field_1351 - 3.0 * p2.field_1351 + p3.field_1351) * t3
+            2.0 * p1.y
+               + (-p0.y + p2.y) * (double)t
+               + (2.0 * p0.y - 5.0 * p1.y + 4.0 * p2.y - p3.y) * t2
+               + (-p0.y + 3.0 * p1.y - 3.0 * p2.y + p3.y) * t3
          );
       double z = 0.5
          * (
-            2.0 * p1.field_1350
-               + (-p0.field_1350 + p2.field_1350) * (double)t
-               + (2.0 * p0.field_1350 - 5.0 * p1.field_1350 + 4.0 * p2.field_1350 - p3.field_1350) * t2
-               + (-p0.field_1350 + 3.0 * p1.field_1350 - 3.0 * p2.field_1350 + p3.field_1350) * t3
+            2.0 * p1.z
+               + (-p0.z + p2.z) * (double)t
+               + (2.0 * p0.z - 5.0 * p1.z + 4.0 * p2.z - p3.z) * t2
+               + (-p0.z + 3.0 * p1.z - 3.0 * p2.z + p3.z) * t3
          );
       return new Vec3d(x, y, z);
    }
 
    private boolean hitsEntity(Entity projectile, Vec3d from, Vec3d to) {
-      return this.mc.field_1687 == null ? false : !this.mc.field_1687.method_8333(projectile, new Box(from, to).method_1014(0.3), ent -> {
-         if (ent instanceof LivingEntity living && living != this.mc.field_1724 && living.method_5805()) {
+      return this.mc.world == null ? false : !this.mc.world.getOtherEntities(projectile, new Box(from, to).expand(0.3), ent -> {
+         if (ent instanceof LivingEntity living && living != this.mc.player && living.isAlive()) {
             return true;
          }
 
@@ -297,7 +297,7 @@ public class Predictions extends Module {
             float progress = (float)i / (float)lastIndex;
             float fade = 1.0F - progress;
             fade = fade * fade * (3.0F - 2.0F * fade);
-            float shimmer = 1.0F + 0.025F * MathHelper.method_15374(anim * 5.0F + progress * 10.0F);
+            float shimmer = 1.0F + 0.025F * MathHelper.sin(anim * 5.0F + progress * 10.0F);
             float size = (0.065F + fade * 0.11F) * shimmer;
             int color = this.interpolateColor(startColor, endColor, progress);
             int bright = this.interpolateColor(color, -1, 0.3F);
@@ -309,7 +309,7 @@ public class Predictions extends Module {
    }
 
    private void renderImpactGlow(BufferBuilder buffer, MatrixStack matrices, Camera camera, Vec3d pos, int color, long now) {
-      float pulse = 1.0F + 0.08F * MathHelper.method_15374((float)(now % 3000L) / 120.0F);
+      float pulse = 1.0F + 0.08F * MathHelper.sin((float)(now % 3000L) / 120.0F);
       int bright = this.interpolateColor(color, -1, 0.45F);
       this.drawGlow(buffer, matrices, camera, pos, 0.7F * pulse, this.withAlpha(color, 45));
       this.drawGlow(buffer, matrices, camera, pos, 0.42F * pulse, this.withAlpha(color, 115));
@@ -317,26 +317,26 @@ public class Predictions extends Module {
    }
 
    private void drawGlow(BufferBuilder buffer, MatrixStack matrices, Camera camera, Vec3d worldPos, float scale, int color) {
-      Vec3d camPos = camera.method_19326();
-      matrices.method_22903();
-      matrices.method_22904(worldPos.field_1352 - camPos.field_1352, worldPos.field_1351 - camPos.field_1351, worldPos.field_1350 - camPos.field_1350);
-      matrices.method_22907(RotationAxis.field_40716.rotationDegrees(-camera.method_19330()));
-      matrices.method_22907(RotationAxis.field_40714.rotationDegrees(camera.method_19329()));
-      Matrix4f mat = matrices.method_23760().method_23761();
-      buffer.method_22918(mat, -scale, scale, 0.0F).method_22913(0.0F, 1.0F).method_39415(color);
-      buffer.method_22918(mat, scale, scale, 0.0F).method_22913(1.0F, 1.0F).method_39415(color);
-      buffer.method_22918(mat, scale, -scale, 0.0F).method_22913(1.0F, 0.0F).method_39415(color);
-      buffer.method_22918(mat, -scale, -scale, 0.0F).method_22913(0.0F, 0.0F).method_39415(color);
-      matrices.method_22909();
+      Vec3d camPos = camera.getPos();
+      matrices.push();
+      matrices.translate(worldPos.x - camPos.x, worldPos.y - camPos.y, worldPos.z - camPos.z);
+      matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-camera.getYaw()));
+      matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(camera.getPitch()));
+      Matrix4f mat = matrices.peek().getPositionMatrix();
+      buffer.vertex(mat, -scale, scale, 0.0F).texture(0.0F, 1.0F).color(color);
+      buffer.vertex(mat, scale, scale, 0.0F).texture(1.0F, 1.0F).color(color);
+      buffer.vertex(mat, scale, -scale, 0.0F).texture(1.0F, 0.0F).color(color);
+      buffer.vertex(mat, -scale, -scale, 0.0F).texture(0.0F, 0.0F).color(color);
+      matrices.pop();
    }
 
    private int withAlpha(int color, int alpha) {
-      alpha = MathHelper.method_15340(alpha, 0, 255);
+      alpha = MathHelper.clamp(alpha, 0, 255);
       return alpha << 24 | color & 16777215;
    }
 
    private int interpolateColor(int start, int end, float t) {
-      t = MathHelper.method_15363(t, 0.0F, 1.0F);
+      t = MathHelper.clamp(t, 0.0F, 1.0F);
       int sr = start >> 16 & 0xFF;
       int sg = start >> 8 & 0xFF;
       int sb = start & 0xFF;
@@ -350,7 +350,7 @@ public class Predictions extends Module {
    }
 
    public List<Entity> getProjectiles() {
-      return StreamSupport.<Entity>stream(this.mc.field_1687.method_18112().spliterator(), false).filter(e -> {
+      return StreamSupport.<Entity>stream(this.mc.world.getEntities().spliterator(), false).filter(e -> {
          if (this.visible(e)) {
             return false;
          } else if (e instanceof TridentEntity) {
@@ -366,10 +366,10 @@ public class Predictions extends Module {
    }
 
    public Vec3d calculateMotion(Entity entity, Vec3d prevPos, Vec3d motion) {
-      boolean isInWater = Objects.requireNonNull(this.mc.field_1687)
-         .method_8320(BlockPos.method_49638(prevPos))
-         .method_26227()
-         .method_15767(FluidTags.field_15517);
+      boolean isInWater = Objects.requireNonNull(this.mc.world)
+         .getBlockState(BlockPos.ofFloored(prevPos))
+         .getFluidState()
+         .isIn(FluidTags.WATER);
       Objects.requireNonNull(entity);
 
       float multiply = switch (entity) {
@@ -377,30 +377,30 @@ public class Predictions extends Module {
          case PersistentProjectileEntity ix when isInWater -> 0.6F;
          default -> isInWater ? 0.8F : 0.99F;
       };
-      return motion.method_1021((double)multiply).method_1031(0.0, -entity.method_56989(), 0.0);
+      return motion.multiply((double)multiply).add(0.0, -entity.getFinalGravity(), 0.0);
    }
 
    private void breakingBad(Entity entity, Vec3d pos, int ticks) {
       Objects.requireNonNull(entity);
       switch (entity) {
          case ItemEntity item:
-            this.points.add(new Predictions.Point(item.method_6983(), pos, ticks));
+            this.points.add(new Predictions.Point(item.getStack(), pos, ticks));
             break;
          case ThrownItemEntity thrown:
-            this.points.add(new Predictions.Point(thrown.method_7495(), pos, ticks));
+            this.points.add(new Predictions.Point(thrown.getStack(), pos, ticks));
             break;
          case PersistentProjectileEntity persistent:
-            this.points.add(new Predictions.Point(persistent.method_54759(), pos, ticks));
+            this.points.add(new Predictions.Point(persistent.getItemStack(), pos, ticks));
             break;
       }
    }
 
    private boolean visible(Entity entity) {
-      boolean posChange = entity.method_23317() == entity.field_6014
-         && entity.method_23318() == entity.field_6036
-         && entity.method_23321() == entity.field_5969;
+      boolean posChange = entity.getX() == entity.prevX
+         && entity.getY() == entity.prevY
+         && entity.getZ() == entity.prevZ;
       boolean itemEntityCheck = entity instanceof ItemEntity
-         && (entity.method_24828() || WorldUtils.isBoxInBlock(entity.method_5829().method_1014(2.0), Blocks.field_10382));
+         && (entity.isOnGround() || WorldUtils.isBoxInBlock(entity.getBoundingBox().expand(2.0), Blocks.WATER));
       return posChange || itemEntityCheck;
    }
 

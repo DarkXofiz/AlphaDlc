@@ -55,14 +55,14 @@ public class Panel implements IMinecraft {
 
    public void clampScroll() {
       if (this.maxScroll > 0.0F) {
-         this.scroll = MathHelper.method_15363(this.scroll, -this.maxScroll, 0.0F);
+         this.scroll = MathHelper.clamp(this.scroll, -this.maxScroll, 0.0F);
       } else {
          this.scroll = 0.0F;
       }
    }
 
    public void render(DrawContext context, int mouseX, int mouseY, float partialTicks) {
-      float alphaRatio = MathHelper.method_15363(this.slideAnim.getValue(), 0.0F, 1.0F);
+      float alphaRatio = MathHelper.clamp(this.slideAnim.getValue(), 0.0F, 1.0F);
       this.animationAlpha.setValue(alphaRatio);
       float alpha = Math.min(255.0F * alphaRatio, 255.0F);
       float cornerRadius = 8.0F;
@@ -141,7 +141,7 @@ public class Panel implements IMinecraft {
 
                while (var25.hasNext()) {
                   Component comp = (Component)var25.next();
-                  float visibleProgress = MathHelper.method_15363(comp.getAlphaAnimSetting().getValue(), 0.0F, 1.0F);
+                  float visibleProgress = MathHelper.clamp(comp.getAlphaAnimSetting().getValue(), 0.0F, 1.0F);
                   if (comp.isVisible() || visibleProgress > 0.0F) {
                      extraHeight += comp.getHeight() * visibleProgress;
                   }

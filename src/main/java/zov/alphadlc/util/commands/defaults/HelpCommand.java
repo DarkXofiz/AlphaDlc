@@ -43,11 +43,11 @@ public class HelpCommand extends Command {
          this.logDirect("");
          command.getLongDesc().forEach(this::logDirect);
          this.logDirect("");
-         MutableText returnComponent = Text.method_43470(
+         MutableText returnComponent = Text.literal(
             "\u041d\u0430\u0436\u043c\u0438\u0442\u0435 \u0447\u0442\u043e \u0431\u044b \u0432\u0435\u0440\u043d\u0443\u0442\u044c\u0441\u044f \u043e\u0431\u0440\u0430\u0442\u043d\u043e \u0432 \u043c\u0435\u043d\u044e"
          );
-         returnComponent.method_10862(
-            returnComponent.method_10866().method_10958(new ClickEvent(Action.field_11750, IBaritoneChatControl.FORCE_COMMAND_PREFIX + label))
+         returnComponent.setStyle(
+            returnComponent.getStyle().withClickEvent(new ClickEvent(Action.RUN_COMMAND, IBaritoneChatControl.FORCE_COMMAND_PREFIX + label))
          );
          this.logDirect(new Text[]{returnComponent});
       } else {
@@ -60,25 +60,25 @@ public class HelpCommand extends Command {
             commandx -> {
                String names = String.join("/", commandx.getNames());
                String name = commandx.getNames().get(0);
-               MutableText shortDescComponent = Text.method_43470(Formatting.field_1063 + " - " + Formatting.field_1080 + commandx.getShortDesc());
-               shortDescComponent.method_10862(shortDescComponent.method_10866().method_10977(Formatting.field_1080));
-               MutableText namesComponent = Text.method_43470(names);
-               namesComponent.method_10862(namesComponent.method_10866().method_10977(Formatting.field_1068));
-               MutableText hoverComponent = Text.method_43470("");
-               hoverComponent.method_10862(hoverComponent.method_10866().method_10977(Formatting.field_1080));
-               hoverComponent.method_10852(namesComponent);
-               hoverComponent.method_27693("\n" + commandx.getShortDesc());
-               hoverComponent.method_27693(
+               MutableText shortDescComponent = Text.literal(Formatting.DARK_GRAY + " - " + Formatting.GRAY + commandx.getShortDesc());
+               shortDescComponent.setStyle(shortDescComponent.getStyle().withColor(Formatting.GRAY));
+               MutableText namesComponent = Text.literal(names);
+               namesComponent.setStyle(namesComponent.getStyle().withColor(Formatting.WHITE));
+               MutableText hoverComponent = Text.literal("");
+               hoverComponent.setStyle(hoverComponent.getStyle().withColor(Formatting.GRAY));
+               hoverComponent.append(namesComponent);
+               hoverComponent.append("\n" + commandx.getShortDesc());
+               hoverComponent.append(
                   "\n\n\u041d\u0430\u0436\u043c\u0438\u0442\u0435, \u0447\u0442\u043e\u0431\u044b \u043f\u0440\u043e\u0441\u043c\u043e\u0442\u0440\u0435\u0442\u044c \u043f\u043e\u043b\u043d\u0443\u044e \u0441\u043f\u0440\u0430\u0432\u043a\u0443 \u043e \u043a\u043e\u043c\u0430\u043d\u0434\u0435"
                );
                String clickCommand = IBaritoneChatControl.FORCE_COMMAND_PREFIX + String.format("%s %s", label, commandx.getNames().get(0));
-               MutableText component = Text.method_43470(name);
-               component.method_10862(component.method_10866().method_10977(Formatting.field_1080));
-               component.method_10852(shortDescComponent);
-               component.method_10862(
-                  component.method_10866()
-                     .method_10949(new HoverEvent(net.minecraft.text.HoverEvent.Action.field_24342, hoverComponent))
-                     .method_10958(new ClickEvent(Action.field_11750, clickCommand))
+               MutableText component = Text.literal(name);
+               component.setStyle(component.getStyle().withColor(Formatting.GRAY));
+               component.append(shortDescComponent);
+               component.setStyle(
+                  component.getStyle()
+                     .withHoverEvent(new HoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, hoverComponent))
+                     .withClickEvent(new ClickEvent(Action.RUN_COMMAND, clickCommand))
                );
                return component;
             },

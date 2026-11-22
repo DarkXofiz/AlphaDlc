@@ -18,9 +18,9 @@ public class CordsDropper extends Module {
    @Subscribe
    private void onKey(EventKeyInput e) {
       if (e.getAction() != 0) {
-         if (e.getKey() == this.bind.getValue() && this.mc.field_1724 != null) {
-            String message = String.format("! %.0f %.0f !!!", this.mc.field_1724.method_23317(), this.mc.field_1724.method_23321());
-            this.mc.field_1724.field_3944.method_45729(message);
+         if (e.getKey() == this.bind.getValue() && this.mc.player != null) {
+            String message = String.format("! %.0f %.0f !!!", this.mc.player.getX(), this.mc.player.getZ());
+            this.mc.player.networkHandler.sendChatMessage(message);
          }
       }
    }

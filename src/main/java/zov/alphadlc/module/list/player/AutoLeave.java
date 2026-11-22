@@ -22,20 +22,20 @@ public class AutoLeave extends Module {
 
    @Subscribe
    private void onTick(EventTick event) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null && this.mc.method_1562() != null) {
+      if (this.mc.player != null && this.mc.world != null && this.mc.getNetworkHandler() != null) {
          double triggerDistance = this.distance.getValue();
 
-         for (PlayerEntity player : this.mc.field_1687.method_18456()) {
-            if (player != this.mc.field_1724
-               && !player.method_7325()
-               && !FriendRepository.isFriend(player.method_5820())
-               && !((double)this.mc.field_1724.method_5739(player) > triggerDistance)) {
+         for (PlayerEntity player : this.mc.world.getPlayers()) {
+            if (player != this.mc.player
+               && !player.isSpectator()
+               && !FriendRepository.isFriend(player.getNameForScoreboard())
+               && !((double)this.mc.player.distanceTo(player) > triggerDistance)) {
                if (this.mode.is("Hub")) {
-                  this.mc.method_1562().method_45730("hub");
+                  this.mc.getNetworkHandler().sendChatCommand("hub");
                } else if (this.mode.is("Spawn")) {
-                  this.mc.method_1562().method_45730("spawn");
+                  this.mc.getNetworkHandler().sendChatCommand("spawn");
                } else {
-                  this.mc.method_1562().method_48296().method_10747(Text.method_43470("AutoLeave"));
+                  this.mc.getNetworkHandler().getConnection().disconnect(Text.literal("AutoLeave"));
                }
 
                this.setEnabled(false);

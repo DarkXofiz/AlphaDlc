@@ -8,7 +8,7 @@ public interface IComponent {
    }
 
    default void render(DrawContext context, int mouseX, int mouseY, float partialTicks) {
-      this.render(context.method_51448(), mouseX, mouseY, partialTicks);
+      this.render(context.getMatrices(), mouseX, mouseY, partialTicks);
    }
 
    default void mouseClicked(double mouseX, double mouseY, int button) {

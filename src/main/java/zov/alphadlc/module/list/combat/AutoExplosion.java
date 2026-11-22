@@ -46,7 +46,7 @@ public class AutoExplosion extends Module {
 
    @Subscribe
    private void onObsidianPlace(EventObsidianPlace e) {
-      int crystalSlot = InventoryUtil.searchItemHotbar(Items.field_8301);
+      int crystalSlot = InventoryUtil.searchItemHotbar(Items.END_CRYSTAL);
       if (crystalSlot != -1) {
          if (this.obsidianPos == null && this.condition(e.getBlockPos())) {
             this.obsidianPos = e.getBlockPos();
@@ -62,13 +62,13 @@ public class AutoExplosion extends Module {
       }
 
       if (this.entityToAttack != null) {
-         if (this.mc.field_1724.method_33571().method_1022(BestPoint.getNearestPoint(this.entityToAttack)) < 3.0) {
+         if (this.mc.player.getEyePos().distanceTo(BestPoint.getNearestPoint(this.entityToAttack)) < 3.0) {
             Rotation rotation = new Rotation(RotationUtil.calculate(BestPoint.getNearestPoint(this.entityToAttack)));
             RotationComponent.update(rotation, 360.0F, 360.0F, 360.0F, 360.0F, 0, 55, false);
             SlownessManager.addTimeTask(new SlownessManager.TimeTask(50L, () -> {
                if (this.entityToAttack != null) {
-                  this.mc.field_1761.method_2918(this.mc.field_1724, this.entityToAttack);
-                  this.mc.field_1724.method_6104(Hand.field_5808);
+                  this.mc.interactionManager.attackEntity(this.mc.player, this.entityToAttack);
+                  this.mc.player.swingHand(Hand.MAIN_HAND);
                   this.entityToAttack = null;
                }
             }, true));
@@ -78,22 +78,22 @@ public class AutoExplosion extends Module {
       }
 
       if (this.obsidianPos != null) {
-         Rotation rotation = new Rotation(Vec3d.method_24953(this.obsidianPos));
+         Rotation rotation = new Rotation(Vec3d.ofCenter(this.obsidianPos));
          RotationComponent.update(rotation, 360.0F, 360.0F, 360.0F, 360.0F, 0, 55, false);
-         int slot = InventoryUtil.searchItemHotbar(Items.field_8301);
+         int slot = InventoryUtil.searchItemHotbar(Items.END_CRYSTAL);
          SlownessManager.addTimeTask(new SlownessManager.TimeTask(5L, () -> {
-            if (slot != -1 && this.mc.field_1765 instanceof BlockHitResult hitResult) {
+            if (slot != -1 && this.mc.crosshairTarget instanceof BlockHitResult hitResult) {
                if (this.prevSlot == -1) {
-                  this.prevSlot = this.mc.field_1724.method_31548().field_7545;
+                  this.prevSlot = this.mc.player.getInventory().selectedSlot;
                }
 
-               this.mc.field_1724.method_31548().field_7545 = slot;
-               BlockPos placePos = hitResult.method_17777();
+               this.mc.player.getInventory().selectedSlot = slot;
+               BlockPos placePos = hitResult.getBlockPos();
                this.myCrystalPlaces.add(placePos);
-               this.mc.field_1761.method_2896(this.mc.field_1724, Hand.field_5808, hitResult);
+               this.mc.interactionManager.interactBlock(this.mc.player, Hand.MAIN_HAND, hitResult);
                SlownessManager.addTimeTask(new SlownessManager.TimeTask(5L, () -> {
                   if (this.prevSlot != -1) {
-                     this.mc.field_1724.method_31548().field_7545 = this.prevSlot;
+                     this.mc.player.getInventory().selectedSlot = this.prevSlot;
                   }
 
                   this.prevSlot = -1;
@@ -106,8 +106,8 @@ public class AutoExplosion extends Module {
 
    @Subscribe
    private void onRightClick(EventRightClickBlock e) {
-      if (this.mc.field_1724.method_6047().method_7909() == Items.field_8301) {
-         BlockPos placePos = e.getHitResult().method_17777().method_10084();
+      if (this.mc.player.getMainHandStack().getItem() == Items.END_CRYSTAL) {
+         BlockPos placePos = e.getHitResult().getBlockPos().up();
          this.myCrystalPlaces.add(placePos);
       }
    }
@@ -115,7 +115,7 @@ public class AutoExplosion extends Module {
    @Subscribe
    private void onEntitySpawn(EventEntitySpawn e) {
       if (e.getEntity() instanceof EndCrystalEntity crystal) {
-         BlockPos var4 = crystal.method_24515();
+         BlockPos var4 = crystal.getBlockPos();
          if (this.myCrystalPlaces.contains(var4)) {
             this.entityToAttack = crystal;
             this.myCrystalPlaces.remove(var4);
@@ -124,24 +124,24 @@ public class AutoExplosion extends Module {
    }
 
    private boolean condition(BlockPos blockPos) {
-      if (this.saveSelf.getValue() && this.mc.field_1724.method_23318() > (double)blockPos.method_10264()) {
+      if (this.saveSelf.getValue() && this.mc.player.getY() > (double)blockPos.getY()) {
          return false;
       } else {
-         for (Entity entity : this.mc.field_1687.method_18112()) {
-            if (entity != this.mc.field_1724) {
+         for (Entity entity : this.mc.world.getEntities()) {
+            if (entity != this.mc.player) {
                if (this.saveResources.getValue() && entity instanceof ItemEntity item) {
-                  double dx = Math.abs(item.method_23317() - (double)blockPos.method_10263());
-                  double dy = Math.abs(item.method_23318() - (double)blockPos.method_10264());
-                  double dz = Math.abs(item.method_23321() - (double)blockPos.method_10260());
+                  double dx = Math.abs(item.getX() - (double)blockPos.getX());
+                  double dy = Math.abs(item.getY() - (double)blockPos.getY());
+                  double dz = Math.abs(item.getZ() - (double)blockPos.getZ());
                   if (dx < 4.0 && dy < 2.0 && dz < 4.0) {
                      return false;
                   }
                }
 
                if (entity instanceof PlayerEntity player
-                  && FriendRepository.isFriend(player.method_5820())
+                  && FriendRepository.isFriend(player.getNameForScoreboard())
                   && this.saveFriend.getValue()
-                  && player.method_23318() > (double)blockPos.method_10264()) {
+                  && player.getY() > (double)blockPos.getY()) {
                   return false;
                }
             }

@@ -47,24 +47,24 @@ public class Speed extends Module {
          if (this.ticks > 3) {
             double boost = 0.03;
             if (this.ticks % 2 == 0) {
-               this.mc.field_1724.method_5762(0.0, 0.03, 0.0);
-               boost = this.mc.field_1724.method_24828() ? 0.085 : 0.03;
+               this.mc.player.addVelocity(0.0, 0.03, 0.0);
+               boost = this.mc.player.isOnGround() ? 0.085 : 0.03;
             }
 
             double yaw = Math.toRadians(MoveUtil.getDirection());
             double x2 = -Math.sin(yaw);
             double z2 = Math.cos(yaw);
-            if (this.mc.field_1724.field_3913.field_3905 == -1.0F) {
+            if (this.mc.player.input.movementForward == -1.0F) {
                x2 = 0.0;
                z2 = 0.0;
             }
 
-            this.mc.field_1724.method_5762(x2 * boost, 0.0, z2 * boost);
+            this.mc.player.addVelocity(x2 * boost, 0.0, z2 * boost);
          }
 
          this.ticks++;
          if (this.ticks % 2 == 0) {
-            this.mc.method_1562().method_52787(new ClientCommandC2SPacket(this.mc.field_1724, Mode.field_12982));
+            this.mc.getNetworkHandler().sendPacket(new ClientCommandC2SPacket(this.mc.player, Mode.START_FALL_FLYING));
          }
       }
    }
@@ -72,30 +72,30 @@ public class Speed extends Module {
    private void tickCollision() {
       if (MoveUtil.isMoving()) {
          double scanRadius = 1.25;
-         Box searchBox = this.mc.field_1724.method_5829().method_1014(scanRadius);
+         Box searchBox = this.mc.player.getBoundingBox().expand(scanRadius);
 
-         for (Entity entity2 : this.mc.field_1687.method_8333(this.mc.field_1724, searchBox, entity -> entity instanceof PlayerEntity)) {
+         for (Entity entity2 : this.mc.world.getOtherEntities(this.mc.player, searchBox, entity -> entity instanceof PlayerEntity)) {
             if (entity2 instanceof PlayerEntity) {
-               double distanceX = Math.abs(this.mc.field_1724.method_23317() - entity2.method_23317());
-               double distanceZ = Math.abs(this.mc.field_1724.method_23321() - entity2.method_23321());
+               double distanceX = Math.abs(this.mc.player.getX() - entity2.getX());
+               double distanceZ = Math.abs(this.mc.player.getZ() - entity2.getZ());
                if (!(distanceX > 2.1) && !(distanceZ > 1.3)) {
                   double entitySpeed = this.getEntitySpeed(entity2);
                   if (entitySpeed < 5.0) {
                      double boostAmount = 0.02;
-                     Box collisionBox = this.mc.field_1724.method_5829().method_1014(0.1);
-                     List<Entity> collisionEntities = this.mc.field_1687.method_8333(this.mc.field_1724, collisionBox, e2 -> e2 instanceof PlayerEntity);
+                     Box collisionBox = this.mc.player.getBoundingBox().expand(0.1);
+                     List<Entity> collisionEntities = this.mc.world.getOtherEntities(this.mc.player, collisionBox, e2 -> e2 instanceof PlayerEntity);
                      if (!collisionEntities.isEmpty()) {
                         double[] motion = this.forward(boostAmount);
-                        this.mc.field_1724.method_5762(motion[0], 0.0, motion[1]);
+                        this.mc.player.addVelocity(motion[0], 0.0, motion[1]);
                      }
                   } else {
                      double boostAmount = 0.032;
-                     Box checkBox = this.mc.field_1724.method_5829().method_1014(1.25);
-                     List<Entity> potentialCollisions = this.mc.field_1687.method_8333(this.mc.field_1724, checkBox, e2 -> e2 instanceof PlayerEntity);
+                     Box checkBox = this.mc.player.getBoundingBox().expand(1.25);
+                     List<Entity> potentialCollisions = this.mc.world.getOtherEntities(this.mc.player, checkBox, e2 -> e2 instanceof PlayerEntity);
                      int collisions = 0;
 
                      for (Entity collisionEntity : potentialCollisions) {
-                        double distToCollision = (double)this.mc.field_1724.method_5739(collisionEntity);
+                        double distToCollision = (double)this.mc.player.distanceTo(collisionEntity);
                         if (distToCollision <= 1.25) {
                            collisions++;
                         }
@@ -103,7 +103,7 @@ public class Speed extends Module {
 
                      if (collisions > 0) {
                         double[] motion = this.forward(boostAmount);
-                        this.mc.field_1724.method_5762(motion[0], 0.0, motion[1]);
+                        this.mc.player.addVelocity(motion[0], 0.0, motion[1]);
                      }
                   }
                   break;
@@ -115,10 +115,10 @@ public class Speed extends Module {
 
    @Subscribe
    public void onMoveInput(MoveInputEvent event) {
-      if (this.mode.is("RW") && this.mc.field_1724 != null && MoveUtil.isMoving()) {
-         this.groundTicks = this.mc.field_1724.field_5992 ? ++this.groundTicks : 0;
+      if (this.mode.is("RW") && this.mc.player != null && MoveUtil.isMoving()) {
+         this.groundTicks = this.mc.player.verticalCollision ? ++this.groundTicks : 0;
          if (this.groundTicks >= 1) {
-            this.mc.field_1724.method_6043();
+            this.mc.player.jump();
          }
       } else {
          this.groundTicks = 0;
@@ -127,7 +127,7 @@ public class Speed extends Module {
 
    @Subscribe
    public void onPacket(EventPacket event) {
-      if (this.mode.is("RW") && this.mc.field_1724 != null && event.getType() == EventPacket.Type.RECEIVE) {
+      if (this.mode.is("RW") && this.mc.player != null && event.getType() == EventPacket.Type.RECEIVE) {
          if (event.getPacket() instanceof PlayerPositionLookS2CPacket && this.ticks % 2 == 1) {
             this.ticks++;
          }
@@ -135,19 +135,19 @@ public class Speed extends Module {
    }
 
    public double getEntitySpeed(Entity entity) {
-      Vec3d currentPos = entity.method_19538();
+      Vec3d currentPos = entity.getPos();
       Vec3d previousPos = this.previousPositions.getOrDefault(entity, currentPos);
-      double dx = currentPos.field_1352 - previousPos.field_1352;
-      double dz = currentPos.field_1350 - previousPos.field_1350;
+      double dx = currentPos.x - previousPos.x;
+      double dz = currentPos.z - previousPos.z;
       double speed = Math.sqrt(dx * dx + dz * dz) * 20.0;
       this.previousPositions.put(entity, currentPos);
       return speed;
    }
 
    private double[] forward(double speed) {
-      float forward = this.mc.field_1724.field_3913.field_3905;
-      float strafe = this.mc.field_1724.field_3913.field_3907;
-      float yaw = this.mc.field_1724.method_36454();
+      float forward = this.mc.player.input.movementForward;
+      float strafe = this.mc.player.input.movementSideways;
+      float yaw = this.mc.player.getYaw();
       if (forward != 0.0F) {
          if (strafe > 0.0F) {
             yaw += forward > 0.0F ? -45.0F : 45.0F;
@@ -171,12 +171,12 @@ public class Speed extends Module {
    }
 
    private boolean canUseRW() {
-      return this.mc.field_1724 != null
-         && this.mc.field_1687 != null
-         && this.mc.field_1724.field_3944 != null
+      return this.mc.player != null
+         && this.mc.world != null
+         && this.mc.player.networkHandler != null
          && MoveUtil.isMoving()
-         && !this.mc.field_1724.method_5765()
-         && !this.mc.field_1724.method_31549().field_7479;
+         && !this.mc.player.hasVehicle()
+         && !this.mc.player.getAbilities().flying;
    }
 
    private void resetRWState(boolean resetTimer) {

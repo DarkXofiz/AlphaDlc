@@ -15,29 +15,29 @@ public class Rotation implements IMinecraft {
    private float pitch;
 
    public Rotation(Entity entity) {
-      this.yaw = entity.method_36454();
-      this.pitch = entity.method_36455();
+      this.yaw = entity.getYaw();
+      this.pitch = entity.getPitch();
    }
 
    public Rotation(Vec2f vec) {
-      this.yaw = vec.field_1343;
-      this.pitch = vec.field_1342;
+      this.yaw = vec.x;
+      this.pitch = vec.y;
    }
 
    public Rotation(Vec3d vec) {
-      this.yaw = RotationUtil.calculate(vec).field_1343;
-      this.pitch = RotationUtil.calculate(vec).field_1342;
+      this.yaw = RotationUtil.calculate(vec).x;
+      this.pitch = RotationUtil.calculate(vec).y;
    }
 
    public float getDelta(Rotation target) {
-      float yawDelta = MathHelper.method_15393(target.getYaw() - this.yaw);
+      float yawDelta = MathHelper.wrapDegrees(target.getYaw() - this.yaw);
       float pitchDelta = target.getPitch() - this.pitch;
       return (float)Math.hypot((double)Math.abs(yawDelta), (double)Math.abs(pitchDelta));
    }
 
    public double getDeltaDouble(Rotation target) {
-      double yawDelta = (double)MathHelper.method_15393(target.getYaw() - this.yaw);
-      double pitchDelta = (double)MathHelper.method_15393(target.getPitch() - this.pitch);
+      double yawDelta = (double)MathHelper.wrapDegrees(target.getYaw() - this.yaw);
+      double pitchDelta = (double)MathHelper.wrapDegrees(target.getPitch() - this.pitch);
       return Math.hypot(yawDelta, pitchDelta);
    }
 
@@ -46,19 +46,19 @@ public class Rotation implements IMinecraft {
    }
 
    public static float cameraYaw() {
-      return MathHelper.method_15393(mc.field_1773.method_19418().method_19330() + (float)(mc.field_1773.method_19418().method_19333() ? 180 : 0));
+      return MathHelper.wrapDegrees(mc.gameRenderer.getCamera().getYaw() + (float)(mc.gameRenderer.getCamera().isThirdPerson() ? 180 : 0));
    }
 
    public static float cameraPitch() {
-      return (float)(mc.field_1773.method_19418().method_19333() ? -1 : 1) * mc.field_1773.method_19418().method_19329();
+      return (float)(mc.gameRenderer.getCamera().isThirdPerson() ? -1 : 1) * mc.gameRenderer.getCamera().getPitch();
    }
 
    public static Rotation from(PlayerEntity player, Entity target) {
-      Vec3d playerPos = player.method_5836(0.0F);
-      Vec3d targetPos = target.method_19538().method_1031(0.0, (double)target.method_17682() * 0.5, 0.0);
-      double dx = targetPos.field_1352 - playerPos.field_1352;
-      double dy = targetPos.field_1351 - playerPos.field_1351;
-      double dz = targetPos.field_1350 - playerPos.field_1350;
+      Vec3d playerPos = player.getCameraPosVec(0.0F);
+      Vec3d targetPos = target.getPos().add(0.0, (double)target.getHeight() * 0.5, 0.0);
+      double dx = targetPos.x - playerPos.x;
+      double dy = targetPos.y - playerPos.y;
+      double dz = targetPos.z - playerPos.z;
       double distanceXZ = Math.sqrt(dx * dx + dz * dz);
       float yaw = (float)Math.toDegrees(Math.atan2(dz, dx)) - 90.0F;
       float pitch = (float)(-Math.toDegrees(Math.atan2(dy, distanceXZ)));
@@ -68,10 +68,10 @@ public class Rotation implements IMinecraft {
    public final Vec3d toVector() {
       float f = this.pitch * (float) (Math.PI / 180.0);
       float g = -this.yaw * (float) (Math.PI / 180.0);
-      float h = MathHelper.method_15362(g);
-      float i = MathHelper.method_15374(g);
-      float j = MathHelper.method_15362(f);
-      float k = MathHelper.method_15374(f);
+      float h = MathHelper.cos(g);
+      float i = MathHelper.sin(g);
+      float j = MathHelper.cos(f);
+      float k = MathHelper.sin(f);
       return new Vec3d((double)(i * j), (double)(-k), (double)(h * j));
    }
 

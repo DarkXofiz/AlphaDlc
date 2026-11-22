@@ -64,16 +64,16 @@ public class CommandRepository implements ICommandManager {
    @Override
    public Stream<String> tabComplete(String prefix) {
       Pair<String, List<ICommandArgument>> pair = expand(prefix, true);
-      String label = (String)pair.method_15442();
-      List<ICommandArgument> args = (List<ICommandArgument>)pair.method_15441();
+      String label = (String)pair.getLeft();
+      List<ICommandArgument> args = (List<ICommandArgument>)pair.getRight();
       return args.isEmpty()
          ? new TabCompleteHelper().addCommands(AlphaDLC.getInstance().getCommandRepository()).filterPrefix(label).stream()
          : this.tabComplete(pair);
    }
 
    private CommandRepository.ExecutionWrapper from(Pair<String, List<ICommandArgument>> expanded) {
-      String label = (String)expanded.method_15442();
-      ArgConsumer args = new ArgConsumer(this, (List<ICommandArgument>)expanded.method_15441());
+      String label = (String)expanded.getLeft();
+      ArgConsumer args = new ArgConsumer(this, (List<ICommandArgument>)expanded.getRight());
       ICommand command = this.getCommand(label);
       return command == null ? null : new CommandRepository.ExecutionWrapper(command, label, args);
    }

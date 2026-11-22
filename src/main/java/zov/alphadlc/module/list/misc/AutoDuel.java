@@ -51,7 +51,7 @@ public class AutoDuel extends Module {
 
    @Subscribe
    public void onTick(EventTick e) {
-      if (this.mc.field_1724 != null && this.mc.method_1562() != null) {
+      if (this.mc.player != null && this.mc.getNetworkHandler() != null) {
          List<String> players = this.getOnlinePlayers();
          if (this.clearSentDelay.isReached(800L * (long)Math.max(players.size(), 1))) {
             this.sent.clear();
@@ -59,9 +59,9 @@ public class AutoDuel extends Module {
          }
 
          for (String player : players) {
-            if (!this.sent.contains(player) && !player.equals(this.mc.field_1724.method_7334().getName())) {
+            if (!this.sent.contains(player) && !player.equals(this.mc.player.getGameProfile().getName())) {
                if (this.duelDelay.isReached(1000L)) {
-                  this.mc.method_1562().method_45730("duel " + player);
+                  this.mc.getNetworkHandler().sendChatCommand("duel " + player);
                   this.sent.add(player);
                   this.duelDelay.reset();
                }
@@ -69,8 +69,8 @@ public class AutoDuel extends Module {
             }
          }
 
-         if (this.mc.field_1755 instanceof GenericContainerScreen screen) {
-            String title = screen.method_25440().getString();
+         if (this.mc.currentScreen instanceof GenericContainerScreen screen) {
+            String title = screen.getTitle().getString();
             if (title.contains("\u0412\u044b\u0431\u043e\u0440 \u043d\u0430\u0431\u043e\u0440\u0430") || title.contains("Kit selection")) {
                this.handleKitSelection();
             } else if (title.contains("\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u043f\u043e\u0435\u0434\u0438\u043d\u043a\u0430")
@@ -102,10 +102,10 @@ public class AutoDuel extends Module {
 
    private List<String> getOnlinePlayers() {
       return this.mc
-         .method_1562()
-         .method_2880()
+         .getNetworkHandler()
+         .getPlayerList()
          .stream()
-         .map(entry -> entry.method_2966().getName())
+         .map(entry -> entry.getProfile().getName())
          .filter(name -> NAME_PATTERN.matcher(name).matches())
          .collect(Collectors.toList());
    }
@@ -138,9 +138,9 @@ public class AutoDuel extends Module {
    }
 
    private void clickSlot(int slotId) {
-      if (this.mc.field_1761 != null && this.mc.field_1724 != null) {
-         int syncId = this.mc.field_1724.field_7512.field_7763;
-         this.mc.field_1761.method_2906(syncId, slotId, 0, SlotActionType.field_7794, this.mc.field_1724);
+      if (this.mc.interactionManager != null && this.mc.player != null) {
+         int syncId = this.mc.player.currentScreenHandler.syncId;
+         this.mc.interactionManager.clickSlot(syncId, slotId, 0, SlotActionType.QUICK_MOVE, this.mc.player);
       }
    }
 }

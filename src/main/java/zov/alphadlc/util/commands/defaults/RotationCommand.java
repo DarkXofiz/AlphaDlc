@@ -23,14 +23,14 @@ public class RotationCommand extends Command {
          if (input.contains("yaw")) {
             RotationComponent.getInstance().stopRotation();
             RotationComponent.update(
-               new Rotation(Float.parseFloat(arg), MinecraftClient.method_1551().field_1724.method_36455()), 360.0F, 360.0F, 360.0F, 360.0F, 0, 999999, true
+               new Rotation(Float.parseFloat(arg), MinecraftClient.getInstance().player.getPitch()), 360.0F, 360.0F, 360.0F, 360.0F, 0, 999999, true
             );
          }
 
          if (input.contains("pitch")) {
             RotationComponent.getInstance().stopRotation();
             RotationComponent.update(
-               new Rotation(MinecraftClient.method_1551().field_1724.method_36454(), Float.parseFloat(arg)), 360.0F, 360.0F, 360.0F, 360.0F, 0, 999999, true
+               new Rotation(MinecraftClient.getInstance().player.getYaw(), Float.parseFloat(arg)), 360.0F, 360.0F, 360.0F, 360.0F, 0, 999999, true
             );
          }
       }

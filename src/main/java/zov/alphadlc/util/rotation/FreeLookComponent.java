@@ -31,7 +31,7 @@ public class FreeLookComponent extends Component {
    }
 
    private void rotateTowards(double targetYaw, double targetPitch) {
-      freePitch = MathHelper.method_15363((float)((double)freePitch + targetPitch * 0.15), -90.0F, 90.0F);
+      freePitch = MathHelper.clamp((float)((double)freePitch + targetPitch * 0.15), -90.0F, 90.0F);
       freeYaw = (float)((double)freeYaw + targetYaw * 0.15);
    }
 

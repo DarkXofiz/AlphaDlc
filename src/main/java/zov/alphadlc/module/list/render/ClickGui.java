@@ -22,7 +22,7 @@ public class ClickGui extends Module {
          this.clickGuiFrame = new ClickGuiFrame();
       }
 
-      this.mc.method_1507(this.clickGuiFrame);
+      this.mc.setScreen(this.clickGuiFrame);
       this.clickGuiFrame.playOpenAnimation();
       this.toggle();
    }

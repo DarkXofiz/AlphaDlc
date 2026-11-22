@@ -13,15 +13,15 @@ public class VertexUtil {
    public static void vertexLine(
       @NotNull MatrixStack matrices, @NotNull VertexConsumer buffer, float x1, float y1, float z1, float x2, float y2, float z2, @NotNull Color lineColor
    ) {
-      Matrix4f model = matrices.method_23760().method_23761();
-      Entry entry = matrices.method_23760();
+      Matrix4f model = matrices.peek().getPositionMatrix();
+      Entry entry = matrices.peek();
       Vector3f normalVec = getNormal(x1, y1, z1, x2, y2, z2);
-      buffer.method_22918(model, x1, y1, z1)
-         .method_1336(lineColor.getRed(), lineColor.getGreen(), lineColor.getBlue(), lineColor.getAlpha())
-         .method_60831(entry, normalVec.x(), normalVec.y(), normalVec.z());
-      buffer.method_22918(model, x2, y2, z2)
-         .method_1336(lineColor.getRed(), lineColor.getGreen(), lineColor.getBlue(), lineColor.getAlpha())
-         .method_60831(entry, normalVec.x(), normalVec.y(), normalVec.z());
+      buffer.vertex(model, x1, y1, z1)
+         .color(lineColor.getRed(), lineColor.getGreen(), lineColor.getBlue(), lineColor.getAlpha())
+         .normal(entry, normalVec.x(), normalVec.y(), normalVec.z());
+      buffer.vertex(model, x2, y2, z2)
+         .color(lineColor.getRed(), lineColor.getGreen(), lineColor.getBlue(), lineColor.getAlpha())
+         .normal(entry, normalVec.x(), normalVec.y(), normalVec.z());
    }
 
    @NotNull
@@ -29,7 +29,7 @@ public class VertexUtil {
       float xNormal = x2 - x1;
       float yNormal = y2 - y1;
       float zNormal = z2 - z1;
-      float normalSqrt = MathHelper.method_15355(xNormal * xNormal + yNormal * yNormal + zNormal * zNormal);
+      float normalSqrt = MathHelper.sqrt(xNormal * xNormal + yNormal * yNormal + zNormal * zNormal);
       return new Vector3f(xNormal / normalSqrt, yNormal / normalSqrt, zNormal / normalSqrt);
    }
 }

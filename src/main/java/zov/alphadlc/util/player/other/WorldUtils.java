@@ -14,21 +14,21 @@ import zov.alphadlc.util.IMinecraft;
 
 public final class WorldUtils implements IMinecraft {
    public static boolean isInWeb() {
-      Box box = mc.field_1724.method_5829();
-      int minX = MathHelper.method_15357(box.field_1323);
-      int minY = MathHelper.method_15357(box.field_1322);
-      int minZ = MathHelper.method_15357(box.field_1321);
-      int maxX = MathHelper.method_15357(box.field_1320);
-      int maxY = MathHelper.method_15357(box.field_1325);
-      int maxZ = MathHelper.method_15357(box.field_1324);
+      Box box = mc.player.getBoundingBox();
+      int minX = MathHelper.floor(box.minX);
+      int minY = MathHelper.floor(box.minY);
+      int minZ = MathHelper.floor(box.minZ);
+      int maxX = MathHelper.floor(box.maxX);
+      int maxY = MathHelper.floor(box.maxY);
+      int maxZ = MathHelper.floor(box.maxZ);
 
       for (int x = minX; x <= maxX; x++) {
          for (int y = minY; y <= maxY; y++) {
             for (int z = minZ; z <= maxZ; z++) {
                BlockPos pos = new BlockPos(x, y, z);
-               BlockState state = mc.field_1687.method_8320(pos);
-               if (state.method_27852(Blocks.field_10343)
-                  && state.method_26218(mc.field_1687, pos).method_1090().stream().anyMatch(shape -> shape.method_996(pos).method_994(box))) {
+               BlockState state = mc.world.getBlockState(pos);
+               if (state.isOf(Blocks.COBWEB)
+                  && state.getOutlineShape(mc.world, pos).getBoundingBoxes().stream().anyMatch(shape -> shape.offset(pos).intersects(box))) {
                   return true;
                }
             }
@@ -39,36 +39,36 @@ public final class WorldUtils implements IMinecraft {
    }
 
    public static boolean isBoxInBlock(Box box, Block block) {
-      return isBox(box, pos -> mc.field_1687.method_8320(pos).method_26204().equals(block));
+      return isBox(box, pos -> mc.world.getBlockState(pos).getBlock().equals(block));
    }
 
    public static boolean isBoxInBlocks(Box box, List<Block> blocks) {
-      return isBox(box, pos -> blocks.contains(mc.field_1687.method_8320(pos).method_26204()));
+      return isBox(box, pos -> blocks.contains(mc.world.getBlockState(pos).getBlock()));
    }
 
    public static boolean isBox(Box box, Predicate<BlockPos> pos) {
-      return BlockPos.method_29715(box).anyMatch(pos);
+      return BlockPos.stream(box).anyMatch(pos);
    }
 
    public static BlockPos findNearestPlaceableBlock() {
-      Vec3d playerPos = mc.field_1724.method_19538();
-      BlockPos feetBlock = mc.field_1724.method_24515();
-      int placementY = feetBlock.method_10264() - 1;
+      Vec3d playerPos = mc.player.getPos();
+      BlockPos feetBlock = mc.player.getBlockPos();
+      int placementY = feetBlock.getY() - 1;
       BlockPos[] candidates = new BlockPos[]{
-         new BlockPos(feetBlock.method_10263() - 1, placementY, feetBlock.method_10260()),
-         new BlockPos(feetBlock.method_10263() + 1, placementY, feetBlock.method_10260()),
-         new BlockPos(feetBlock.method_10263(), placementY, feetBlock.method_10260() - 1),
-         new BlockPos(feetBlock.method_10263(), placementY, feetBlock.method_10260() + 1)
+         new BlockPos(feetBlock.getX() - 1, placementY, feetBlock.getZ()),
+         new BlockPos(feetBlock.getX() + 1, placementY, feetBlock.getZ()),
+         new BlockPos(feetBlock.getX(), placementY, feetBlock.getZ() - 1),
+         new BlockPos(feetBlock.getX(), placementY, feetBlock.getZ() + 1)
       };
-      Box playerBox = mc.field_1724.method_5829();
+      Box playerBox = mc.player.getBoundingBox();
       BlockPos nearest = null;
       double minDistance = Double.MAX_VALUE;
 
       for (BlockPos candidate : candidates) {
          Box blockBox = new Box(candidate);
-         if (!playerBox.method_1014(0.15F).method_994(blockBox)) {
-            Vec3d blockCenter = Vec3d.method_24953(candidate.method_10084());
-            double distance = playerPos.method_1022(blockCenter);
+         if (!playerBox.expand(0.15F).intersects(blockBox)) {
+            Vec3d blockCenter = Vec3d.ofCenter(candidate.up());
+            double distance = playerPos.distanceTo(blockCenter);
             if (distance < minDistance) {
                minDistance = distance;
                nearest = candidate;

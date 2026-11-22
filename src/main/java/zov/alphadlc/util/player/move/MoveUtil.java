@@ -10,7 +10,7 @@ import zov.alphadlc.util.IMinecraft;
 
 public final class MoveUtil implements IMinecraft {
    public static boolean hasPlayerMovement() {
-      return mc.field_1724.field_3913.field_3905 != 0.0F || mc.field_1724.field_3913.field_3907 != 0.0F;
+      return mc.player.input.movementForward != 0.0F || mc.player.input.movementSideways != 0.0F;
    }
 
    public static boolean isMoving() {
@@ -18,13 +18,13 @@ public final class MoveUtil implements IMinecraft {
    }
 
    public static double getDirection() {
-      return direction(mc.field_1724.method_36454(), mc.field_1724.field_3913.field_3905, mc.field_1724.field_3913.field_3907);
+      return direction(mc.player.getYaw(), mc.player.input.movementForward, mc.player.input.movementSideways);
    }
 
    public static double[] calculateDirection(double distance) {
-      float forward = mc.field_1724.field_3913.field_3905;
-      float sideways = mc.field_1724.field_3913.field_3907;
-      float yaw = mc.field_1724.method_36454();
+      float forward = mc.player.input.movementForward;
+      float sideways = mc.player.input.movementSideways;
+      float yaw = mc.player.getYaw();
       if (forward != 0.0F) {
          if (sideways > 0.0F) {
             yaw += forward > 0.0F ? -45.0F : 45.0F;
@@ -44,26 +44,26 @@ public final class MoveUtil implements IMinecraft {
    }
 
    public static double getSpeedSqrt(Entity entity) {
-      double dx = entity.method_23317() - entity.field_6014;
-      double dy = entity.method_23318() - entity.field_6036;
-      double dz = entity.method_23321() - entity.field_5969;
+      double dx = entity.getX() - entity.prevX;
+      double dy = entity.getY() - entity.prevY;
+      double dz = entity.getZ() - entity.prevZ;
       return Math.sqrt(dx * dx + dz * dz + dy * dy);
    }
 
    public static void setMotion(double velocity) {
       double[] direction = calculateDirection(velocity);
-      Objects.requireNonNull(mc.field_1724).method_18800(direction[0], mc.field_1724.method_18798().method_10214(), direction[1]);
+      Objects.requireNonNull(mc.player).setVelocity(direction[0], mc.player.getVelocity().getY(), direction[1]);
    }
 
    public static void setMotion(double velocity, double y) {
       double[] direction = calculateDirection(velocity);
-      Objects.requireNonNull(mc.field_1724).method_18800(direction[0], y, direction[1]);
+      Objects.requireNonNull(mc.player).setVelocity(direction[0], y, direction[1]);
    }
 
    public static double getDegreesRelativeToView(Vec3d positionRelativeToPlayer, float yaw) {
-      float optimalYaw = (float)Math.atan2(-positionRelativeToPlayer.field_1352, positionRelativeToPlayer.field_1350);
-      double currentYaw = Math.toRadians((double)MathHelper.method_15393(yaw));
-      return Math.toDegrees(MathHelper.method_15338((double)optimalYaw - currentYaw));
+      float optimalYaw = (float)Math.atan2(-positionRelativeToPlayer.x, positionRelativeToPlayer.z);
+      double currentYaw = Math.toRadians((double)MathHelper.wrapDegrees(yaw));
+      return Math.toDegrees(MathHelper.wrapDegrees((double)optimalYaw - currentYaw));
    }
 
    public static PlayerInput getDirectionalInputForDegrees(PlayerInput input, double dgs, float deadAngle) {

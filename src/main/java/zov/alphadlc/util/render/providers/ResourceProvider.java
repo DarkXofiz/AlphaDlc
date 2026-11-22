@@ -15,7 +15,7 @@ public final class ResourceProvider {
    private static final Gson GSON = new Gson();
 
    public static Identifier getShaderIdentifier(String name) {
-      return Identifier.method_60655("mre", "core/" + name);
+      return Identifier.of("mre", "core/" + name);
    }
 
    public static JsonObject toJson(Identifier identifier) {
@@ -34,7 +34,7 @@ public final class ResourceProvider {
       try {
          String var4;
          try (
-            InputStream inputStream = MinecraftClient.method_1551().method_1478().open(identifier);
+            InputStream inputStream = MinecraftClient.getInstance().getResourceManager().open(identifier);
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
          ) {
             var4 = reader.lines().collect(Collectors.joining(delimiter));

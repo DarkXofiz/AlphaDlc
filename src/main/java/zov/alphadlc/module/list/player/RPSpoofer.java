@@ -19,9 +19,9 @@ public class RPSpoofer extends Module {
    @Subscribe
    private void onPacket(EventPacket e) {
       if (e.getPacket() instanceof ResourcePackSendS2CPacket) {
-         NetworkUtils.sendPacket(new ResourcePackStatusC2SPacket(this.mc.field_1724.method_5667(), Status.field_13016));
-         NetworkUtils.sendPacket(new ResourcePackStatusC2SPacket(this.mc.field_1724.method_5667(), Status.field_47704));
-         NetworkUtils.sendPacket(new ResourcePackStatusC2SPacket(this.mc.field_1724.method_5667(), Status.field_13017));
+         NetworkUtils.sendPacket(new ResourcePackStatusC2SPacket(this.mc.player.getUuid(), Status.ACCEPTED));
+         NetworkUtils.sendPacket(new ResourcePackStatusC2SPacket(this.mc.player.getUuid(), Status.DOWNLOADED));
+         NetworkUtils.sendPacket(new ResourcePackStatusC2SPacket(this.mc.player.getUuid(), Status.SUCCESSFULLY_LOADED));
          e.cancelEvent();
       }
    }

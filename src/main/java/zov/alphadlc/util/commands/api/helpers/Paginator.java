@@ -52,48 +52,48 @@ public class Paginator<E> implements QuickLogger {
          if (i < this.entries.size()) {
             this.logDirect(new Text[]{transform.apply(this.entries.get(i))});
          } else {
-            this.logDirect("--", Formatting.field_1063);
+            this.logDirect("--", Formatting.DARK_GRAY);
          }
       }
 
       boolean hasPrevPage = commandPrefix != null && this.validPage(this.page - 1);
       boolean hasNextPage = commandPrefix != null && this.validPage(this.page + 1);
-      MutableText prevPageComponent = Text.method_43470("<<");
+      MutableText prevPageComponent = Text.literal("<<");
       if (hasPrevPage) {
-         prevPageComponent.method_10862(
-            prevPageComponent.method_10866()
-               .method_10958(
+         prevPageComponent.setStyle(
+            prevPageComponent.getStyle()
+               .withClickEvent(
                   new ClickEvent(
-                     Action.field_11750, commandPrefix.contains("help") ? commandPrefix + " " + (this.page - 1) : commandPrefix + " list " + (this.page - 1)
+                     Action.RUN_COMMAND, commandPrefix.contains("help") ? commandPrefix + " " + (this.page - 1) : commandPrefix + " list " + (this.page - 1)
                   )
                )
-               .method_10949(new HoverEvent(net.minecraft.text.HoverEvent.Action.field_24342, Text.method_43470("Click to view previous page")))
+               .withHoverEvent(new HoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, Text.literal("Click to view previous page")))
          );
       } else {
-         prevPageComponent.method_10862(prevPageComponent.method_10866().method_10977(Formatting.field_1063));
+         prevPageComponent.setStyle(prevPageComponent.getStyle().withColor(Formatting.DARK_GRAY));
       }
 
-      MutableText nextPageComponent = Text.method_43470(">>");
+      MutableText nextPageComponent = Text.literal(">>");
       if (hasNextPage) {
-         nextPageComponent.method_10862(
-            nextPageComponent.method_10866()
-               .method_10958(
+         nextPageComponent.setStyle(
+            nextPageComponent.getStyle()
+               .withClickEvent(
                   new ClickEvent(
-                     Action.field_11750, commandPrefix.contains("help") ? commandPrefix + " " + (this.page + 1) : commandPrefix + " list " + (this.page + 1)
+                     Action.RUN_COMMAND, commandPrefix.contains("help") ? commandPrefix + " " + (this.page + 1) : commandPrefix + " list " + (this.page + 1)
                   )
                )
-               .method_10949(new HoverEvent(net.minecraft.text.HoverEvent.Action.field_24342, Text.method_43470("Click to view next page")))
+               .withHoverEvent(new HoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, Text.literal("Click to view next page")))
          );
       } else {
-         nextPageComponent.method_10862(nextPageComponent.method_10866().method_10977(Formatting.field_1063));
+         nextPageComponent.setStyle(nextPageComponent.getStyle().withColor(Formatting.DARK_GRAY));
       }
 
-      MutableText pagerComponent = Text.method_43470("");
-      pagerComponent.method_10862(pagerComponent.method_10866().method_10977(Formatting.field_1080));
-      pagerComponent.method_10852(prevPageComponent);
-      pagerComponent.method_27693(" | ");
-      pagerComponent.method_10852(nextPageComponent);
-      pagerComponent.method_27693(String.format(" %d/%d", this.page, this.getMaxPage()));
+      MutableText pagerComponent = Text.literal("");
+      pagerComponent.setStyle(pagerComponent.getStyle().withColor(Formatting.GRAY));
+      pagerComponent.append(prevPageComponent);
+      pagerComponent.append(" | ");
+      pagerComponent.append(nextPageComponent);
+      pagerComponent.append(String.format(" %d/%d", this.page, this.getMaxPage()));
       this.logDirect(new Text[]{pagerComponent});
    }
 

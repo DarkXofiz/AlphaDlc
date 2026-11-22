@@ -44,8 +44,8 @@ public class Scissor {
    }
 
    public static void setFromComponentCoordinates(double x, double y, double width, double height) {
-      Window window = MinecraftClient.method_1551().method_22683();
-      int scaleFactor = (int)window.method_4495();
+      Window window = MinecraftClient.getInstance().getWindow();
+      int scaleFactor = (int)window.getScaleFactor();
       if (guiScale != 1.0F) {
          x = (double)guiCenterX + (x - (double)guiCenterX) * (double)guiScale;
          y = (double)guiCenterY + (y - (double)guiCenterY) * (double)guiScale;
@@ -57,32 +57,32 @@ public class Scissor {
       int screenY = (int)(y * (double)scaleFactor);
       int screenWidth = (int)(width * (double)scaleFactor);
       int screenHeight = (int)(height * (double)scaleFactor);
-      screenY = window.method_4507() - screenY - screenHeight;
+      screenY = window.getHeight() - screenY - screenHeight;
       set(screenX, screenY, screenWidth, screenHeight);
    }
 
    public static void setFromComponentCoordinates(double x, double y, double width, double height, float scale) {
-      Window window = MinecraftClient.method_1551().method_22683();
+      Window window = MinecraftClient.getInstance().getWindow();
       float halfRest = (1.0F - scale) / 2.0F;
       double testX = x + width * (double)halfRest;
       double testY = y + height * (double)halfRest;
       double testW = width * (double)scale;
       double testH = height * (double)scale;
-      testX = testX * (double)scale + ((double)window.method_4486() - testW) * (double)halfRest;
-      int scaleFactor = (int)window.method_4495();
+      testX = testX * (double)scale + ((double)window.getScaledWidth() - testW) * (double)halfRest;
+      int scaleFactor = (int)window.getScaleFactor();
       int screenX = (int)(testX * (double)scaleFactor);
       int screenY = (int)(testY * (double)scaleFactor);
       int screenWidth = (int)(testW * (double)scaleFactor);
       int screenHeight = (int)(testH * (double)scaleFactor);
-      screenY = window.method_4507() - screenY - screenHeight;
+      screenY = window.getHeight() - screenY - screenHeight;
       set(screenX, screenY, screenWidth, screenHeight);
    }
 
    public static void scissor(Window window, double x, double y, double width, double height) {
       if (x + width != x && y + height != y && !(x < 0.0) && !(y + height < 0.0)) {
-         double scaleFactor = window.method_4495();
+         double scaleFactor = window.getScaleFactor();
          int sx = (int)Math.round(x * scaleFactor);
-         int sy = (int)Math.round(((double)window.method_4502() - (y + height)) * scaleFactor);
+         int sy = (int)Math.round(((double)window.getScaledHeight() - (y + height)) * scaleFactor);
          int sw = (int)Math.round(width * scaleFactor);
          int sh = (int)Math.round(height * scaleFactor);
          RenderSystem.enableScissor(sx, sy, sw, sh);
@@ -90,8 +90,8 @@ public class Scissor {
    }
 
    public static void set(int x, int y, int width, int height) {
-      Window window = MinecraftClient.method_1551().method_22683();
-      Rectangle screen = new Rectangle(0, 0, window.method_4480(), window.method_4507());
+      Window window = MinecraftClient.getInstance().getWindow();
+      Rectangle screen = new Rectangle(0, 0, window.getWidth(), window.getHeight());
       Rectangle current = state.enabled ? new Rectangle(state.x, state.y, state.width, state.height) : screen;
       Rectangle target = new Rectangle(x + state.transX, y + state.transY, width, height);
       Rectangle result = current.intersection(target).intersection(screen);
@@ -117,11 +117,11 @@ public class Scissor {
    }
 
    public static void translateFromComponentCoordinates(int x, int y) {
-      Window window = MinecraftClient.method_1551().method_22683();
-      int scaleFactor = (int)window.method_4495();
+      Window window = MinecraftClient.getInstance().getWindow();
+      int scaleFactor = (int)window.getScaleFactor();
       int screenX = x * scaleFactor;
       int screenY = y * scaleFactor;
-      screenY = window.method_4502() * scaleFactor - screenY;
+      screenY = window.getScaledHeight() * scaleFactor - screenY;
       translate(screenX, screenY);
    }
 

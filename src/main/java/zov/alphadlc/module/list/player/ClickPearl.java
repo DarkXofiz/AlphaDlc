@@ -33,7 +33,7 @@ public class ClickPearl extends Module {
       if (e.getAction() != 0) {
          if (e.getKey() == this.key.getValue()) {
             if (this.mode.is("\u041e\u0431\u044b\u0447\u043d\u044b\u0439")) {
-               InventoryUtil.swapAndUseHvH(Items.field_8634);
+               InventoryUtil.swapAndUseHvH(Items.ENDER_PEARL);
             } else {
                this.pearlUsed = true;
             }
@@ -43,30 +43,30 @@ public class ClickPearl extends Module {
 
    @Subscribe
    private void onPlayerTick(EventPlayerUpdate ignored) {
-      if (this.mc.field_1724 != null) {
+      if (this.mc.player != null) {
          if (!this.pearlUsed && this.ticksExisted > 0) {
             this.ticksExisted--;
          }
 
          if (this.pearlUsed || this.ticksExisted > 0) {
-            this.mc.field_1724.method_5728(false);
+            this.mc.player.setSprinting(false);
          }
       }
    }
 
    @Subscribe
    private void onPlayerSync(EventPlayerSync ignored) {
-      if (this.mc.field_1724 != null && this.pearlUsed) {
-         int slotHotbar = InventoryUtil.searchItem(Items.field_8634, 0, 9);
+      if (this.mc.player != null && this.pearlUsed) {
+         int slotHotbar = InventoryUtil.searchItem(Items.ENDER_PEARL, 0, 9);
          if (slotHotbar != -1) {
-            InventoryUtil.swapAndUseLegit(Items.field_8634);
+            InventoryUtil.swapAndUseLegit(Items.ENDER_PEARL);
          } else {
             if (this.ticksExisted == 0) {
                this.ticksExisted++;
                return;
             }
 
-            InventoryUtil.swapAndUseLegit(Items.field_8634);
+            InventoryUtil.swapAndUseLegit(Items.ENDER_PEARL);
             this.ticksExisted = 2;
          }
 

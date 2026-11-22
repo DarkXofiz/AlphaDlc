@@ -262,7 +262,7 @@ public class SearchField {
 
    private void copySelection() {
       if (this.hasSelection()) {
-         MinecraftClient.method_1551().field_1774.method_1455(this.text.substring(this.selMin(), this.selMax()));
+         MinecraftClient.getInstance().keyboard.setClipboard(this.text.substring(this.selMin(), this.selMax()));
       }
    }
 
@@ -274,7 +274,7 @@ public class SearchField {
    }
 
    private void paste() {
-      String clip = MinecraftClient.method_1551().field_1774.method_1460();
+      String clip = MinecraftClient.getInstance().keyboard.getClipboard();
       if (clip != null && !clip.isEmpty()) {
          clip = clip.replaceAll("[\\n\\r\\t]", " ");
          this.insert(clip);

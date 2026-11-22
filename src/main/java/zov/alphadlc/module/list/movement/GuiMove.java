@@ -79,13 +79,13 @@ public class GuiMove extends Module {
 
    @Subscribe
    private void onPacket(EventPacket e) {
-      if (this.mc.field_1724 != null && !this.isVanilla()) {
-         if (this.mc.field_1755 != null && !(this.mc.field_1755 instanceof ChatScreen)) {
+      if (this.mc.player != null && !this.isVanilla()) {
+         if (this.mc.currentScreen != null && !(this.mc.currentScreen instanceof ChatScreen)) {
             if (e.getType() == EventPacket.Type.RECEIVE && e.getPacket() instanceof CloseScreenS2CPacket && this.usesBypass() && !this.pending.isEmpty()) {
                e.cancelEvent();
             } else if (e.getType() == EventPacket.Type.SEND) {
                if (e.getPacket() instanceof ClickSlotC2SPacket click) {
-                  if (this.mc.field_1755 instanceof InventoryScreen) {
+                  if (this.mc.currentScreen instanceof InventoryScreen) {
                      if (MoveUtil.hasPlayerMovement()) {
                         if (this.isLegit()) {
                            e.cancelEvent();
@@ -103,7 +103,7 @@ public class GuiMove extends Module {
 
    @Subscribe
    private void onCloseInv(EventCloseInv e) {
-      if (this.mc.field_1724 != null && !this.isVanilla() && !this.isLegit()) {
+      if (this.mc.player != null && !this.isVanilla() && !this.isLegit()) {
          if (!this.pending.isEmpty()) {
             e.cancelEvent();
             this.flushPending = true;
@@ -121,25 +121,25 @@ public class GuiMove extends Module {
 
    @Subscribe
    private void onUpdate(EventPlayerUpdate ignored) {
-      if (this.mc.field_1724 != null && !this.isVanilla()) {
+      if (this.mc.player != null && !this.isVanilla()) {
          if (this.freezeTicks > 0) {
             this.freezeTicks--;
             if (this.freezeTicks == 0 && this.flushPending) {
                this.flush();
-               NetworkUtils.sendSilentPacket(new CloseHandledScreenC2SPacket(this.mc.field_1724.field_7512.field_7763));
+               NetworkUtils.sendSilentPacket(new CloseHandledScreenC2SPacket(this.mc.player.currentScreenHandler.syncId));
                this.flushPending = false;
             }
          }
 
-         if (this.mc.field_1755 != null && !(this.mc.field_1755 instanceof ChatScreen)) {
+         if (this.mc.currentScreen != null && !(this.mc.currentScreen instanceof ChatScreen)) {
             for (KeyBinding key : new KeyBinding[]{
-               this.mc.field_1690.field_1894,
-               this.mc.field_1690.field_1881,
-               this.mc.field_1690.field_1913,
-               this.mc.field_1690.field_1849,
-               this.mc.field_1690.field_1903
+               this.mc.options.forwardKey,
+               this.mc.options.backKey,
+               this.mc.options.leftKey,
+               this.mc.options.rightKey,
+               this.mc.options.jumpKey
             }) {
-               key.method_23481(InputUtil.method_15987(this.mc.method_22683().method_4490(), InputUtil.method_15981(key.method_1428()).method_1444()));
+               key.setPressed(InputUtil.isKeyPressed(this.mc.getWindow().getHandle(), InputUtil.fromTranslationKey(key.getBoundKeyTranslationKey()).getCode()));
             }
          }
       }

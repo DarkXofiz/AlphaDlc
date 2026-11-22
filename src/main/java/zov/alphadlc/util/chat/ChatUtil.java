@@ -7,16 +7,16 @@ import zov.alphadlc.util.IMinecraft;
 
 public class ChatUtil implements IMinecraft {
    public static void send(Object message) {
-      if (mc.field_1724 != null) {
-         mc.field_1724.method_7353(Text.method_30163("alphadlc Dlc " + Formatting.field_1063 + "-> " + Formatting.field_1070 + message.toString()), false);
+      if (mc.player != null) {
+         mc.player.sendMessage(Text.of("alphadlc Dlc " + Formatting.DARK_GRAY + "-> " + Formatting.RESET + message.toString()), false);
       }
    }
 
    public static void send(Object... messages) {
-      if (mc.field_1724 != null) {
-         mc.field_1724
-            .method_7353(
-               Text.method_30163("alphadlc Dlc " + Formatting.field_1063 + "-> " + Formatting.field_1070 + String.join(",", Arrays.toString(messages))), false
+      if (mc.player != null) {
+         mc.player
+            .sendMessage(
+               Text.of("alphadlc Dlc " + Formatting.DARK_GRAY + "-> " + Formatting.RESET + String.join(",", Arrays.toString(messages))), false
             );
       }
    }

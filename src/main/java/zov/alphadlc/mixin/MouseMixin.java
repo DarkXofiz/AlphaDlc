@@ -18,17 +18,17 @@ import zov.alphadlc.module.list.combat.KillAura;
 public abstract class MouseMixin {
    @Shadow
    @Final
-   private MinecraftClient field_1779;
+   private MinecraftClient client;
    @Shadow
-   private double field_1789;
+   private double cursorDeltaX;
    @Shadow
-   private double field_1787;
+   private double cursorDeltaY;
    @Final
    @Shadow
-   private Smoother field_1793;
+   private Smoother cursorXSmoother;
    @Final
    @Shadow
-   private Smoother field_1782;
+   private Smoother cursorYSmoother;
 
    @Inject(
       method = {"updateMouse"},
@@ -36,27 +36,27 @@ public abstract class MouseMixin {
       cancellable = true
    )
    private void onUpdateMouse(double timeDelta, CallbackInfo ci) {
-      if (this.field_1779.field_1724 != null) {
-         double sensitivity = (Double)this.field_1779.field_1690.method_42495().method_41753() * 0.6 + 0.2;
+      if (this.client.player != null) {
+         double sensitivity = (Double)this.client.options.getMouseSensitivity().getValue() * 0.6 + 0.2;
          double scaled = sensitivity * sensitivity * sensitivity * 8.0;
          double i;
          double j;
-         if (this.field_1779.field_1690.field_1914) {
-            i = this.field_1793.method_15429(this.field_1789 * scaled, timeDelta * scaled);
-            j = this.field_1782.method_15429(this.field_1787 * scaled, timeDelta * scaled);
-         } else if (this.field_1779.field_1690.method_31044().method_31034() && this.field_1779.field_1724.method_31550()) {
-            this.field_1793.method_15428();
-            this.field_1782.method_15428();
-            i = this.field_1789 * sensitivity * sensitivity * sensitivity;
-            j = this.field_1787 * sensitivity * sensitivity * sensitivity;
+         if (this.client.options.smoothCameraEnabled) {
+            i = this.cursorXSmoother.smooth(this.cursorDeltaX * scaled, timeDelta * scaled);
+            j = this.cursorYSmoother.smooth(this.cursorDeltaY * scaled, timeDelta * scaled);
+         } else if (this.client.options.getPerspective().isFirstPerson() && this.client.player.isUsingSpyglass()) {
+            this.cursorXSmoother.clear();
+            this.cursorYSmoother.clear();
+            i = this.cursorDeltaX * sensitivity * sensitivity * sensitivity;
+            j = this.cursorDeltaY * sensitivity * sensitivity * sensitivity;
          } else {
-            this.field_1793.method_15428();
-            this.field_1782.method_15428();
-            i = this.field_1789 * scaled;
-            j = this.field_1787 * scaled;
+            this.cursorXSmoother.clear();
+            this.cursorYSmoother.clear();
+            i = this.cursorDeltaX * scaled;
+            j = this.cursorDeltaY * scaled;
          }
 
-         int invert = this.field_1779.field_1690.method_42438().method_41753() ? -1 : 1;
+         int invert = this.client.options.getInvertYMouse().getValue() ? -1 : 1;
          LookEvent event = new LookEvent(i, j * (double)invert);
          event.post();
          if (Math.abs(event.getYaw()) > 0.01 || Math.abs(event.getPitch()) > 0.01) {
@@ -64,12 +64,12 @@ public abstract class MouseMixin {
          }
 
          if (!event.isCancelled()) {
-            this.field_1779.method_1577().method_4908(event.getYaw(), event.getPitch());
-            this.field_1779.field_1724.method_5872(event.getYaw(), event.getPitch());
+            this.client.getTutorialManager().onUpdateMouse(event.getYaw(), event.getPitch());
+            this.client.player.changeLookDirection(event.getYaw(), event.getPitch());
          }
 
-         this.field_1789 = 0.0;
-         this.field_1787 = 0.0;
+         this.cursorDeltaX = 0.0;
+         this.cursorDeltaY = 0.0;
          ci.cancel();
       }
    }
@@ -79,7 +79,7 @@ public abstract class MouseMixin {
       at = {@At("HEAD")}
    )
    private void onMouseButton(long window, int button, int action, int mods, CallbackInfo ci) {
-      if (MinecraftClient.method_1551().field_1755 == null && action != 2) {
+      if (MinecraftClient.getInstance().currentScreen == null && action != 2) {
          AlphaDLC.getInstance().getEventBus().post(new EventKeyInput(button, action));
       }
    }

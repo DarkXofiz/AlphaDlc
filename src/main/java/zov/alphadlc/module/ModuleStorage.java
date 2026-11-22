@@ -225,7 +225,7 @@ public class ModuleStorage implements IMinecraft {
 
    @Subscribe
    private void onGameUpdate(EventGameUpdate e) {
-      if (mc.field_1724 != null) {
+      if (mc.player != null) {
          if (!SlownessManager.slowTasksIsEmpty()) {
             SlownessManager.updateSlowTasks();
          }
@@ -236,12 +236,12 @@ public class ModuleStorage implements IMinecraft {
 
          KillAura aura = this.get(KillAura.class);
          if (!aura.isEnabled() || aura.getTarget() == null) {
-            if (mc.field_1690.method_31044() == Perspective.field_26666) {
-               aura.lastYaw = mc.field_1773.method_19418().method_19330() - 180.0F;
-               aura.lastPitch = -mc.field_1773.method_19418().method_19329();
+            if (mc.options.getPerspective() == Perspective.THIRD_PERSON_FRONT) {
+               aura.lastYaw = mc.gameRenderer.getCamera().getYaw() - 180.0F;
+               aura.lastPitch = -mc.gameRenderer.getCamera().getPitch();
             } else {
-               aura.lastYaw = mc.field_1773.method_19418().method_19330();
-               aura.lastPitch = mc.field_1773.method_19418().method_19329();
+               aura.lastYaw = mc.gameRenderer.getCamera().getYaw();
+               aura.lastPitch = mc.gameRenderer.getCamera().getPitch();
             }
 
             if (aura.rotation.is("Vanilla") || Instance.get(FreeLook.class).isActive()) {
@@ -291,29 +291,29 @@ public class ModuleStorage implements IMinecraft {
          SlownessManager.updateTimeTasks(true);
       }
 
-      if (mc.field_1724 != null) {
+      if (mc.player != null) {
       }
    }
 
    private void updateBackwardsOther() {
-      if (mc.field_1724.method_6128()) {
+      if (mc.player.isGliding()) {
          this.speedAcceleration += 0.06F;
       } else {
          this.speedAcceleration += 0.006F;
       }
 
       this.get(KillAura.class).speedAcceleration = 0.0F;
-      Rotation angle = new Rotation(mc.field_1773.method_19418().method_19330(), mc.field_1773.method_19418().method_19329());
-      float deltaYaw = MathHelper.method_15393(angle.getYaw() - mc.field_1724.method_36454());
-      float deltaPitch = angle.getPitch() - mc.field_1724.method_36455();
-      if (mc.field_1690.method_31044() == Perspective.field_26666) {
-         deltaYaw = MathHelper.method_15393(angle.getYaw() - 180.0F - mc.field_1724.method_36454());
-         deltaPitch = MathHelper.method_15393(-angle.getPitch() - mc.field_1724.method_36455());
+      Rotation angle = new Rotation(mc.gameRenderer.getCamera().getYaw(), mc.gameRenderer.getCamera().getPitch());
+      float deltaYaw = MathHelper.wrapDegrees(angle.getYaw() - mc.player.getYaw());
+      float deltaPitch = angle.getPitch() - mc.player.getPitch();
+      if (mc.options.getPerspective() == Perspective.THIRD_PERSON_FRONT) {
+         deltaYaw = MathHelper.wrapDegrees(angle.getYaw() - 180.0F - mc.player.getYaw());
+         deltaPitch = MathHelper.wrapDegrees(-angle.getPitch() - mc.player.getPitch());
       }
 
       float smooth = Math.max(this.speedAcceleration, 0.0F);
-      float newYaw = mc.field_1724.method_36454() + deltaYaw * Math.min(Math.max(smooth, 0.0F), 1.0F);
-      float newPitch = mc.field_1724.method_36455() + deltaPitch * Math.min(Math.max(smooth / 2.0F, 0.0F), 1.0F);
+      float newYaw = mc.player.getYaw() + deltaYaw * Math.min(Math.max(smooth, 0.0F), 1.0F);
+      float newPitch = mc.player.getPitch() + deltaPitch * Math.min(Math.max(smooth / 2.0F, 0.0F), 1.0F);
       Rotation smoothRot = new Rotation(newYaw, newPitch);
       RotationComponent.update(smoothRot, 360.0F, 360.0F, 360.0F, 360.0F, 0, 2, false);
    }

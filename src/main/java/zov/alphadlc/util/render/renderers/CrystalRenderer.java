@@ -23,10 +23,10 @@ public final class CrystalRenderer {
    private static final float[] FACE_BRIGHTNESS = new float[]{1.0F, 0.8F, 0.6F, 0.9F, 0.7F, 0.5F, 0.4F, 0.6F};
 
    public static void render(MatrixStack matrices, BufferBuilder buffer, float x, float y, float z, float size, int color) {
-      matrices.method_22903();
-      matrices.method_46416(x, y, z);
-      matrices.method_22905(size, size, size);
-      Matrix4f transformationMatrix = matrices.method_23760().method_23761();
+      matrices.push();
+      matrices.translate(x, y, z);
+      matrices.scale(size, size, size);
+      Matrix4f transformationMatrix = matrices.peek().getPositionMatrix();
 
       for (int i = 0; i < FACES.length; i++) {
          int[] face = FACES[i];
@@ -35,21 +35,21 @@ public final class CrystalRenderer {
          Vector3f v2 = VERTICES[face[1]];
          Vector3f v3 = VERTICES[face[2]];
          int shadedColor = applyBrightness(color, brightness);
-         buffer.method_22918(transformationMatrix, v1.x, v1.y, v1.z).method_39415(shadedColor);
-         buffer.method_22918(transformationMatrix, v2.x, v2.y, v2.z).method_39415(shadedColor);
-         buffer.method_22918(transformationMatrix, v3.x, v3.y, v3.z).method_39415(shadedColor);
+         buffer.vertex(transformationMatrix, v1.x, v1.y, v1.z).color(shadedColor);
+         buffer.vertex(transformationMatrix, v2.x, v2.y, v2.z).color(shadedColor);
+         buffer.vertex(transformationMatrix, v3.x, v3.y, v3.z).color(shadedColor);
       }
 
-      matrices.method_22909();
+      matrices.pop();
    }
 
    public static BufferBuilder createBuffer() {
       setupRenderState();
-      return Tessellator.method_1348().method_60827(DrawMode.field_27379, VertexFormats.field_1576);
+      return Tessellator.getInstance().begin(DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR);
    }
 
    private static void setupRenderState() {
-      RenderSystem.setShader(ShaderProgramKeys.field_53876);
+      RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
       RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
    }
 

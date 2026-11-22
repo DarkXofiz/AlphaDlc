@@ -19,13 +19,13 @@ public class TeleportBack extends Module {
 
    @Subscribe
    private void onUpdate(EventTick e) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
-         if (!this.mc.field_1724.method_5805() && !this.dead && this.stopWatch.isReached(500L)) {
-            this.mc.field_1724.field_3944.method_45730("sethome gavno");
+      if (this.mc.player != null && this.mc.world != null) {
+         if (!this.mc.player.isAlive() && !this.dead && this.stopWatch.isReached(500L)) {
+            this.mc.player.networkHandler.sendChatCommand("sethome gavno");
             SlownessManager.addTimeTask(new SlownessManager.TimeTask(100L, () -> {
-               if (this.mc.field_1724 != null) {
-                  this.mc.field_1724.method_7331();
-                  this.mc.field_1724.field_3944.method_45730("home gavno");
+               if (this.mc.player != null) {
+                  this.mc.player.requestRespawn();
+                  this.mc.player.networkHandler.sendChatCommand("home gavno");
                   this.dead = false;
                }
             }, true));

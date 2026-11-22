@@ -47,13 +47,13 @@ public class ChatScreenMixin extends Screen {
       DragManager.onDrawAll();
    }
 
-   public boolean method_25406(double mouseX, double mouseY, int button) {
+   public boolean mouseReleased(double mouseX, double mouseY, int button) {
       Interface iface = Instance.get(Interface.class);
       if (iface != null) {
          iface.handlePotionsRelease(button);
       }
 
       DragManager.onReleaseAll(button);
-      return super.method_25406(mouseX, mouseY, button);
+      return super.mouseReleased(mouseX, mouseY, button);
    }
 }

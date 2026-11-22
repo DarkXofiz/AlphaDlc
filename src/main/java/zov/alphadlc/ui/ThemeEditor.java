@@ -89,8 +89,8 @@ public class ThemeEditor implements IMinecraft {
    }
 
    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-      int sw = mc.method_22683().method_4486();
-      int sh = mc.method_22683().method_4502();
+      int sw = mc.getWindow().getScaledWidth();
+      int sh = mc.getWindow().getScaledHeight();
       this.expandAnim.run(this.expanded);
       float ep = this.expandAnim.getValue();
       float contentH = 10.0F + (float)SLOTS.length * 15.0F + 4.0F + 14.0F;
@@ -273,7 +273,7 @@ public class ThemeEditor implements IMinecraft {
                      this.loadHSV(i);
                      this.pickerX = this.x - 69.0F - 5.0F - 4.0F;
                      this.pickerY = rowY + 7.5F - 29.0F;
-                     float sh = (float)mc.method_22683().method_4502();
+                     float sh = (float)mc.getWindow().getScaledHeight();
                      this.pickerY = Math.max(7.0F, Math.min(this.pickerY, sh - 58.0F - 5.0F - 2.0F));
                   }
 

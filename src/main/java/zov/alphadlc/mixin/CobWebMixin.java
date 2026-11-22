@@ -19,7 +19,7 @@ public class CobWebMixin {
       at = {@At("RETURN")}
    )
    protected void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity, CallbackInfo ci) {
-      if (entity == MinecraftClient.method_1551().field_1724) {
+      if (entity == MinecraftClient.getInstance().player) {
          EventCobweb event = new EventCobweb();
          event.post();
       }

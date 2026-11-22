@@ -37,10 +37,10 @@ public class ChestStealer extends Module {
 
    @Subscribe
    private void onTick(EventTick ignored) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null && this.mc.field_1761 != null) {
-         ScreenHandler handler = this.mc.field_1724.field_7512;
+      if (this.mc.player != null && this.mc.world != null && this.mc.interactionManager != null) {
+         ScreenHandler handler = this.mc.player.currentScreenHandler;
          if (!(handler instanceof GenericContainerScreenHandler) && !(handler instanceof ShulkerBoxScreenHandler)) {
-            if (this.autoOpen.getValue() && this.mc.field_1755 == null) {
+            if (this.autoOpen.getValue() && this.mc.currentScreen == null) {
                this.tryOpenChest();
             }
          } else {
@@ -51,9 +51,9 @@ public class ChestStealer extends Module {
 
    private void stealFrom(ScreenHandler handler) {
       if (!((double)(System.currentTimeMillis() - this.lastClick) < this.delay.getValue())) {
-         for (Slot slot : handler.field_7761) {
-            if (slot.method_7681() && slot.field_7871 != this.mc.field_1724.method_31548()) {
-               this.mc.field_1761.method_2906(handler.field_7763, slot.field_7874, 0, SlotActionType.field_7794, this.mc.field_1724);
+         for (Slot slot : handler.slots) {
+            if (slot.hasStack() && slot.inventory != this.mc.player.getInventory()) {
+               this.mc.interactionManager.clickSlot(handler.syncId, slot.id, 0, SlotActionType.QUICK_MOVE, this.mc.player);
                this.lastClick = System.currentTimeMillis();
                return;
             }
@@ -64,39 +64,39 @@ public class ChestStealer extends Module {
    private void tryOpenChest() {
       BlockPos chest = this.findNearestChest(5);
       if (chest != null) {
-         Vec3d center = Vec3d.method_24953(chest);
+         Vec3d center = Vec3d.ofCenter(chest);
          Vec2f angle = RotationUtil.calculate(center);
-         RotationComponent.update(new Rotation(angle.field_1343, angle.field_1342), 60.0F, 60.0F, 2, 2);
-         float tickDelta = this.mc.method_61966().method_60637(true);
-         if (this.mc.field_1724.method_5745(5.0, tickDelta, false) instanceof BlockHitResult blockHit && blockHit.method_17783() == Type.field_1332) {
-            BlockState state = this.mc.field_1687.method_8320(blockHit.method_17777());
-            if (state.method_27852(Blocks.field_10034)
-               || state.method_27852(Blocks.field_10380)
-               || state.method_27852(Blocks.field_10443)
-               || state.method_26204() instanceof ShulkerBoxBlock) {
-               this.mc.field_1761.method_2896(this.mc.field_1724, Hand.field_5808, blockHit);
-               this.mc.field_1724.method_6104(Hand.field_5808);
+         RotationComponent.update(new Rotation(angle.x, angle.y), 60.0F, 60.0F, 2, 2);
+         float tickDelta = this.mc.getRenderTickCounter().getTickDelta(true);
+         if (this.mc.player.raycast(5.0, tickDelta, false) instanceof BlockHitResult blockHit && blockHit.getType() == Type.BLOCK) {
+            BlockState state = this.mc.world.getBlockState(blockHit.getBlockPos());
+            if (state.isOf(Blocks.CHEST)
+               || state.isOf(Blocks.TRAPPED_CHEST)
+               || state.isOf(Blocks.ENDER_CHEST)
+               || state.getBlock() instanceof ShulkerBoxBlock) {
+               this.mc.interactionManager.interactBlock(this.mc.player, Hand.MAIN_HAND, blockHit);
+               this.mc.player.swingHand(Hand.MAIN_HAND);
             }
          }
       }
    }
 
    private BlockPos findNearestChest(int range) {
-      BlockPos playerPos = this.mc.field_1724.method_24515();
+      BlockPos playerPos = this.mc.player.getBlockPos();
       BlockPos best = null;
       double bestDist = Double.MAX_VALUE;
 
-      for (BlockPos pos : BlockPos.method_10097(playerPos.method_10069(-range, -range, -range), playerPos.method_10069(range, range, range))) {
-         BlockState state = this.mc.field_1687.method_8320(pos);
-         boolean container = state.method_27852(Blocks.field_10034)
-            || state.method_27852(Blocks.field_10380)
-            || state.method_27852(Blocks.field_10443)
-            || state.method_26204() instanceof ShulkerBoxBlock;
+      for (BlockPos pos : BlockPos.iterate(playerPos.add(-range, -range, -range), playerPos.add(range, range, range))) {
+         BlockState state = this.mc.world.getBlockState(pos);
+         boolean container = state.isOf(Blocks.CHEST)
+            || state.isOf(Blocks.TRAPPED_CHEST)
+            || state.isOf(Blocks.ENDER_CHEST)
+            || state.getBlock() instanceof ShulkerBoxBlock;
          if (container) {
-            double dist = this.mc.field_1724.method_5707(Vec3d.method_24953(pos));
+            double dist = this.mc.player.squaredDistanceTo(Vec3d.ofCenter(pos));
             if (dist < bestDist && dist <= 25.0) {
                bestDist = dist;
-               best = pos.method_10062();
+               best = pos.toImmutable();
             }
          }
       }

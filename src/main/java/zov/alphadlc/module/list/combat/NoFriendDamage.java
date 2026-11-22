@@ -17,7 +17,7 @@ public class NoFriendDamage extends Module {
    @Subscribe
    private void onAttack(EventAttack e) {
       for (Friend friend : FriendRepository.getFriends()) {
-         if (e.getEntity() != this.mc.field_1724 && e.getEntity().method_5820().equals(friend.name())) {
+         if (e.getEntity() != this.mc.player && e.getEntity().getNameForScoreboard().equals(friend.name())) {
             e.cancelEvent();
          }
       }

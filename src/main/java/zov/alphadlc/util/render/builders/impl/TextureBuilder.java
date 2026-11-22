@@ -39,7 +39,7 @@ public final class TextureBuilder extends AbstractBuilder<BuiltTexture> {
    }
 
    public TextureBuilder texture(float u, float v, float texWidth, float texHeight, AbstractTexture texture) {
-      return this.texture(u, v, texWidth, texHeight, texture.method_4624());
+      return this.texture(u, v, texWidth, texHeight, texture.getGlId());
    }
 
    public TextureBuilder texture(float u, float v, float texWidth, float texHeight, int textureId) {

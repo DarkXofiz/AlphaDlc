@@ -108,10 +108,10 @@ public class Wings extends Module {
    private boolean selfBodyYawInitialized;
 
    public void renderBeforeEntities(MatrixStack stack, Camera camera, float tickDelta, Iterable<Entity> visibleEntities) {
-      if (this.isEnabled() && this.mc.field_1724 != null && this.mc.field_1687 != null) {
-         Vec3d cameraPos = camera.method_19326();
+      if (this.isEnabled() && this.mc.player != null && this.mc.world != null) {
+         Vec3d cameraPos = camera.getPos();
          Wings.GlState state = Wings.GlState.capture();
-         stack.method_22903();
+         stack.push();
 
          try {
             RenderSystem.enableBlend();
@@ -119,56 +119,56 @@ public class Wings extends Module {
             RenderSystem.disableCull();
             RenderSystem.enableDepthTest();
             RenderSystem.depthMask(false);
-            if (this.self.getValue() && !this.mc.field_1690.method_31044().method_31034() && this.mc.field_1724.method_5805()) {
-               this.renderWings(stack, this.mc.field_1724, tickDelta, cameraPos);
+            if (this.self.getValue() && !this.mc.options.getPerspective().isFirstPerson() && this.mc.player.isAlive()) {
+               this.renderWings(stack, this.mc.player, tickDelta, cameraPos);
             }
 
             if (this.players.getValue()) {
                for (Entity entity : visibleEntities) {
                   if (entity instanceof PlayerEntity) {
                      PlayerEntity player = (PlayerEntity)entity;
-                     if (player != this.mc.field_1724 && player.method_5805()) {
+                     if (player != this.mc.player && player.isAlive()) {
                         this.renderWings(stack, player, tickDelta, cameraPos);
                      }
                   }
                }
             }
          } finally {
-            stack.method_22909();
+            stack.pop();
             state.restore();
          }
       }
    }
 
    private void renderWings(MatrixStack stack, PlayerEntity player, float tickDelta, Vec3d camera) {
-      if (!player.method_6128()) {
+      if (!player.isGliding()) {
          Wings.WingPose pose = this.resolvePose(player, tickDelta);
          if (pose != null) {
-            double x = MathHelper.method_16436((double)tickDelta, player.field_6014, player.method_23317()) - camera.field_1352;
-            double y = MathHelper.method_16436((double)tickDelta, player.field_6036, player.method_23318()) - camera.field_1351;
-            double z = MathHelper.method_16436((double)tickDelta, player.field_5969, player.method_23321()) - camera.field_1350;
+            double x = MathHelper.lerp((double)tickDelta, player.prevX, player.getX()) - camera.x;
+            double y = MathHelper.lerp((double)tickDelta, player.prevY, player.getY()) - camera.y;
+            double z = MathHelper.lerp((double)tickDelta, player.prevZ, player.getZ()) - camera.z;
             float bodyYaw = this.resolveBodyYaw(player, tickDelta);
-            float move = MathHelper.method_15363(player.field_42108.method_48570(tickDelta), 0.0F, 1.0F);
-            float flap = (float)Math.sin((double)(((float)player.field_6012 + tickDelta) * pose.flapSpeed)) * pose.flapAmplitude;
+            float move = MathHelper.clamp(player.limbAnimator.getSpeed(tickDelta), 0.0F, 1.0F);
+            float flap = (float)Math.sin((double)(((float)player.age + tickDelta) * pose.flapSpeed)) * pose.flapAmplitude;
             float open = (pose.baseSpread + flap + move * pose.motionSpreadBoost) * pose.openMultiplier;
             float wingScale = this.size.getFloatValue() * pose.scaleMultiplier;
-            int sourceColor = player != this.mc.field_1724 && FriendRepository.isFriend(player.method_5820()) ? -16711936 : this.color.getValue();
+            int sourceColor = player != this.mc.player && FriendRepository.isFriend(player.getNameForScoreboard()) ? -16711936 : this.color.getValue();
             int baseColor = setAlpha(sourceColor, Math.round(this.opacity.getFloatValue() * 255.0F));
             int coreColor = setAlpha(ColorProvider.interpolateColor(baseColor, -1, 0.42F), Math.round(this.opacity.getFloatValue() * 255.0F));
             int glowColor = setAlpha(baseColor, Math.round(this.opacity.getFloatValue() * 68.0F));
-            stack.method_22903();
-            stack.method_22904(x, y, z);
-            stack.method_22907(RotationAxis.field_40716.rotationDegrees(180.0F - bodyYaw));
-            stack.method_46416(0.0F, pose.preTranslateY, pose.preTranslateZ);
+            stack.push();
+            stack.translate(x, y, z);
+            stack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180.0F - bodyYaw));
+            stack.translate(0.0F, pose.preTranslateY, pose.preTranslateZ);
             if (pose.pitchRotation != 0.0F) {
-               stack.method_22907(RotationAxis.field_40714.rotationDegrees(pose.pitchRotation));
+               stack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(pose.pitchRotation));
             }
 
-            stack.method_46416(0.0F, pose.anchorY, pose.anchorZ);
-            stack.method_22905(wingScale, wingScale, wingScale);
+            stack.translate(0.0F, pose.anchorY, pose.anchorZ);
+            stack.scale(wingScale, wingScale, wingScale);
             this.renderWingSide(stack, -1.0F, open, baseColor, coreColor, glowColor, player, tickDelta, pose);
             this.renderWingSide(stack, 1.0F, open, baseColor, coreColor, glowColor, player, tickDelta, pose);
-            stack.method_22909();
+            stack.pop();
          }
       }
    }
@@ -176,40 +176,40 @@ public class Wings extends Module {
    private void renderWingSide(
       MatrixStack stack, float side, float open, int baseColor, int coreColor, int glowColor, PlayerEntity player, float tickDelta, Wings.WingPose pose
    ) {
-      stack.method_22903();
-      stack.method_46416(side * pose.sideOffset, pose.sideYOffset, pose.sideZOffset);
-      stack.method_22907(RotationAxis.field_40716.rotationDegrees(side * open));
-      stack.method_22907(RotationAxis.field_40718.rotationDegrees(side * pose.sideRoll));
-      stack.method_22907(RotationAxis.field_40714.rotationDegrees(pose.sidePitch));
+      stack.push();
+      stack.translate(side * pose.sideOffset, pose.sideYOffset, pose.sideZOffset);
+      stack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(side * open));
+      stack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(side * pose.sideRoll));
+      stack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(pose.sidePitch));
       boolean textured = !this.mode.is("Vanilla");
       this.bindFillShader(player, tickDelta);
       RenderSystem.blendFunc(SrcFactor.SRC_ALPHA, DstFactor.ONE);
       this.drawWingMembranes(stack, side, 1.055F, glowColor, glowColor, textured);
       RenderSystem.blendFunc(SrcFactor.SRC_ALPHA, DstFactor.ONE_MINUS_SRC_ALPHA);
       this.drawWingMembranes(stack, side, 1.0F, baseColor, coreColor, textured);
-      RenderSystem.setShader(ShaderProgramKeys.field_53876);
+      RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
       RenderSystem.blendFunc(SrcFactor.SRC_ALPHA, DstFactor.ONE);
       this.drawWingBones(stack, side, setAlpha(baseColor, Math.round(this.opacity.getFloatValue() * 42.0F)), 1.65F);
       RenderSystem.blendFunc(SrcFactor.SRC_ALPHA, DstFactor.ONE_MINUS_SRC_ALPHA);
       this.drawWingBones(stack, side, setAlpha(coreColor, Math.round(this.opacity.getFloatValue() * 220.0F)), 1.0F);
-      stack.method_22909();
+      stack.pop();
    }
 
    private void bindFillShader(PlayerEntity player, float tickDelta) {
       float speed = this.shaderSpeed.getFloatValue();
-      float time = ((float)player.field_6012 + tickDelta) * 0.05F * speed;
+      float time = ((float)player.age + tickDelta) * 0.05F * speed;
       if (this.mode.is("Animated Fill")) {
          Chams.bindAnimatedFill(time, speed, this.shaderScale.getFloatValue(), 1.15F);
       } else if (this.mode.is("Wave")) {
          Chams.bindWave(time);
       } else {
-         RenderSystem.setShader(ShaderProgramKeys.field_53876);
+         RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
       }
    }
 
    private void drawWingMembranes(MatrixStack stack, float side, float scale, int membraneColor, int coreColor, boolean textured) {
-      Matrix4f matrix = stack.method_23760().method_23761();
-      BufferBuilder buffer = Tessellator.method_1348().method_60827(DrawMode.field_27379, textured ? VertexFormats.field_1575 : VertexFormats.field_1576);
+      Matrix4f matrix = stack.peek().getPositionMatrix();
+      BufferBuilder buffer = Tessellator.getInstance().begin(DrawMode.TRIANGLES, textured ? VertexFormats.POSITION_TEXTURE_COLOR : VertexFormats.POSITION_COLOR);
 
       for (int panelIndex = 0; panelIndex < PANELS.length; panelIndex++) {
          int[] panel = PANELS[panelIndex];
@@ -226,7 +226,7 @@ public class Wings extends Module {
          this.emitMembraneEdge(buffer, matrix, side, scale, a, b, edgeColor, textured);
       }
 
-      BufferRenderer.method_43433(buffer.method_60800());
+      BufferRenderer.drawWithGlobalProgram(buffer.end());
    }
 
    private void emitMembraneTriangle(
@@ -274,8 +274,8 @@ public class Wings extends Module {
    }
 
    private void drawWingBones(MatrixStack stack, float side, int color, float radiusScale) {
-      Matrix4f matrix = stack.method_23760().method_23761();
-      BufferBuilder buffer = Tessellator.method_1348().method_60827(DrawMode.field_27379, VertexFormats.field_1576);
+      Matrix4f matrix = stack.peek().getPositionMatrix();
+      BufferBuilder buffer = Tessellator.getInstance().begin(DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR);
 
       for (Wings.WingBone bone : BONES) {
          this.emitBone(buffer, matrix, side, bone, color, radiusScale);
@@ -285,7 +285,7 @@ public class Wings extends Module {
          this.emitJoint(buffer, matrix, side, joint, color, radiusScale);
       }
 
-      BufferRenderer.method_43433(buffer.method_60800());
+      BufferRenderer.drawWithGlobalProgram(buffer.end());
    }
 
    private void emitBone(BufferBuilder buffer, Matrix4f matrix, float side, Wings.WingBone bone, int color, float radiusScale) {
@@ -387,22 +387,22 @@ public class Wings extends Module {
 
    private void vertex(BufferBuilder buffer, Matrix4f matrix, float x, float y, float z, float u, float v, int color, boolean textured) {
       if (textured) {
-         buffer.method_22918(matrix, x, y, z).method_22913(u, v).method_22915(red(color), green(color), blue(color), (float)alpha(color) / 255.0F);
+         buffer.vertex(matrix, x, y, z).texture(u, v).color(red(color), green(color), blue(color), (float)alpha(color) / 255.0F);
       } else {
-         buffer.method_22918(matrix, x, y, z).method_22915(red(color), green(color), blue(color), (float)alpha(color) / 255.0F);
+         buffer.vertex(matrix, x, y, z).color(red(color), green(color), blue(color), (float)alpha(color) / 255.0F);
       }
    }
 
    private void vertex(BufferBuilder buffer, Matrix4f matrix, float x, float y, float z, int color) {
-      buffer.method_22918(matrix, x, y, z).method_22915(red(color), green(color), blue(color), (float)alpha(color) / 255.0F);
+      buffer.vertex(matrix, x, y, z).color(red(color), green(color), blue(color), (float)alpha(color) / 255.0F);
    }
 
    private float resolveBodyYaw(PlayerEntity player, float tickDelta) {
-      float target = MathHelper.method_17821(tickDelta, player.field_6220, player.field_6283);
-      if (player != this.mc.field_1724) {
+      float target = MathHelper.lerpAngleDegrees(tickDelta, player.prevBodyYaw, player.bodyYaw);
+      if (player != this.mc.player) {
          return target;
-      } else if (this.selfBodyYawInitialized && player.field_6012 >= 2) {
-         float delta = MathHelper.method_15363(MathHelper.method_15393(target - this.selfBodyYaw), -14.0F, 14.0F);
+      } else if (this.selfBodyYawInitialized && player.age >= 2) {
+         float delta = MathHelper.clamp(MathHelper.wrapDegrees(target - this.selfBodyYaw), -14.0F, 14.0F);
          this.selfBodyYaw += delta;
          return this.selfBodyYaw;
       } else {
@@ -413,30 +413,30 @@ public class Wings extends Module {
    }
 
    private Wings.WingPose resolvePose(PlayerEntity player, float tickDelta) {
-      float pitch = MathHelper.method_16439(tickDelta, player.field_6004, player.method_36455());
-      if (player.method_6128()) {
-         float flightTicks = (float)player.method_6003() + tickDelta;
-         float flightProgress = MathHelper.method_15363(flightTicks * flightTicks / 100.0F, 0.0F, 1.0F);
+      float pitch = MathHelper.lerp(tickDelta, player.prevPitch, player.getPitch());
+      if (player.isGliding()) {
+         float flightTicks = (float)player.getGlidingTicks() + tickDelta;
+         float flightProgress = MathHelper.clamp(flightTicks * flightTicks / 100.0F, 0.0F, 1.0F);
          return new Wings.WingPose(
             0.33F, 0.43F, 0.78F, 0.16F, flightProgress * (-90.0F - pitch), 27.0F, 1.18F, 0.94F, 2.5F, 3.2F, 0.055F, 0.0F, 0.08F, -4.0F, -8.0F, 0.18F
          );
-      } else if (player.method_5799()) {
+      } else if (player.isTouchingWater()) {
          return null;
       } else {
-         return player.method_5715()
+         return player.isSneaking()
             ? new Wings.WingPose(0.0F, 0.0F, 0.96F, 0.2F, 18.0F, 20.0F, 0.92F, 0.98F, 3.0F, 5.5F, 0.06F, 0.0F, 0.03F, -10.0F, -5.0F, 0.13F)
             : new Wings.WingPose(0.0F, 0.0F, 1.36F, 0.19F, 0.0F, 22.0F, 1.0F, 1.0F, 3.5F, 6.5F, 0.06F, 0.0F, 0.03F, -12.0F, -5.0F, 0.13F);
       }
    }
 
    private static int setAlpha(int color, int alpha) {
-      return MathHelper.method_15340(alpha, 0, 255) << 24 | color & 16777215;
+      return MathHelper.clamp(alpha, 0, 255) << 24 | color & 16777215;
    }
 
    private static int multiplyRgb(int color, float factor) {
-      int r = MathHelper.method_15340(Math.round((float)(color >> 16 & 0xFF) * factor), 0, 255);
-      int g = MathHelper.method_15340(Math.round((float)(color >> 8 & 0xFF) * factor), 0, 255);
-      int b = MathHelper.method_15340(Math.round((float)(color & 0xFF) * factor), 0, 255);
+      int r = MathHelper.clamp(Math.round((float)(color >> 16 & 0xFF) * factor), 0, 255);
+      int g = MathHelper.clamp(Math.round((float)(color >> 8 & 0xFF) * factor), 0, 255);
+      int b = MathHelper.clamp(Math.round((float)(color & 0xFF) * factor), 0, 255);
       return color & 0xFF000000 | r << 16 | g << 8 | b;
    }
 

@@ -18,7 +18,7 @@ import zov.alphadlc.util.render.providers.ResourceProvider;
 
 public final class MsdfRenderer {
    public static final ShaderProgramKey MSDF_FONT_SHADER_KEY = new ShaderProgramKey(
-      ResourceProvider.getShaderIdentifier("msdf_font"), VertexFormats.field_1575, Defines.field_53930
+      ResourceProvider.getShaderIdentifier("msdf_font"), VertexFormats.POSITION_TEXTURE_COLOR, Defines.EMPTY
    );
 
    public static void renderText(MsdfFont font, String text, float size, int color, Matrix4f matrix, float x, float y, float z) {
@@ -47,19 +47,19 @@ public final class MsdfRenderer {
       RenderSystem.disableCull();
       RenderSystem.setShaderTexture(0, font.getTextureId());
       ShaderProgram shader = RenderSystem.setShader(MSDF_FONT_SHADER_KEY);
-      shader.method_34582("Range").method_1251(font.getAtlas().range());
-      shader.method_34582("Thickness").method_1251(thickness);
-      shader.method_34582("Smoothness").method_1251(0.5F);
-      shader.method_34582("EnableFadeout").method_35649(enableFadeout ? 1 : 0);
-      shader.method_34582("FadeoutStart").method_1251(fadeoutStart);
-      shader.method_34582("FadeoutEnd").method_1251(fadeoutEnd);
-      shader.method_34582("MaxWidth").method_1251(maxWidth);
-      shader.method_34582("TextPosX").method_1251(x);
-      BufferBuilder builder = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1575);
+      shader.getUniform("Range").set(font.getAtlas().range());
+      shader.getUniform("Thickness").set(thickness);
+      shader.getUniform("Smoothness").set(0.5F);
+      shader.getUniform("EnableFadeout").set(enableFadeout ? 1 : 0);
+      shader.getUniform("FadeoutStart").set(fadeoutStart);
+      shader.getUniform("FadeoutEnd").set(fadeoutEnd);
+      shader.getUniform("MaxWidth").set(maxWidth);
+      shader.getUniform("TextPosX").set(x);
+      BufferBuilder builder = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
       font.applyGlyphs(matrix, builder, text, size, thickness * 0.5F * size, spacing, x - 0.75F, y + size * 0.7F, z, color);
-      BuiltBuffer builtBuffer = builder.method_60794();
+      BuiltBuffer builtBuffer = builder.endNullable();
       if (builtBuffer != null) {
-         BufferRenderer.method_43433(builtBuffer);
+         BufferRenderer.drawWithGlobalProgram(builtBuffer);
       }
 
       RenderSystem.setShaderTexture(0, 0);
@@ -115,24 +115,24 @@ public final class MsdfRenderer {
       RenderSystem.disableCull();
       RenderSystem.setShaderTexture(0, font.getTextureId());
       ShaderProgram shader = RenderSystem.setShader(MSDF_FONT_SHADER_KEY);
-      shader.method_34582("Range").method_1251(font.getAtlas().range());
-      shader.method_34582("Thickness").method_1251(thickness);
-      shader.method_34582("Smoothness").method_1251(0.5F);
-      shader.method_34582("EnableFadeout").method_35649(enableFadeout ? 1 : 0);
-      shader.method_34582("FadeoutStart").method_1251(fadeoutStart);
-      shader.method_34582("FadeoutEnd").method_1251(fadeoutEnd);
-      shader.method_34582("MaxWidth").method_1251(maxWidth);
-      shader.method_34582("TextPosX").method_1251(x);
-      BufferBuilder builder = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1575);
+      shader.getUniform("Range").set(font.getAtlas().range());
+      shader.getUniform("Thickness").set(thickness);
+      shader.getUniform("Smoothness").set(0.5F);
+      shader.getUniform("EnableFadeout").set(enableFadeout ? 1 : 0);
+      shader.getUniform("FadeoutStart").set(fadeoutStart);
+      shader.getUniform("FadeoutEnd").set(fadeoutEnd);
+      shader.getUniform("MaxWidth").set(maxWidth);
+      shader.getUniform("TextPosX").set(x);
+      BufferBuilder builder = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
 
       for (FormattedTextProcessor.TextSegment segment : segments) {
          font.applyGlyphs(matrix, builder, segment.text(), size, thickness * 0.5F * size, spacing - 0.3F, currentX - 0.75F, y + size * 0.7F, z, segment.color());
          currentX += font.getWidth(segment.text(), size);
       }
 
-      BuiltBuffer builtBuffer = builder.method_60794();
+      BuiltBuffer builtBuffer = builder.endNullable();
       if (builtBuffer != null) {
-         BufferRenderer.method_43433(builtBuffer);
+         BufferRenderer.drawWithGlobalProgram(builtBuffer);
       }
 
       RenderSystem.setShaderTexture(0, 0);
@@ -164,15 +164,15 @@ public final class MsdfRenderer {
       RenderSystem.disableCull();
       RenderSystem.setShaderTexture(0, font.getTextureId());
       ShaderProgram shader = RenderSystem.setShader(MSDF_FONT_SHADER_KEY);
-      shader.method_34582("Range").method_1251(font.getAtlas().range());
-      shader.method_34582("Thickness").method_1251(thickness);
-      shader.method_34582("Smoothness").method_1251(0.5F);
-      shader.method_34582("EnableFadeout").method_35649(enableFadeout ? 1 : 0);
-      shader.method_34582("FadeoutStart").method_1251(fadeoutStart);
-      shader.method_34582("FadeoutEnd").method_1251(fadeoutEnd);
-      shader.method_34582("MaxWidth").method_1251(maxWidth);
-      shader.method_34582("TextPosX").method_1251(x);
-      BufferBuilder builder = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1575);
+      shader.getUniform("Range").set(font.getAtlas().range());
+      shader.getUniform("Thickness").set(thickness);
+      shader.getUniform("Smoothness").set(0.5F);
+      shader.getUniform("EnableFadeout").set(enableFadeout ? 1 : 0);
+      shader.getUniform("FadeoutStart").set(fadeoutStart);
+      shader.getUniform("FadeoutEnd").set(fadeoutEnd);
+      shader.getUniform("MaxWidth").set(maxWidth);
+      shader.getUniform("TextPosX").set(x);
+      BufferBuilder builder = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
 
       for (FormattedTextProcessor.TextSegment segment : segments) {
          int color = segment.color();
@@ -184,9 +184,9 @@ public final class MsdfRenderer {
          currentX += font.getWidth(segment.text(), size);
       }
 
-      BuiltBuffer builtBuffer = builder.method_60794();
+      BuiltBuffer builtBuffer = builder.endNullable();
       if (builtBuffer != null) {
-         BufferRenderer.method_43433(builtBuffer);
+         BufferRenderer.drawWithGlobalProgram(builtBuffer);
       }
 
       RenderSystem.setShaderTexture(0, 0);

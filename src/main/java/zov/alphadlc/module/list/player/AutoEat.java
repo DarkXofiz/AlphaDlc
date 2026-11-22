@@ -22,23 +22,23 @@ public class AutoEat extends Module {
 
    @Subscribe
    private void onUpdate(EventPlayerUpdate e) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
-         int currentHunger = this.mc.field_1724.method_7344().method_7586();
+      if (this.mc.player != null && this.mc.world != null) {
+         int currentHunger = this.mc.player.getHungerManager().getFoodLevel();
          if ((double)currentHunger <= this.hungerThreshold.getValue()) {
             int foodSlot = this.findFoodSlot();
             if (foodSlot != -1) {
                if (!this.isEating) {
-                  this.previousSlot = this.mc.field_1724.method_31548().field_7545;
-                  this.mc.field_1724.method_31548().field_7545 = foodSlot;
+                  this.previousSlot = this.mc.player.getInventory().selectedSlot;
+                  this.mc.player.getInventory().selectedSlot = foodSlot;
                   this.isEating = true;
                }
 
-               this.mc.field_1690.field_1904.method_23481(true);
+               this.mc.options.useKey.setPressed(true);
             }
          } else if (this.isEating) {
-            this.mc.field_1690.field_1904.method_23481(false);
+            this.mc.options.useKey.setPressed(false);
             if (this.previousSlot != -1) {
-               this.mc.field_1724.method_31548().field_7545 = this.previousSlot;
+               this.mc.player.getInventory().selectedSlot = this.previousSlot;
                this.previousSlot = -1;
             }
 
@@ -49,9 +49,9 @@ public class AutoEat extends Module {
 
    private int findFoodSlot() {
       for (int i = 0; i < 9; i++) {
-         ItemStack stack = this.mc.field_1724.method_31548().method_5438(i);
-         if (!stack.method_7960()) {
-            FoodComponent food = (FoodComponent)stack.method_57824(DataComponentTypes.field_50075);
+         ItemStack stack = this.mc.player.getInventory().getStack(i);
+         if (!stack.isEmpty()) {
+            FoodComponent food = (FoodComponent)stack.get(DataComponentTypes.FOOD);
             if (food != null) {
                return i;
             }
@@ -65,9 +65,9 @@ public class AutoEat extends Module {
    public void onDisable() {
       super.onDisable();
       if (this.isEating) {
-         this.mc.field_1690.field_1904.method_23481(false);
-         if (this.previousSlot != -1 && this.mc.field_1724 != null) {
-            this.mc.field_1724.method_31548().field_7545 = this.previousSlot;
+         this.mc.options.useKey.setPressed(false);
+         if (this.previousSlot != -1 && this.mc.player != null) {
+            this.mc.player.getInventory().selectedSlot = this.previousSlot;
          }
       }
 

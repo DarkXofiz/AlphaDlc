@@ -41,10 +41,10 @@ public final class MsdfGlyph {
       y -= this.topPosition * size;
       float width = this.width * size;
       float height = this.height * size;
-      consumer.method_22918(matrix, x, y, z).method_22913(this.minU, this.minV).method_39415(color);
-      consumer.method_22918(matrix, x, y + height, z).method_22913(this.minU, this.maxV).method_39415(color);
-      consumer.method_22918(matrix, x + width, y + height, z).method_22913(this.maxU, this.maxV).method_39415(color);
-      consumer.method_22918(matrix, x + width, y, z).method_22913(this.maxU, this.minV).method_39415(color);
+      consumer.vertex(matrix, x, y, z).texture(this.minU, this.minV).color(color);
+      consumer.vertex(matrix, x, y + height, z).texture(this.minU, this.maxV).color(color);
+      consumer.vertex(matrix, x + width, y + height, z).texture(this.maxU, this.maxV).color(color);
+      consumer.vertex(matrix, x + width, y, z).texture(this.maxU, this.minV).color(color);
       return this.advance * size;
    }
 

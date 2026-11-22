@@ -33,7 +33,7 @@ public class CommandDispatcher {
          event.setCancelled(true);
          String commandStr = msg.substring(forceRun ? IBaritoneChatControl.FORCE_COMMAND_PREFIX.length() : prefix.length());
          if (!this.runCommand(commandStr) && !commandStr.trim().isEmpty()) {
-            new CommandNotFoundException((String)CommandRepository.expand(commandStr).method_15442()).handle(null, null);
+            new CommandNotFoundException((String)CommandRepository.expand(commandStr).getLeft()).handle(null, null);
          }
       }
    }

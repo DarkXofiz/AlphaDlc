@@ -19,7 +19,7 @@ import zov.alphadlc.util.render.renderers.IRenderer;
 public record BuiltGlow(SizeState size, QuadRadiusState radius, QuadColorState color, float glowRadius, float softness, float intensity, boolean additive)
    implements IRenderer {
    private static final ShaderProgramKey GLOW_SHADER_KEY = new ShaderProgramKey(
-      ResourceProvider.getShaderIdentifier("glow"), VertexFormats.field_1576, Defines.field_53930
+      ResourceProvider.getShaderIdentifier("glow"), VertexFormats.POSITION_COLOR, Defines.EMPTY
    );
 
    @Override
@@ -30,17 +30,17 @@ public record BuiltGlow(SizeState size, QuadRadiusState radius, QuadColorState c
       float w = this.size.width();
       float h = this.size.height();
       ShaderProgram shader = RenderSystem.setShader(GLOW_SHADER_KEY);
-      shader.method_34582("Size").method_1255(w, h);
-      shader.method_34582("Radius").method_35657(this.radius.radius1(), this.radius.radius2(), this.radius.radius3(), this.radius.radius4());
-      shader.method_34582("GlowRadius").method_1251(this.glowRadius);
-      shader.method_34582("Softness").method_1251(this.softness);
-      shader.method_34582("Intensity").method_1251(this.intensity);
-      BufferBuilder bb = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1576);
-      bb.method_22918(matrix, x, y, z).method_39415(this.color.color1());
-      bb.method_22918(matrix, x, y + h, z).method_39415(this.color.color2());
-      bb.method_22918(matrix, x + w, y + h, z).method_39415(this.color.color3());
-      bb.method_22918(matrix, x + w, y, z).method_39415(this.color.color4());
-      BufferRenderer.method_43433(bb.method_60800());
+      shader.getUniform("Size").set(w, h);
+      shader.getUniform("Radius").set(this.radius.radius1(), this.radius.radius2(), this.radius.radius3(), this.radius.radius4());
+      shader.getUniform("GlowRadius").set(this.glowRadius);
+      shader.getUniform("Softness").set(this.softness);
+      shader.getUniform("Intensity").set(this.intensity);
+      BufferBuilder bb = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+      bb.vertex(matrix, x, y, z).color(this.color.color1());
+      bb.vertex(matrix, x, y + h, z).color(this.color.color2());
+      bb.vertex(matrix, x + w, y + h, z).color(this.color.color3());
+      bb.vertex(matrix, x + w, y, z).color(this.color.color4());
+      BufferRenderer.drawWithGlobalProgram(bb.end());
       RenderSystem.defaultBlendFunc();
       RenderSystem.enableCull();
       RenderSystem.disableBlend();

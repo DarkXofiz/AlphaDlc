@@ -62,18 +62,18 @@ public class BlockOverlay extends Module {
    private float visibility;
 
    private static ShaderProgramKey shaderKey(String name) {
-      return new ShaderProgramKey(ResourceProvider.getShaderIdentifier(name), VertexFormats.field_1575, Defines.field_53930);
+      return new ShaderProgramKey(ResourceProvider.getShaderIdentifier(name), VertexFormats.POSITION_TEXTURE_COLOR, Defines.EMPTY);
    }
 
    @Subscribe
    public void onWorldRender(EventWorldRender event) {
-      if (this.mc.field_1687 != null && this.mc.field_1724 != null) {
+      if (this.mc.world != null && this.mc.player != null) {
          long now = System.nanoTime();
          float dt = this.lastFrameTime == 0L ? 0.016666668F : Math.min(0.1F, (float)(now - this.lastFrameTime) / 1.0E9F);
          this.lastFrameTime = now;
          Box targetBox = this.getTargetBox();
-         if (this.lastWorld != this.mc.field_1687) {
-            this.lastWorld = this.mc.field_1687;
+         if (this.lastWorld != this.mc.world) {
+            this.lastWorld = this.mc.world;
             this.currentBox = targetBox;
             this.visibility = 0.0F;
          }
@@ -110,20 +110,20 @@ public class BlockOverlay extends Module {
          if (this.currentBox != null) {
             int color = this.overlayColor.getValue();
             MatrixStack matrices = event.getMatrixStack();
-            Vec3d camPos = this.mc.field_1773.method_19418().method_19326();
-            matrices.method_22903();
-            double minX = this.currentBox.field_1323 - camPos.field_1352;
-            double minY = this.currentBox.field_1322 - camPos.field_1351;
-            double minZ = this.currentBox.field_1321 - camPos.field_1350;
-            double maxX = this.currentBox.field_1320 - camPos.field_1352;
-            double maxY = this.currentBox.field_1325 - camPos.field_1351;
-            double maxZ = this.currentBox.field_1324 - camPos.field_1350;
+            Vec3d camPos = this.mc.gameRenderer.getCamera().getPos();
+            matrices.push();
+            double minX = this.currentBox.minX - camPos.x;
+            double minY = this.currentBox.minY - camPos.y;
+            double minZ = this.currentBox.minZ - camPos.z;
+            double maxX = this.currentBox.maxX - camPos.x;
+            double maxY = this.currentBox.maxY - camPos.y;
+            double maxZ = this.currentBox.maxZ - camPos.z;
             this.drawFilled(matrices, minX, minY, minZ, maxX, maxY, maxZ, color, this.visibility);
             if (this.outline.getValue()) {
                this.drawOutline(matrices, minX, minY, minZ, maxX, maxY, maxZ, color, this.visibility);
             }
 
-            matrices.method_22909();
+            matrices.pop();
          }
       }
    }
@@ -138,14 +138,14 @@ public class BlockOverlay extends Module {
    }
 
    private Box getTargetBox() {
-      if (this.mc.field_1765 != null && this.mc.field_1765.method_17783() == Type.field_1332) {
-         BlockPos pos = ((BlockHitResult)this.mc.field_1765).method_17777();
-         BlockState state = this.mc.field_1687.method_8320(pos);
-         if (state.method_26215()) {
+      if (this.mc.crosshairTarget != null && this.mc.crosshairTarget.getType() == Type.BLOCK) {
+         BlockPos pos = ((BlockHitResult)this.mc.crosshairTarget).getBlockPos();
+         BlockState state = this.mc.world.getBlockState(pos);
+         if (state.isAir()) {
             return null;
          } else {
-            VoxelShape shape = state.method_26218(this.mc.field_1687, pos);
-            return shape.method_1110() ? null : shape.method_1107().method_996(pos);
+            VoxelShape shape = state.getOutlineShape(this.mc.world, pos);
+            return shape.isEmpty() ? null : shape.getBoundingBox().offset(pos);
          }
       } else {
          return null;
@@ -154,12 +154,12 @@ public class BlockOverlay extends Module {
 
    private Box lerpBox(Box from, Box to, float delta) {
       return new Box(
-         from.field_1323 + (to.field_1323 - from.field_1323) * (double)delta,
-         from.field_1322 + (to.field_1322 - from.field_1322) * (double)delta,
-         from.field_1321 + (to.field_1321 - from.field_1321) * (double)delta,
-         from.field_1320 + (to.field_1320 - from.field_1320) * (double)delta,
-         from.field_1325 + (to.field_1325 - from.field_1325) * (double)delta,
-         from.field_1324 + (to.field_1324 - from.field_1324) * (double)delta
+         from.minX + (to.minX - from.minX) * (double)delta,
+         from.minY + (to.minY - from.minY) * (double)delta,
+         from.minZ + (to.minZ - from.minZ) * (double)delta,
+         from.maxX + (to.maxX - from.maxX) * (double)delta,
+         from.maxY + (to.maxY - from.maxY) * (double)delta,
+         from.maxZ + (to.maxZ - from.maxZ) * (double)delta
       );
    }
 
@@ -167,40 +167,40 @@ public class BlockOverlay extends Module {
       RenderSystem.enableBlend();
       RenderSystem.defaultBlendFunc();
       RenderSystem.disableDepthTest();
-      RenderSystem.setShader(ShaderProgramKeys.field_53876);
+      RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
       RenderSystem.lineWidth(this.outlineWidth.getFloatValue());
-      Matrix4f matrix = matrices.method_23760().method_23761();
-      Tessellator tessellator = Tessellator.method_1348();
-      BufferBuilder buffer = tessellator.method_60827(DrawMode.field_29344, VertexFormats.field_1576);
+      Matrix4f matrix = matrices.peek().getPositionMatrix();
+      Tessellator tessellator = Tessellator.getInstance();
+      BufferBuilder buffer = tessellator.begin(DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
       float r = (float)(color >> 16 & 0xFF) / 255.0F;
       float g = (float)(color >> 8 & 0xFF) / 255.0F;
       float b = (float)(color & 0xFF) / 255.0F;
       float outlineAlpha = this.outlineOpacity.getFloatValue() * Math.max(0.0F, Math.min(1.0F, visibility));
-      buffer.method_22918(matrix, (float)minX, (float)minY, (float)minZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)maxX, (float)minY, (float)minZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)maxX, (float)minY, (float)minZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)maxX, (float)minY, (float)maxZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)maxX, (float)minY, (float)maxZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)minX, (float)minY, (float)maxZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)minX, (float)minY, (float)maxZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)minX, (float)minY, (float)minZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)minX, (float)maxY, (float)minZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)maxX, (float)maxY, (float)minZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)maxX, (float)maxY, (float)minZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)maxX, (float)maxY, (float)maxZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)maxX, (float)maxY, (float)maxZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)minX, (float)maxY, (float)maxZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)minX, (float)maxY, (float)maxZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)minX, (float)maxY, (float)minZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)minX, (float)minY, (float)minZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)minX, (float)maxY, (float)minZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)maxX, (float)minY, (float)minZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)maxX, (float)maxY, (float)minZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)maxX, (float)minY, (float)maxZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)maxX, (float)maxY, (float)maxZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)minX, (float)minY, (float)maxZ).method_22915(r, g, b, outlineAlpha);
-      buffer.method_22918(matrix, (float)minX, (float)maxY, (float)maxZ).method_22915(r, g, b, outlineAlpha);
-      BufferRenderer.method_43433(buffer.method_60800());
+      buffer.vertex(matrix, (float)minX, (float)minY, (float)minZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)maxX, (float)minY, (float)minZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)maxX, (float)minY, (float)minZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)maxX, (float)minY, (float)maxZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)maxX, (float)minY, (float)maxZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)minX, (float)minY, (float)maxZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)minX, (float)minY, (float)maxZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)minX, (float)minY, (float)minZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)minX, (float)maxY, (float)minZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)maxX, (float)maxY, (float)minZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)maxX, (float)maxY, (float)minZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)maxX, (float)maxY, (float)maxZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)maxX, (float)maxY, (float)maxZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)minX, (float)maxY, (float)maxZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)minX, (float)maxY, (float)maxZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)minX, (float)maxY, (float)minZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)minX, (float)minY, (float)minZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)minX, (float)maxY, (float)minZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)maxX, (float)minY, (float)minZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)maxX, (float)maxY, (float)minZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)maxX, (float)minY, (float)maxZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)maxX, (float)maxY, (float)maxZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)minX, (float)minY, (float)maxZ).color(r, g, b, outlineAlpha);
+      buffer.vertex(matrix, (float)minX, (float)maxY, (float)maxZ).color(r, g, b, outlineAlpha);
+      BufferRenderer.drawWithGlobalProgram(buffer.end());
       RenderSystem.enableDepthTest();
       RenderSystem.disableBlend();
       RenderSystem.lineWidth(1.0F);
@@ -213,14 +213,14 @@ public class BlockOverlay extends Module {
       RenderSystem.disableCull();
       ShaderProgram shader = RenderSystem.setShader(this.getOverlayShader());
       if (shader == null) {
-         RenderSystem.setShader(ShaderProgramKeys.field_53880);
-      } else if (shader.method_34582("Time") != null) {
-         shader.method_34582("Time").method_1251((float)(System.currentTimeMillis() % 100000L) / 1000.0F);
+         RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX_COLOR);
+      } else if (shader.getUniform("Time") != null) {
+         shader.getUniform("Time").set((float)(System.currentTimeMillis() % 100000L) / 1000.0F);
       }
 
-      Matrix4f matrix = matrices.method_23760().method_23761();
-      Tessellator tessellator = Tessellator.method_1348();
-      BufferBuilder buffer = tessellator.method_60827(DrawMode.field_27382, VertexFormats.field_1575);
+      Matrix4f matrix = matrices.peek().getPositionMatrix();
+      Tessellator tessellator = Tessellator.getInstance();
+      BufferBuilder buffer = tessellator.begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
       float r = (float)(color >> 16 & 0xFF) / 255.0F;
       float g = (float)(color >> 8 & 0xFF) / 255.0F;
       float b = (float)(color & 0xFF) / 255.0F;
@@ -231,7 +231,7 @@ public class BlockOverlay extends Module {
       this.putFace(buffer, matrix, minX, minY, maxZ, maxX, minY, maxZ, maxX, maxY, maxZ, minX, maxY, maxZ, r, g, b, a);
       this.putFace(buffer, matrix, minX, minY, minZ, minX, minY, maxZ, minX, maxY, maxZ, minX, maxY, minZ, r, g, b, a);
       this.putFace(buffer, matrix, maxX, minY, minZ, maxX, maxY, minZ, maxX, maxY, maxZ, maxX, minY, maxZ, r, g, b, a);
-      BufferRenderer.method_43433(buffer.method_60800());
+      BufferRenderer.drawWithGlobalProgram(buffer.end());
       RenderSystem.enableCull();
       RenderSystem.enableDepthTest();
       RenderSystem.disableBlend();
@@ -269,9 +269,9 @@ public class BlockOverlay extends Module {
       float b,
       float a
    ) {
-      buffer.method_22918(matrix, (float)x1, (float)y1, (float)z1).method_22913(0.0F, 0.0F).method_22915(r, g, b, a);
-      buffer.method_22918(matrix, (float)x2, (float)y2, (float)z2).method_22913(1.0F, 0.0F).method_22915(r, g, b, a);
-      buffer.method_22918(matrix, (float)x3, (float)y3, (float)z3).method_22913(1.0F, 1.0F).method_22915(r, g, b, a);
-      buffer.method_22918(matrix, (float)x4, (float)y4, (float)z4).method_22913(0.0F, 1.0F).method_22915(r, g, b, a);
+      buffer.vertex(matrix, (float)x1, (float)y1, (float)z1).texture(0.0F, 0.0F).color(r, g, b, a);
+      buffer.vertex(matrix, (float)x2, (float)y2, (float)z2).texture(1.0F, 0.0F).color(r, g, b, a);
+      buffer.vertex(matrix, (float)x3, (float)y3, (float)z3).texture(1.0F, 1.0F).color(r, g, b, a);
+      buffer.vertex(matrix, (float)x4, (float)y4, (float)z4).texture(0.0F, 1.0F).color(r, g, b, a);
    }
 }

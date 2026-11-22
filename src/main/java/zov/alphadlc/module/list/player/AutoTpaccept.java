@@ -20,10 +20,10 @@ public class AutoTpaccept extends Module {
 
    @Subscribe
    public void onPacket(EventPacket e) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
+      if (this.mc.player != null && this.mc.world != null) {
          if (e.getPacket() instanceof GameMessageS2CPacket p
             && TpRequestRecognizer.shouldAccept(p.comp_763().getString(), this.friendsOnly.getValue(), FriendRepository::isFriend)) {
-            this.mc.method_1562().method_45730("tpaccept");
+            this.mc.getNetworkHandler().sendChatCommand("tpaccept");
          }
       }
    }

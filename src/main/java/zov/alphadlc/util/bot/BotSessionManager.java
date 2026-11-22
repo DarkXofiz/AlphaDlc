@@ -49,15 +49,15 @@ public final class BotSessionManager {
    }
 
    public static void connect(String name, String address) {
-      MinecraftClient mc = MinecraftClient.method_1551();
+      MinecraftClient mc = MinecraftClient.getInstance();
       freezeCurrentSession();
-      ((IMinecraftClientAccessor)mc).setSession(createSessionWithName(mc.method_1548(), name));
+      ((IMinecraftClientAccessor)mc).setSession(createSessionWithName(mc.getSession(), name));
       mc.execute(
-         () -> ConnectScreen.method_36877(
+         () -> ConnectScreen.connect(
                new MultiplayerScreen(new TitleScreen()),
                mc,
-               ServerAddress.method_2950(address),
-               new ServerInfo(address, address, ServerType.field_45611),
+               ServerAddress.parse(address),
+               new ServerInfo(address, address, ServerType.OTHER),
                false,
                null
             )
@@ -69,9 +69,9 @@ public final class BotSessionManager {
       for (BotSessionManager.BotConnection bot : connections) {
          if (bot.handler() != null && bot.player() != null) {
             if (rightClick) {
-               bot.handler().method_52787(new PlayerInteractItemC2SPacket(Hand.field_5808, 0, bot.player().method_36454(), bot.player().method_36455()));
+               bot.handler().sendPacket(new PlayerInteractItemC2SPacket(Hand.MAIN_HAND, 0, bot.player().getYaw(), bot.player().getPitch()));
             } else {
-               bot.handler().method_52787(new HandSwingC2SPacket(Hand.field_5808));
+               bot.handler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
             }
          }
       }
@@ -81,16 +81,16 @@ public final class BotSessionManager {
       for (BotSessionManager.BotConnection bot : connections) {
          if (bot.handler() != null) {
             if (message.startsWith("/")) {
-               bot.handler().method_45730(message.substring(1));
+               bot.handler().sendChatCommand(message.substring(1));
             } else {
-               bot.handler().method_45729(message);
+               bot.handler().sendChatMessage(message);
             }
          }
       }
    }
 
    public static boolean control(String name) {
-      MinecraftClient mc = MinecraftClient.method_1551();
+      MinecraftClient mc = MinecraftClient.getInstance();
       return connections.stream()
          .filter(b -> b.name().equalsIgnoreCase(name))
          .findFirst()
@@ -103,10 +103,10 @@ public final class BotSessionManager {
                   ch.pipeline().remove("bot_filter");
                }
 
-               mc.field_1687 = bot.world();
-               mc.field_1724 = bot.player();
-               mc.field_1719 = bot.player();
-               mc.field_1761 = bot.interactionManager();
+               mc.world = bot.world();
+               mc.player = bot.player();
+               mc.cameraEntity = bot.player();
+               mc.interactionManager = bot.interactionManager();
 
                try {
                   for (Field f : MinecraftClient.class.getDeclaredFields()) {
@@ -119,25 +119,25 @@ public final class BotSessionManager {
                } catch (Exception var7) {
                }
 
-               if (mc.field_1769 != null) {
-                  mc.field_1769.method_3244(bot.world());
-                  mc.field_1769.method_3279();
+               if (mc.worldRenderer != null) {
+                  mc.worldRenderer.setWorld(bot.world());
+                  mc.worldRenderer.reload();
                }
 
                bot.handler()
-                  .method_52787(
+                  .sendPacket(
                      new Full(
-                        mc.field_1724.method_23317(),
-                        mc.field_1724.method_23318(),
-                        mc.field_1724.method_23321(),
-                        mc.field_1724.method_36454(),
-                        mc.field_1724.method_36455(),
-                        mc.field_1724.method_24828(),
-                        mc.field_1724.field_5976
+                        mc.player.getX(),
+                        mc.player.getY(),
+                        mc.player.getZ(),
+                        mc.player.getYaw(),
+                        mc.player.getPitch(),
+                        mc.player.isOnGround(),
+                        mc.player.horizontalCollision
                      )
                   );
-               ((IMinecraftClientAccessor)mc).setSession(createSessionWithName(mc.method_1548(), bot.name()));
-               mc.method_1507(null);
+               ((IMinecraftClientAccessor)mc).setSession(createSessionWithName(mc.getSession(), bot.name()));
+               mc.setScreen(null);
                return true;
             }
          )
@@ -145,23 +145,23 @@ public final class BotSessionManager {
    }
 
    private static void freezeCurrentSession() {
-      MinecraftClient mc = MinecraftClient.method_1551();
-      if (mc.method_1562() != null && mc.field_1687 != null) {
-         ClientPlayNetworkHandler h = mc.method_1562();
-         makeNettyBot(h, mc.method_1548().method_1676(), mc.field_1724);
+      MinecraftClient mc = MinecraftClient.getInstance();
+      if (mc.getNetworkHandler() != null && mc.world != null) {
+         ClientPlayNetworkHandler h = mc.getNetworkHandler();
+         makeNettyBot(h, mc.getSession().getUsername(), mc.player);
          connections.add(
             new BotSessionManager.BotConnection(
-               mc.method_1548().method_1676(),
-               mc.method_1558() != null ? mc.method_1558().field_3761 : "",
-               h.method_48296(),
+               mc.getSession().getUsername(),
+               mc.getCurrentServerEntry() != null ? mc.getCurrentServerEntry().address : "",
+               h.getConnection(),
                h,
-               mc.field_1687,
-               mc.field_1724,
-               mc.field_1761
+               mc.world,
+               mc.player,
+               mc.interactionManager
             )
          );
-         mc.field_1687 = null;
-         mc.field_1724 = null;
+         mc.world = null;
+         mc.player = null;
 
          try {
             for (Field f : MinecraftClient.class.getDeclaredFields()) {
@@ -177,7 +177,7 @@ public final class BotSessionManager {
    }
 
    private static void makeNettyBot(ClientPlayNetworkHandler handler, String name, ClientPlayerEntity botPlayer) {
-      Channel channel = getChannel(handler.method_48296());
+      Channel channel = getChannel(handler.getConnection());
       if (channel != null) {
          channel.pipeline()
             .addBefore(
@@ -186,21 +186,21 @@ public final class BotSessionManager {
                new ChannelDuplexHandler() {
                   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                      if (msg instanceof KeepAliveS2CPacket p) {
-                        handler.method_48296().method_10743(new KeepAliveC2SPacket(p.method_11517()));
+                        handler.getConnection().send(new KeepAliveC2SPacket(p.getId()));
                         if (botPlayer != null) {
-                           handler.method_52787(new OnGroundOnly(botPlayer.method_24828(), botPlayer.field_5976));
+                           handler.sendPacket(new OnGroundOnly(botPlayer.isOnGround(), botPlayer.horizontalCollision));
                         }
 
                         ReferenceCountUtil.release(msg);
                      } else if (msg instanceof CommonPingS2CPacket p) {
-                        handler.method_48296().method_10743(new CommonPongC2SPacket(p.method_36950()));
+                        handler.getConnection().send(new CommonPongC2SPacket(p.getParameter()));
                         ReferenceCountUtil.release(msg);
                      } else if (msg instanceof PlayerPositionLookS2CPacket p) {
-                        handler.method_52787(new TeleportConfirmC2SPacket(p.comp_3133()));
+                        handler.sendPacket(new TeleportConfirmC2SPacket(p.comp_3133()));
                         ReferenceCountUtil.release(msg);
                      } else if (msg instanceof HealthUpdateS2CPacket p) {
                         if (botPlayer != null) {
-                           botPlayer.method_6033(p.method_11833());
+                           botPlayer.setHealth(p.getHealth());
                         }
 
                         ReferenceCountUtil.release(msg);
@@ -233,9 +233,9 @@ public final class BotSessionManager {
    public static boolean say(String n, String m) {
       return connections.stream().filter(b -> b.name().equalsIgnoreCase(n)).findFirst().map(b -> {
          if (m.startsWith("/")) {
-            b.handler().method_45730(m.substring(1));
+            b.handler().sendChatCommand(m.substring(1));
          } else {
-            b.handler().method_45729(m);
+            b.handler().sendChatMessage(m);
          }
 
          return true;
@@ -245,7 +245,7 @@ public final class BotSessionManager {
    public static boolean remove(String n) {
       return connections.removeIf(b -> {
          if (b.name().equalsIgnoreCase(n)) {
-            b.connection().method_10747(Text.method_43470("Removed"));
+            b.connection().disconnect(Text.literal("Removed"));
             return true;
          } else {
             return false;
@@ -276,7 +276,7 @@ public final class BotSessionManager {
          Constructor<Session> c = Session.class
             .getDeclaredConstructor(String.class, UUID.class, String.class, Optional.class, Optional.class, AccountType.class);
          c.setAccessible(true);
-         return c.newInstance(name, UUID.randomUUID(), current.method_1674(), Optional.empty(), Optional.empty(), AccountType.field_1988);
+         return c.newInstance(name, UUID.randomUUID(), current.getAccessToken(), Optional.empty(), Optional.empty(), AccountType.MOJANG);
       } catch (Exception var3) {
          throw new RuntimeException(var3);
       }

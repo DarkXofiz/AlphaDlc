@@ -17,29 +17,29 @@ import zov.alphadlc.module.list.player.FreeCamera;
 public class Sprint extends Module {
    @Subscribe
    public void onUpdate(EventTick event) {
-      if (this.mc.field_1724 != null) {
-         this.mc.field_1690.field_1867.method_23481(false);
+      if (this.mc.player != null) {
+         this.mc.options.sprintKey.setPressed(false);
          PlayerEntity fakePlayer = AlphaDLC.getInstance().getModuleStorage().get(FreeCamera.class).fakePlayer;
          this.mc
-            .field_1724
-            .method_5728(
+            .player
+            .setSprinting(
                fakePlayer == null
-                  && (!this.mc.field_1724.method_5799() || this.mc.field_1724.method_5869())
-                  && !this.mc.field_1724.method_6128()
-                  && this.mc.field_1724.method_20623()
-                  && this.mc.field_1724.method_46743()
-                  && !this.mc.field_1724.method_6115()
-                  && !this.mc.field_1724.method_65525()
+                  && (!this.mc.player.isTouchingWater() || this.mc.player.isSubmergedInWater())
+                  && !this.mc.player.isGliding()
+                  && this.mc.player.isWalking()
+                  && this.mc.player.canSprint()
+                  && !this.mc.player.isUsingItem()
+                  && !this.mc.player.isBlind()
                   && (
-                     !this.mc.field_1724.method_5765()
-                        || this.mc.field_1724.method_5854().method_48155()
-                           && this.mc.field_1724.method_5854().method_5787()
-                           && !this.mc.field_1724.method_6128()
-                           && (!this.mc.field_1724.method_20303() || this.mc.field_1724.method_5869())
+                     !this.mc.player.hasVehicle()
+                        || this.mc.player.getVehicle().canSprintAsVehicle()
+                           && this.mc.player.getVehicle().isLogicalSideForUpdatingMovement()
+                           && !this.mc.player.isGliding()
+                           && (!this.mc.player.shouldSlowDown() || this.mc.player.isSubmergedInWater())
                   )
-                  && this.mc.field_1724.field_3913.method_20622()
-                  && !this.mc.field_1724.field_5976
-                  && !this.mc.field_1724.field_34927
+                  && this.mc.player.input.hasForwardMovement()
+                  && !this.mc.player.horizontalCollision
+                  && !this.mc.player.collidedSoftly
             );
       }
    }

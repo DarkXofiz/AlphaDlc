@@ -42,12 +42,12 @@ public class MaceTarget extends Module {
 
    @Subscribe
    public void onTick(EventTick event) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
-         if (this.mc.field_1724.method_24828()) {
+      if (this.mc.player != null && this.mc.world != null) {
+         if (this.mc.player.isOnGround()) {
             this.restoreSlot();
-         } else if (this.onlyFalling.getValue() && this.mc.field_1724.method_18798().field_1351 >= 0.0) {
+         } else if (this.onlyFalling.getValue() && this.mc.player.getVelocity().y >= 0.0) {
             this.restoreSlot();
-         } else if ((double)this.mc.field_1724.field_6017 < this.minHeight.getValue()) {
+         } else if ((double)this.mc.player.fallDistance < this.minHeight.getValue()) {
             this.restoreSlot();
          } else {
             LivingEntity target = this.findTarget();
@@ -60,18 +60,18 @@ public class MaceTarget extends Module {
                      return;
                   }
 
-                  if (this.mc.field_1724.method_31548().field_7545 != maceSlot) {
-                     this.savedSlot = this.mc.field_1724.method_31548().field_7545;
-                     this.mc.field_1724.method_31548().field_7545 = maceSlot;
-                     this.mc.field_1724.field_3944.method_52787(new UpdateSelectedSlotC2SPacket(maceSlot));
+                  if (this.mc.player.getInventory().selectedSlot != maceSlot) {
+                     this.savedSlot = this.mc.player.getInventory().selectedSlot;
+                     this.mc.player.getInventory().selectedSlot = maceSlot;
+                     this.mc.player.networkHandler.sendPacket(new UpdateSelectedSlotC2SPacket(maceSlot));
                   }
-               } else if (this.mc.field_1724.method_6047().method_7909() != Items.field_49814) {
+               } else if (this.mc.player.getMainHandStack().getItem() != Items.MACE) {
                   return;
                }
 
                if (this.cooldown.isReached(450L)) {
-                  this.mc.field_1761.method_2918(this.mc.field_1724, target);
-                  this.mc.field_1724.method_6104(Hand.field_5808);
+                  this.mc.interactionManager.attackEntity(this.mc.player, target);
+                  this.mc.player.swingHand(Hand.MAIN_HAND);
                   this.restoreSlot();
                   this.cooldown.reset();
                }
@@ -84,16 +84,16 @@ public class MaceTarget extends Module {
       LivingEntity best = null;
       double bestDist = Double.MAX_VALUE;
 
-      for (Entity entity : this.mc.field_1687.method_18112()) {
+      for (Entity entity : this.mc.world.getEntities()) {
          if (entity instanceof LivingEntity) {
             LivingEntity living = (LivingEntity)entity;
             double dist;
             PlayerEntity p2;
-            if (entity != this.mc.field_1724
-               && entity.method_5805()
+            if (entity != this.mc.player
+               && entity.isAlive()
                && !(entity instanceof ArmorStandEntity)
                && (!(entity instanceof PlayerEntity) || FriendRepository.shouldAttack(p2 = (PlayerEntity)entity))
-               && !((dist = (double)this.mc.field_1724.method_5739(entity)) > this.distance.getValue())
+               && !((dist = (double)this.mc.player.distanceTo(entity)) > this.distance.getValue())
                && dist < bestDist) {
                bestDist = dist;
                best = living;
@@ -106,7 +106,7 @@ public class MaceTarget extends Module {
 
    private int findMaceSlot() {
       for (int i2 = 0; i2 < 9; i2++) {
-         if (this.mc.field_1724.method_31548().method_5438(i2).method_7909() == Items.field_49814) {
+         if (this.mc.player.getInventory().getStack(i2).getItem() == Items.MACE) {
             return i2;
          }
       }
@@ -115,9 +115,9 @@ public class MaceTarget extends Module {
    }
 
    private void restoreSlot() {
-      if (this.savedSlot != -1 && this.mc.field_1724 != null) {
-         this.mc.field_1724.method_31548().field_7545 = this.savedSlot;
-         this.mc.field_1724.field_3944.method_52787(new UpdateSelectedSlotC2SPacket(this.savedSlot));
+      if (this.savedSlot != -1 && this.mc.player != null) {
+         this.mc.player.getInventory().selectedSlot = this.savedSlot;
+         this.mc.player.networkHandler.sendPacket(new UpdateSelectedSlotC2SPacket(this.savedSlot));
          this.savedSlot = -1;
       }
    }

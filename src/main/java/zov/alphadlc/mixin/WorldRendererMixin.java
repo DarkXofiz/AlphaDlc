@@ -25,7 +25,7 @@ public class WorldRendererMixin {
    ) {
       Wings wings = Instance.get(Wings.class);
       if (wings != null && wings.isEnabled()) {
-         wings.renderBeforeEntities(matrices, camera, tickCounter.method_60637(false), entities);
+         wings.renderBeforeEntities(matrices, camera, tickCounter.getTickDelta(false), entities);
       }
    }
 }

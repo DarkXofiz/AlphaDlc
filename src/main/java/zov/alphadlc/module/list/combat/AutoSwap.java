@@ -29,14 +29,14 @@ public class AutoSwap extends Module {
 
    @Subscribe
    private void onPlayerUpdate(EventPlayerUpdate e) {
-      if (this.mc.field_1724 != null) {
+      if (this.mc.player != null) {
          if (this.swapped) {
             this.swapped = false;
             boolean sameItem = this.firstItem.getValue().equals(this.secondItem.getValue());
             int slotFirstItem = this.findItemByName(this.firstItem.getValue(), sameItem);
             int slotSecondItem = this.findItemByName(this.secondItem.getValue(), sameItem);
             if (slotFirstItem == 40 && slotSecondItem == 40) {
-               slotSecondItem = InventoryUtil.searchItemStack(item -> AutoSwapRecognition.isSphere(item) && item != this.mc.field_1724.method_6079());
+               slotSecondItem = InventoryUtil.searchItemStack(item -> AutoSwapRecognition.isSphere(item) && item != this.mc.player.getOffHandStack());
             }
 
             if (slotFirstItem == -1 && slotSecondItem == -1) {
@@ -52,32 +52,32 @@ public class AutoSwap extends Module {
                   String var10 = this.mode.getValue();
                   switch (var10) {
                      case "Vanilla":
-                        this.mc.field_1761.method_2906(0, 45, slotFirstItem, SlotActionType.field_7791, this.mc.field_1724);
+                        this.mc.interactionManager.clickSlot(0, 45, slotFirstItem, SlotActionType.SWAP, this.mc.player);
                         break;
                      case "Grim":
                         InventoryUtil.swapWithBypassGrim(
-                           () -> this.mc.field_1761.method_2906(0, 45, slotFirstItem, SlotActionType.field_7791, this.mc.field_1724)
+                           () -> this.mc.interactionManager.clickSlot(0, 45, slotFirstItem, SlotActionType.SWAP, this.mc.player)
                         );
                         break;
                      case "Polar":
                         InventoryUtil.swapWithBypassPolar(
-                           () -> this.mc.field_1761.method_2906(0, 45, slotFirstItem, SlotActionType.field_7791, this.mc.field_1724)
+                           () -> this.mc.interactionManager.clickSlot(0, 45, slotFirstItem, SlotActionType.SWAP, this.mc.player)
                         );
                   }
                } else {
                   String var9 = this.mode.getValue();
                   switch (var9) {
                      case "Vanilla":
-                        this.mc.field_1761.method_2906(0, slotFirstItem, 40, SlotActionType.field_7791, this.mc.field_1724);
+                        this.mc.interactionManager.clickSlot(0, slotFirstItem, 40, SlotActionType.SWAP, this.mc.player);
                         break;
                      case "Grim":
                         InventoryUtil.swapWithBypassGrim(
-                           () -> this.mc.field_1761.method_2906(0, slotFirstItem, 40, SlotActionType.field_7791, this.mc.field_1724)
+                           () -> this.mc.interactionManager.clickSlot(0, slotFirstItem, 40, SlotActionType.SWAP, this.mc.player)
                         );
                         break;
                      case "Polar":
                         InventoryUtil.swapWithBypassPolar(
-                           () -> this.mc.field_1761.method_2906(0, slotFirstItem, 40, SlotActionType.field_7791, this.mc.field_1724)
+                           () -> this.mc.interactionManager.clickSlot(0, slotFirstItem, 40, SlotActionType.SWAP, this.mc.player)
                         );
                   }
                }
@@ -86,16 +86,16 @@ public class AutoSwap extends Module {
                String var11 = this.mode.getValue();
                switch (var11) {
                   case "Vanilla":
-                     this.mc.field_1761.method_2906(0, 45, slotSecondItem, SlotActionType.field_7791, this.mc.field_1724);
+                     this.mc.interactionManager.clickSlot(0, 45, slotSecondItem, SlotActionType.SWAP, this.mc.player);
                      break;
                   case "Grim":
                      InventoryUtil.swapWithBypassGrim(
-                        () -> this.mc.field_1761.method_2906(0, 45, finalSlotSecondItem, SlotActionType.field_7791, this.mc.field_1724)
+                        () -> this.mc.interactionManager.clickSlot(0, 45, finalSlotSecondItem, SlotActionType.SWAP, this.mc.player)
                      );
                      break;
                   case "Polar":
                      InventoryUtil.swapWithBypassPolar(
-                        () -> this.mc.field_1761.method_2906(0, 45, finalSlotSecondItem, SlotActionType.field_7791, this.mc.field_1724)
+                        () -> this.mc.interactionManager.clickSlot(0, 45, finalSlotSecondItem, SlotActionType.SWAP, this.mc.player)
                      );
                }
             } else if (slotSecondItem != -1) {
@@ -103,16 +103,16 @@ public class AutoSwap extends Module {
                String var6 = this.mode.getValue();
                switch (var6) {
                   case "Vanilla":
-                     this.mc.field_1761.method_2906(0, slotSecondItem, 40, SlotActionType.field_7791, this.mc.field_1724);
+                     this.mc.interactionManager.clickSlot(0, slotSecondItem, 40, SlotActionType.SWAP, this.mc.player);
                      break;
                   case "Grim":
                      InventoryUtil.swapWithBypassGrim(
-                        () -> this.mc.field_1761.method_2906(0, finalSlotSecondItem, 40, SlotActionType.field_7791, this.mc.field_1724)
+                        () -> this.mc.interactionManager.clickSlot(0, finalSlotSecondItem, 40, SlotActionType.SWAP, this.mc.player)
                      );
                      break;
                   case "Polar":
                      InventoryUtil.swapWithBypassPolar(
-                        () -> this.mc.field_1761.method_2906(0, finalSlotSecondItem, 40, SlotActionType.field_7791, this.mc.field_1724)
+                        () -> this.mc.interactionManager.clickSlot(0, finalSlotSecondItem, 40, SlotActionType.SWAP, this.mc.player)
                      );
                }
             }
@@ -132,32 +132,32 @@ public class AutoSwap extends Module {
    private int findItemByName(String name, boolean ignoreOffhand) {
       switch (name) {
          case "\u0413\u0435\u043f\u043b":
-            if (!ignoreOffhand && this.mc.field_1724.method_6079().method_7909() == Items.field_8463) {
+            if (!ignoreOffhand && this.mc.player.getOffHandStack().getItem() == Items.GOLDEN_APPLE) {
                return 40;
             }
 
-            return InventoryUtil.searchItem(Items.field_8463);
+            return InventoryUtil.searchItem(Items.GOLDEN_APPLE);
          case "\u0429\u0438\u0442":
-            if (!ignoreOffhand && this.mc.field_1724.method_6079().method_7909() == Items.field_8255) {
+            if (!ignoreOffhand && this.mc.player.getOffHandStack().getItem() == Items.SHIELD) {
                return 40;
             }
 
-            return InventoryUtil.searchItem(Items.field_8255);
+            return InventoryUtil.searchItem(Items.SHIELD);
          case "\u0422\u0430\u043b\u0438\u0441\u043c\u0430\u043d":
             if (!ignoreOffhand
-               && this.mc.field_1724.method_6079().method_7909() == Items.field_8288
-               && this.mc.field_1724.method_6079().method_57824(DataComponentTypes.field_49636) != null
-               && !((AttributeModifiersComponent)this.mc.field_1724.method_6079().method_57824(DataComponentTypes.field_49636)).comp_2393().isEmpty()) {
+               && this.mc.player.getOffHandStack().getItem() == Items.TOTEM_OF_UNDYING
+               && this.mc.player.getOffHandStack().get(DataComponentTypes.ATTRIBUTE_MODIFIERS) != null
+               && !((AttributeModifiersComponent)this.mc.player.getOffHandStack().get(DataComponentTypes.ATTRIBUTE_MODIFIERS)).comp_2393().isEmpty()) {
                return 40;
             }
 
             return InventoryUtil.searchItemStack(
-               item -> item.method_7909() == Items.field_8288
-                     && item.method_57824(DataComponentTypes.field_49636) != null
-                     && !((AttributeModifiersComponent)item.method_57824(DataComponentTypes.field_49636)).comp_2393().isEmpty()
+               item -> item.getItem() == Items.TOTEM_OF_UNDYING
+                     && item.get(DataComponentTypes.ATTRIBUTE_MODIFIERS) != null
+                     && !((AttributeModifiersComponent)item.get(DataComponentTypes.ATTRIBUTE_MODIFIERS)).comp_2393().isEmpty()
             );
          case "\u0428\u0430\u0440":
-            if (!ignoreOffhand && AutoSwapRecognition.isSphere(this.mc.field_1724.method_6079())) {
+            if (!ignoreOffhand && AutoSwapRecognition.isSphere(this.mc.player.getOffHandStack())) {
                return 40;
             }
 

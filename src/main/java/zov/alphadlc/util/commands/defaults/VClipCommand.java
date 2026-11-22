@@ -21,23 +21,23 @@ public class VClipCommand extends Command {
    public void execute(String label, IArgConsumer args) throws CommandException {
       args.requireMin(1);
       String input = args.getString();
-      ClientPlayerEntity player = MinecraftClient.method_1551().field_1724;
-      ClientWorld world = MinecraftClient.method_1551().field_1687;
+      ClientPlayerEntity player = MinecraftClient.getInstance().player;
+      ClientWorld world = MinecraftClient.getInstance().world;
       String var8 = input.toLowerCase();
       double yOffset;
       switch (var8) {
          case "up":
-            yOffset = this.findOffset(player.method_24515(), true, world);
+            yOffset = this.findOffset(player.getBlockPos(), true, world);
             break;
          case "down":
-            yOffset = this.findOffset(player.method_24515(), false, world);
+            yOffset = this.findOffset(player.getBlockPos(), false, world);
             break;
          default:
             try {
                yOffset = Double.parseDouble(input);
             } catch (NumberFormatException var11) {
                this.logDirect(
-                  Formatting.field_1061 + input + " \u043d\u0435 \u044f\u0432\u043b\u044f\u0435\u0442\u0441\u044f \u0447\u0438\u0441\u043b\u043e\u043c."
+                  Formatting.RED + input + " \u043d\u0435 \u044f\u0432\u043b\u044f\u0435\u0442\u0441\u044f \u0447\u0438\u0441\u043b\u043e\u043c."
                );
                return;
             }
@@ -45,7 +45,7 @@ public class VClipCommand extends Command {
 
       if (yOffset == 0.0) {
          this.logDirect(
-            Formatting.field_1061
+            Formatting.RED
                + "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0432\u044b\u043f\u043e\u043b\u043d\u0438\u0442\u044c \u0442\u0435\u043b\u0435\u043f\u043e\u0440\u0442\u0430\u0446\u0438\u044e."
          );
       } else {
@@ -59,25 +59,25 @@ public class VClipCommand extends Command {
    }
 
    private double findOffset(BlockPos pos, boolean toUp, ClientWorld world) {
-      ClientPlayerEntity player = MinecraftClient.method_1551().field_1724;
+      ClientPlayerEntity player = MinecraftClient.getInstance().player;
       if (toUp) {
          for (int i = 3; i < 255; i++) {
-            BlockPos base = pos.method_10069(0, i, 0);
-            BlockPos head = base.method_10084();
-            if (world.method_8320(base).method_26215() && world.method_8320(head).method_26215()) {
-               return (double)base.method_10264() - player.method_23318();
+            BlockPos base = pos.add(0, i, 0);
+            BlockPos head = base.up();
+            if (world.getBlockState(base).isAir() && world.getBlockState(head).isAir()) {
+               return (double)base.getY() - player.getY();
             }
          }
       } else {
          for (int ix = -1; ix > -255; ix--) {
-            BlockPos solid = pos.method_10069(0, ix, 0);
-            BlockPos air1 = solid.method_10074();
-            BlockPos air2 = air1.method_10074();
-            boolean isSolid = !world.method_8320(solid).method_26215();
-            boolean isAirBelow1 = world.method_8320(air1).method_26215();
-            boolean isAirBelow2 = world.method_8320(air2).method_26215();
+            BlockPos solid = pos.add(0, ix, 0);
+            BlockPos air1 = solid.down();
+            BlockPos air2 = air1.down();
+            boolean isSolid = !world.getBlockState(solid).isAir();
+            boolean isAirBelow1 = world.getBlockState(air1).isAir();
+            boolean isAirBelow2 = world.getBlockState(air2).isAir();
             if (isSolid && isAirBelow1 && isAirBelow2) {
-               return (double)air2.method_10264() - player.method_23318();
+               return (double)air2.getY() - player.getY();
             }
          }
       }

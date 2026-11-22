@@ -29,59 +29,59 @@ public class DogFly extends Module {
 
    @Subscribe
    private void onUpdate(EventPlayerUpdate e) {
-      if (InventoryUtil.searchItem(Items.field_8833) == -1) {
+      if (InventoryUtil.searchItem(Items.ELYTRA) == -1) {
          this.logDirect(
             new Text[]{
-               Text.method_43470("\u041d\u0435\u043c\u0430 \u044d\u043b\u0438\u0442\u0440 \u043f\u0430\u0434\u043b\u0430").method_27692(Formatting.field_1061)
+               Text.literal("\u041d\u0435\u043c\u0430 \u044d\u043b\u0438\u0442\u0440 \u043f\u0430\u0434\u043b\u0430").formatted(Formatting.RED)
             }
          );
          this.setEnabled(false);
-      } else if (InventoryUtil.searchItem(Items.field_8639) == -1) {
+      } else if (InventoryUtil.searchItem(Items.FIREWORK_ROCKET) == -1) {
          this.logDirect(
             new Text[]{
-               Text.method_43470("\u041d\u0435\u043c\u0430 \u0444\u0435\u0435\u0440\u0432\u0435\u0440\u043a\u043e\u0432 \u043f\u0430\u0434\u043b\u0430")
-                  .method_27692(Formatting.field_1061)
+               Text.literal("\u041d\u0435\u043c\u0430 \u0444\u0435\u0435\u0440\u0432\u0435\u0440\u043a\u043e\u0432 \u043f\u0430\u0434\u043b\u0430")
+                  .formatted(Formatting.RED)
             }
          );
          this.setEnabled(false);
       } else {
-         if (this.mc.field_1724.method_24828()
-            && !this.mc.field_1724.method_5771()
-            && !this.mc.field_1724.method_5681()
-            && !this.mc.field_1724.method_6059(StatusEffects.field_5902)) {
-            this.mc.field_1724.method_6043();
+         if (this.mc.player.isOnGround()
+            && !this.mc.player.isInLava()
+            && !this.mc.player.isSwimming()
+            && !this.mc.player.hasStatusEffect(StatusEffects.LEVITATION)) {
+            this.mc.player.jump();
          }
 
          if (this.stopWatch.isReached(550L)
-            && !this.mc.field_1724.method_24828()
-            && !this.mc.field_1724.method_5681()
-            && !this.mc.field_1724.method_6059(StatusEffects.field_5902)) {
-            int slot = InventoryUtil.searchItem(Items.field_8833);
-            int fireworkSlot = InventoryUtil.searchItem(Items.field_8639);
+            && !this.mc.player.isOnGround()
+            && !this.mc.player.isSwimming()
+            && !this.mc.player.hasStatusEffect(StatusEffects.LEVITATION)) {
+            int slot = InventoryUtil.searchItem(Items.ELYTRA);
+            int fireworkSlot = InventoryUtil.searchItem(Items.FIREWORK_ROCKET);
             if (slot != -1 && fireworkSlot != -1) {
                if (slot >= 0 && slot <= 8) {
                   InventoryUtil.swapWithBypassGrim(() -> {
-                     this.mc.field_1761.method_2906(0, 6, slot, SlotActionType.field_7791, this.mc.field_1724);
+                     this.mc.interactionManager.clickSlot(0, 6, slot, SlotActionType.SWAP, this.mc.player);
                      NetworkUtils.sendSilentPacket(new CloseHandledScreenC2SPacket(0));
-                     this.mc.field_1724.field_3944.method_52787(new ClientCommandC2SPacket(this.mc.field_1724, Mode.field_12982));
-                     this.mc.field_1724.method_23669();
+                     this.mc.player.networkHandler.sendPacket(new ClientCommandC2SPacket(this.mc.player, Mode.START_FALL_FLYING));
+                     this.mc.player.startGliding();
                      NetworkUtils.sendSilentPacket(new PlayerInputC2SPacket(new PlayerInput(false, false, false, false, true, false, false)));
                      NetworkUtils.sendSilentPacket(new PlayerInputC2SPacket(new PlayerInput(false, false, false, false, false, false, false)));
-                     InventoryUtil.swapAndUseHvH(Items.field_8639);
-                     this.mc.field_1761.method_2906(0, 6, slot, SlotActionType.field_7791, this.mc.field_1724);
+                     InventoryUtil.swapAndUseHvH(Items.FIREWORK_ROCKET);
+                     this.mc.interactionManager.clickSlot(0, 6, slot, SlotActionType.SWAP, this.mc.player);
                   });
                } else {
                   InventoryUtil.swapWithBypassGrim(() -> {
-                     this.mc.field_1761.method_2906(0, slot, 8, SlotActionType.field_7791, this.mc.field_1724);
-                     this.mc.field_1761.method_2906(0, 6, 8, SlotActionType.field_7791, this.mc.field_1724);
+                     this.mc.interactionManager.clickSlot(0, slot, 8, SlotActionType.SWAP, this.mc.player);
+                     this.mc.interactionManager.clickSlot(0, 6, 8, SlotActionType.SWAP, this.mc.player);
                      NetworkUtils.sendSilentPacket(new CloseHandledScreenC2SPacket(0));
-                     this.mc.field_1724.field_3944.method_52787(new ClientCommandC2SPacket(this.mc.field_1724, Mode.field_12982));
-                     this.mc.field_1724.method_23669();
+                     this.mc.player.networkHandler.sendPacket(new ClientCommandC2SPacket(this.mc.player, Mode.START_FALL_FLYING));
+                     this.mc.player.startGliding();
                      NetworkUtils.sendSilentPacket(new PlayerInputC2SPacket(new PlayerInput(false, false, false, false, true, false, false)));
                      NetworkUtils.sendSilentPacket(new PlayerInputC2SPacket(new PlayerInput(false, false, false, false, false, false, false)));
-                     InventoryUtil.swapAndUseHvH(Items.field_8639);
-                     this.mc.field_1761.method_2906(0, 6, 8, SlotActionType.field_7791, this.mc.field_1724);
-                     this.mc.field_1761.method_2906(0, slot, 8, SlotActionType.field_7791, this.mc.field_1724);
+                     InventoryUtil.swapAndUseHvH(Items.FIREWORK_ROCKET);
+                     this.mc.interactionManager.clickSlot(0, 6, 8, SlotActionType.SWAP, this.mc.player);
+                     this.mc.interactionManager.clickSlot(0, slot, 8, SlotActionType.SWAP, this.mc.player);
                   });
                }
 

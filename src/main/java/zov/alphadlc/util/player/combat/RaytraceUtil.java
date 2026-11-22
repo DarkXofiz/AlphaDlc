@@ -18,51 +18,51 @@ import zov.alphadlc.util.rotation.Rotation;
 
 public final class RaytraceUtil implements IMinecraft {
    public static BlockHitResult raycast(double range, Rotation angle, boolean includeFluids) {
-      return raycast(Objects.requireNonNull(mc.field_1724).method_5836(1.0F), range, angle, includeFluids);
+      return raycast(Objects.requireNonNull(mc.player).getCameraPosVec(1.0F), range, angle, includeFluids);
    }
 
    public static BlockHitResult raycast(Vec3d vec, double range, Rotation angle, boolean includeFluids) {
-      Entity entity = mc.field_1719;
+      Entity entity = mc.cameraEntity;
       if (entity == null) {
          return null;
       } else {
          Vec3d rotationVec = angle.toVector();
-         Vec3d end = vec.method_1031(rotationVec.field_1352 * range, rotationVec.field_1351 * range, rotationVec.field_1350 * range);
-         World world = mc.field_1687;
+         Vec3d end = vec.add(rotationVec.x * range, rotationVec.y * range, rotationVec.z * range);
+         World world = mc.world;
          if (world == null) {
             return null;
          } else {
-            FluidHandling fluidHandling = includeFluids ? FluidHandling.field_1347 : FluidHandling.field_1348;
-            RaycastContext context = new RaycastContext(vec, end, ShapeType.field_17559, fluidHandling, entity);
-            return world.method_17742(context);
+            FluidHandling fluidHandling = includeFluids ? FluidHandling.ANY : FluidHandling.NONE;
+            RaycastContext context = new RaycastContext(vec, end, ShapeType.OUTLINE, fluidHandling, entity);
+            return world.raycast(context);
          }
       }
    }
 
    public static BlockHitResult raycast(Vec3d start, Vec3d end, ShapeType shapeType) {
-      return raycast(start, end, shapeType, mc.field_1724);
+      return raycast(start, end, shapeType, mc.player);
    }
 
    public static BlockHitResult raycast(Vec3d start, Vec3d end, ShapeType shapeType, Entity entity) {
-      return mc.field_1687.method_17742(new RaycastContext(start, end, shapeType, FluidHandling.field_1348, entity));
+      return mc.world.raycast(new RaycastContext(start, end, shapeType, FluidHandling.NONE, entity));
    }
 
    public static EntityHitResult raytraceEntity(double range, Rotation angle, Predicate<Entity> filter) {
-      Entity entity = mc.field_1719;
+      Entity entity = mc.cameraEntity;
       if (entity == null) {
          return null;
       } else {
-         Vec3d cameraVec = entity.method_5836(1.0F);
+         Vec3d cameraVec = entity.getCameraPosVec(1.0F);
          Vec3d rotationVec = angle.toVector();
-         Vec3d vec3d3 = cameraVec.method_1031(rotationVec.field_1352 * range, rotationVec.field_1351 * range, rotationVec.field_1350 * range);
-         Box box = entity.method_5829().method_18804(rotationVec.method_1021(range)).method_1009(1.0, 1.0, 1.0);
-         return ProjectileUtil.method_18075(entity, cameraVec, vec3d3, box, e -> !e.method_7325() && filter.test(e), range * range);
+         Vec3d vec3d3 = cameraVec.add(rotationVec.x * range, rotationVec.y * range, rotationVec.z * range);
+         Box box = entity.getBoundingBox().stretch(rotationVec.multiply(range)).expand(1.0, 1.0, 1.0);
+         return ProjectileUtil.raycast(entity, cameraVec, vec3d3, box, e -> !e.isSpectator() && filter.test(e), range * range);
       }
    }
 
    public static boolean rayTrace(Vec3d clientVec, double range, Box box) {
-      Vec3d cameraVec = Objects.requireNonNull(mc.field_1724).method_33571();
-      return box.method_1006(cameraVec) || box.method_992(cameraVec, cameraVec.method_1019(clientVec.method_1021(range))).isPresent();
+      Vec3d cameraVec = Objects.requireNonNull(mc.player).getEyePos();
+      return box.contains(cameraVec) || box.raycast(cameraVec, cameraVec.add(clientVec.multiply(range))).isPresent();
    }
 
    @Generated

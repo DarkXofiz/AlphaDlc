@@ -75,8 +75,8 @@ public class Particles extends Module {
    private long lastUpdateTime = System.currentTimeMillis();
 
    private boolean isPositionInBlock(Vec3d position) {
-      BlockPos blockPos = BlockPos.method_49637(position.field_1352, position.field_1351, position.field_1350);
-      return this.mc.field_1687.method_8320(blockPos).method_26212(this.mc.field_1687, blockPos);
+      BlockPos blockPos = BlockPos.ofFloored(position.x, position.y, position.z);
+      return this.mc.world.getBlockState(blockPos).isSolidBlock(this.mc.world, blockPos);
    }
 
    @Subscribe
@@ -85,9 +85,9 @@ public class Particles extends Module {
          long currentTime = System.currentTimeMillis();
          this.particles.removeIf(particlex -> currentTime - particlex.startTime > particlex.lifeTime);
          MatrixStack matrices = event.getMatrixStack();
-         Vec3d cameraPos = this.mc.field_1773.method_19418().method_19326();
-         float camYaw = this.mc.field_1773.method_19418().method_19330();
-         float camPitch = this.mc.field_1773.method_19418().method_19329();
+         Vec3d cameraPos = this.mc.gameRenderer.getCamera().getPos();
+         float camYaw = this.mc.gameRenderer.getCamera().getYaw();
+         float camPitch = this.mc.gameRenderer.getCamera().getPitch();
          List<String> enabledTypes = this.type.getEnabledModules();
          if (enabledTypes.isEmpty()) {
             RenderSystem.enableDepthTest();
@@ -96,7 +96,7 @@ public class Particles extends Module {
          } else {
             RenderSystem.enableBlend();
             RenderSystem.blendFunc(770, 1);
-            RenderSystem.setShader(ShaderProgramKeys.field_53880);
+            RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX_COLOR);
             RenderSystem.disableCull();
             RenderSystem.disableDepthTest();
             RenderSystem.depthMask(false);
@@ -107,20 +107,20 @@ public class Particles extends Module {
                Vec3d pos = particle.position;
                double halfSize = (double)particle.size * 0.5;
                Box aabb = new Box(
-                  pos.field_1352 - halfSize,
-                  pos.field_1351 - halfSize,
-                  pos.field_1350 - halfSize,
-                  pos.field_1352 + halfSize,
-                  pos.field_1351 + halfSize,
-                  pos.field_1350 + halfSize
+                  pos.x - halfSize,
+                  pos.y - halfSize,
+                  pos.z - halfSize,
+                  pos.x + halfSize,
+                  pos.y + halfSize,
+                  pos.z + halfSize
                );
-               if (this.mc.field_1769.field_27740.method_23093(aabb)) {
+               if (this.mc.worldRenderer.frustum.isVisible(aabb)) {
                   renderList.add(particle);
                }
             }
 
             for (String modeName : enabledTypes) {
-               Identifier texture = Identifier.method_60655("mre", "images/" + getTexturePath(modeName));
+               Identifier texture = Identifier.of("mre", "images/" + getTexturePath(modeName));
                RenderSystem.setShaderTexture(0, texture);
                List<Particles.Particle> modeParticles = new ArrayList<>();
 
@@ -132,35 +132,35 @@ public class Particles extends Module {
 
                if (!modeParticles.isEmpty()) {
                   if ("\u0421\u0438\u044f\u043d\u0438\u0435".equals(modeName)) {
-                     BufferBuilder buffer = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1575);
+                     BufferBuilder buffer = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
 
                      for (Particles.Particle particlex : modeParticles) {
                         this.renderParticleBloom(buffer, matrices, particlex, cameraPos, camYaw, camPitch, 2.0F, 0.15F, 1.0F);
                      }
 
-                     BufferRenderer.method_43433(buffer.method_60800());
-                     buffer = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1575);
+                     BufferRenderer.drawWithGlobalProgram(buffer.end());
+                     buffer = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
 
                      for (Particles.Particle particlex : modeParticles) {
                         this.renderParticleBloom(buffer, matrices, particlex, cameraPos, camYaw, camPitch, 1.0F, 0.35F, 1.0F);
                      }
 
-                     BufferRenderer.method_43433(buffer.method_60800());
-                     buffer = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1575);
+                     BufferRenderer.drawWithGlobalProgram(buffer.end());
+                     buffer = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
 
                      for (Particles.Particle particlex : modeParticles) {
                         this.renderParticleBloom(buffer, matrices, particlex, cameraPos, camYaw, camPitch, 0.4F, 1.0F, 1.5F);
                      }
 
-                     BufferRenderer.method_43433(buffer.method_60800());
+                     BufferRenderer.drawWithGlobalProgram(buffer.end());
                   } else {
-                     BufferBuilder buffer = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1575);
+                     BufferBuilder buffer = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
 
                      for (Particles.Particle particlex : modeParticles) {
                         this.renderParticle(buffer, matrices, particlex, cameraPos, camYaw, camPitch);
                      }
 
-                     BufferRenderer.method_43433(buffer.method_60800());
+                     BufferRenderer.drawWithGlobalProgram(buffer.end());
                   }
                }
             }
@@ -188,23 +188,23 @@ public class Particles extends Module {
          this.addMovingParticles();
       }
 
-      for (Entity entity : this.mc.field_1687.method_18112()) {
+      for (Entity entity : this.mc.world.getEntities()) {
          if (this.reason.isEnabled("\u041f\u0430\u0434\u0435\u043d\u0438\u0438 \u043f\u0435\u0440\u043b\u0430")
             && entity instanceof EnderPearlEntity pearl
-            && !pearl.method_24828()) {
-            this.createProjectileParticles(pearl.method_19538());
+            && !pearl.isOnGround()) {
+            this.createProjectileParticles(pearl.getPos());
          }
 
          if (this.reason.isEnabled("\u041f\u0430\u0434\u0435\u043d\u0438\u0438 \u0442\u0440\u0435\u0437\u0443\u0431\u0446\u0430")
             && entity instanceof TridentEntity trident
             && this.isProjectileFlying(trident)) {
-            this.createProjectileParticles(trident.method_19538());
+            this.createProjectileParticles(trident.getPos());
          }
 
          if (this.reason.isEnabled("\u041f\u0430\u0434\u0435\u043d\u0438\u0438 \u0441\u0442\u0440\u0435\u043b\u044b")
             && entity instanceof ArrowEntity arrow
             && this.isProjectileFlying(arrow)) {
-            this.createProjectileParticles(arrow.method_19538());
+            this.createProjectileParticles(arrow.getPos());
          }
       }
    }
@@ -215,9 +215,9 @@ public class Particles extends Module {
          Entity target = event.getEntity();
 
          for (int i = 0; i < this.count.getIntValue(); i++) {
-            double targetX = target.method_23317() + (double)MathUtil.random(-0.4F, 0.4F);
-            double targetY = target.method_23318() + (double)MathUtil.random(-0.4F, target.method_17682() + 0.4F);
-            double targetZ = target.method_23321() + (double)MathUtil.random(-0.4F, 0.4F);
+            double targetX = target.getX() + (double)MathUtil.random(-0.4F, 0.4F);
+            double targetY = target.getY() + (double)MathUtil.random(-0.4F, target.getHeight() + 0.4F);
+            double targetZ = target.getZ() + (double)MathUtil.random(-0.4F, 0.4F);
             if (!this.isPositionInBlock(new Vec3d(targetX, targetY, targetZ))) {
                float baseMx = MathUtil.random(-0.8F, 0.8F) * 2.0F;
                float baseMy = MathUtil.random(-0.25F, 1.4F);
@@ -234,12 +234,12 @@ public class Particles extends Module {
    @Subscribe
    public void onPopTotem(EventPopTotem event) {
       if (this.reason.isEnabled("\u0421\u043d\u043e\u0441\u0435 \u0442\u043e\u0442\u0435\u043c\u0430")) {
-         this.isPlayerTotem = event.getPlayer() == this.mc.field_1724;
+         this.isPlayerTotem = event.getPlayer() == this.mc.player;
          if (!this.isPlayerTotem) {
-            Vec3d pos = event.getPlayer().method_19538();
-            double centerX = pos.field_1352;
-            double centerY = pos.field_1351 + (double)event.getPlayer().method_17682() / 2.0;
-            double centerZ = pos.field_1350;
+            Vec3d pos = event.getPlayer().getPos();
+            double centerX = pos.x;
+            double centerY = pos.y + (double)event.getPlayer().getHeight() / 2.0;
+            double centerZ = pos.z;
 
             for (int i = 0; i < this.count.getIntValue(); i++) {
                double theta = Math.random() * 2.0 * Math.PI;
@@ -264,9 +264,9 @@ public class Particles extends Module {
 
    private void addIdleParticles() {
       Vec3d base = new Vec3d(
-         this.mc.field_1724.method_23317(),
-         this.mc.field_1724.method_23318() + (double)this.mc.field_1724.method_17682() / 2.0,
-         this.mc.field_1724.method_23321()
+         this.mc.player.getX(),
+         this.mc.player.getY() + (double)this.mc.player.getHeight() / 2.0,
+         this.mc.player.getZ()
       );
 
       for (int i = 0; i < this.count.getIntValue(); i++) {
@@ -274,49 +274,49 @@ public class Particles extends Module {
          double angle = Math.toRadians((double)MathUtil.random(0.0F, 360.0F));
          double height = (double)MathUtil.random(-7.0F, 25.0F);
          Vec3d offset = new Vec3d(Math.cos(angle) * distance, height, Math.sin(angle) * distance);
-         Vec3d spawnPos = base.method_1019(offset);
+         Vec3d spawnPos = base.add(offset);
          if (!this.isPositionInBlock(spawnPos)) {
             long life = (long)MathUtil.random(1500.0F, 2000.0F);
             double speed = Math.random() < 0.8 ? (double)MathUtil.random(0.015F, 0.03F) : 0.125;
             double phi = Math.toRadians((double)MathUtil.random(0.0F, 360.0F));
             float smooth = 3.0F;
             Vec3d velocity = new Vec3d(Math.cos(phi) * speed, MathUtil.random(-speed * 0.1F, speed * 0.1F), Math.sin(phi) * speed);
-            this.addParticle(spawnPos.field_1352, spawnPos.field_1351, spawnPos.field_1350, velocity, this.getThemeColor(), 0.6F, life, smooth, 5.0E-5F);
+            this.addParticle(spawnPos.x, spawnPos.y, spawnPos.z, velocity, this.getThemeColor(), 0.6F, life, smooth, 5.0E-5F);
          }
       }
    }
 
    private void addMovingParticles() {
       double speed = Math.sqrt(
-         this.mc.field_1724.method_18798().field_1352 * this.mc.field_1724.method_18798().field_1352
-            + this.mc.field_1724.method_18798().field_1350 * this.mc.field_1724.method_18798().field_1350
+         this.mc.player.getVelocity().x * this.mc.player.getVelocity().x
+            + this.mc.player.getVelocity().z * this.mc.player.getVelocity().z
       );
       Vec3d direction;
       if (speed < 0.01) {
-         direction = this.mc.field_1724.method_5828(1.0F).method_1021(-1.0);
-      } else if (this.mc.field_1724.method_6128()) {
-         direction = this.mc.field_1724.method_18798().method_1029().method_1021(-1.0);
+         direction = this.mc.player.getRotationVec(1.0F).multiply(-1.0);
+      } else if (this.mc.player.isGliding()) {
+         direction = this.mc.player.getVelocity().normalize().multiply(-1.0);
       } else {
-         Vec3d motion = this.mc.field_1724.method_18798();
-         direction = new Vec3d(-motion.field_1352 / speed, 0.0, -motion.field_1350 / speed);
+         Vec3d motion = this.mc.player.getVelocity();
+         direction = new Vec3d(-motion.x / speed, 0.0, -motion.z / speed);
       }
 
-      double distanceBehind = (this.mc.field_1724.method_6128() ? 1.2 : 0.5) + (speed > 0.1 ? speed * 1.5 : 0.0);
+      double distanceBehind = (this.mc.player.isGliding() ? 1.2 : 0.5) + (speed > 0.1 ? speed * 1.5 : 0.0);
       double offsetX = (double)MathUtil.random(-0.35F, 0.35F);
       double offsetZ = (double)MathUtil.random(-0.35F, 0.35F);
-      double posX = this.mc.field_1724.method_23317() + direction.field_1352 * distanceBehind + offsetX;
-      double posY = this.mc.field_1724.method_6128()
-         ? this.mc.field_1724.method_23318()
-            + (double)this.mc.field_1724.method_17682() / 2.0
-            + direction.field_1351 * distanceBehind
+      double posX = this.mc.player.getX() + direction.x * distanceBehind + offsetX;
+      double posY = this.mc.player.isGliding()
+         ? this.mc.player.getY()
+            + (double)this.mc.player.getHeight() / 2.0
+            + direction.y * distanceBehind
             + (double)MathUtil.random(-0.35F, 0.35F)
-         : this.mc.field_1724.method_23318() + (double)MathUtil.random(0.2F, this.mc.field_1724.method_17682() + 0.1F);
-      double posZ = this.mc.field_1724.method_23321() + direction.field_1350 * distanceBehind + offsetZ;
+         : this.mc.player.getY() + (double)MathUtil.random(0.2F, this.mc.player.getHeight() + 0.1F);
+      double posZ = this.mc.player.getZ() + direction.z * distanceBehind + offsetZ;
       if (!this.isPositionInBlock(new Vec3d(posX, posY, posZ))) {
          double baseSpeed = 0.075;
-         Vec3d velocity = direction.method_1021(baseSpeed)
-            .method_1019(new Vec3d((double)MathUtil.random(-0.01F, 0.01F), (double)MathUtil.random(-0.05F, 0.01F), (double)MathUtil.random(-0.01F, 0.01F)))
-            .method_1021(0.1F);
+         Vec3d velocity = direction.multiply(baseSpeed)
+            .add(new Vec3d((double)MathUtil.random(-0.01F, 0.01F), (double)MathUtil.random(-0.05F, 0.01F), (double)MathUtil.random(-0.01F, 0.01F)))
+            .multiply(0.1F);
          long life = (long)MathUtil.random(1500.0F, 2000.0F);
          this.addParticle(posX, posY, posZ, velocity, this.getThemeColor(), 0.6F, life, 3.0F, 5.0E-5F);
       }
@@ -333,7 +333,7 @@ public class Particles extends Module {
          double dx = cosAngle * 0.0;
          double dz = sinAngle * 0.0;
          double dy = (double)MathUtil.random(0.1F, 0.35F);
-         Vec3d particlePos = new Vec3d(position.field_1352 + dx, position.field_1351 + dy, position.field_1350 + dz);
+         Vec3d particlePos = new Vec3d(position.x + dx, position.y + dy, position.z + dz);
          if (!this.isPositionInBlock(particlePos)) {
             float life = MathUtil.random(2400.0F, 2800.0F);
             float speedMin = MathUtil.random(0.015F, 0.0375F);
@@ -347,9 +347,9 @@ public class Particles extends Module {
             double velZ = sinVel * speedFinal;
             double velY = MathUtil.random(-speedFinalY, speedFinalY);
             this.addParticle(
-               particlePos.field_1352,
-               particlePos.field_1351,
-               particlePos.field_1350,
+               particlePos.x,
+               particlePos.y,
+               particlePos.z,
                new Vec3d(velX, velY, velZ),
                particleColor,
                0.375F,
@@ -362,12 +362,12 @@ public class Particles extends Module {
    }
 
    private boolean isProjectileFlying(Entity projectile) {
-      if (!projectile.method_24828() && !(projectile.method_18798().method_1027() <= 1.0E-4)) {
-         Vec3d pos = projectile.method_19538();
-         Vec3d motion = projectile.method_18798().method_1029().method_1021(0.5);
-         BlockPos currentPos = BlockPos.method_49638(pos);
-         BlockPos frontPos = BlockPos.method_49638(pos.method_1019(motion));
-         return this.mc.field_1687.method_8320(currentPos).method_26215() && this.mc.field_1687.method_8320(frontPos).method_26215();
+      if (!projectile.isOnGround() && !(projectile.getVelocity().lengthSquared() <= 1.0E-4)) {
+         Vec3d pos = projectile.getPos();
+         Vec3d motion = projectile.getVelocity().normalize().multiply(0.5);
+         BlockPos currentPos = BlockPos.ofFloored(pos);
+         BlockPos frontPos = BlockPos.ofFloored(pos.add(motion));
+         return this.mc.world.getBlockState(currentPos).isAir() && this.mc.world.getBlockState(frontPos).isAir();
       } else {
          return false;
       }
@@ -382,7 +382,7 @@ public class Particles extends Module {
             this.particles
                .add(
                   new Particles.Particle(
-                     safePos.field_1352, safePos.field_1351, safePos.field_1350, velocity, color, size, lifeTime, smooth, gravity, particleType
+                     safePos.x, safePos.y, safePos.z, velocity, color, size, lifeTime, smooth, gravity, particleType
                   )
                );
          }
@@ -391,19 +391,19 @@ public class Particles extends Module {
 
    private Vec3d checkCollision(double x, double y, double z, float size) {
       double half = (double)size * 0.5;
-      int minX = MathHelper.method_15357(x - half);
-      int maxX = MathHelper.method_15357(x + half);
-      int minY = MathHelper.method_15357(y - half);
-      int maxY = MathHelper.method_15357(y + half);
-      int minZ = MathHelper.method_15357(z - half);
-      int maxZ = MathHelper.method_15357(z + half);
+      int minX = MathHelper.floor(x - half);
+      int maxX = MathHelper.floor(x + half);
+      int minY = MathHelper.floor(y - half);
+      int maxY = MathHelper.floor(y + half);
+      int minZ = MathHelper.floor(z - half);
+      int maxZ = MathHelper.floor(z + half);
       Mutable pos = new Mutable();
 
       for (int bx = minX; bx <= maxX; bx++) {
          for (int by = minY; by <= maxY; by++) {
             for (int bz = minZ; bz <= maxZ; bz++) {
-               BlockState state = this.mc.field_1687.method_8320(pos.method_10103(bx, by, bz));
-               if (!state.method_26215()) {
+               BlockState state = this.mc.world.getBlockState(pos.set(bx, by, bz));
+               if (!state.isAir()) {
                   return null;
                }
             }
@@ -415,25 +415,25 @@ public class Particles extends Module {
 
    private void renderParticle(BufferBuilder buffer, MatrixStack matrices, Particles.Particle particle, Vec3d cameraPos, float camYaw, float camPitch) {
       if (!(particle.alpha <= 0.001F) && !(particle.size <= 1.0E-4F)) {
-         matrices.method_22903();
-         double rx = particle.position.field_1352 - cameraPos.field_1352;
-         double ry = particle.position.field_1351 - cameraPos.field_1351;
-         double rz = particle.position.field_1350 - cameraPos.field_1350;
-         matrices.method_22904(rx, ry, rz);
-         matrices.method_22907(RotationAxis.field_40716.rotationDegrees(-camYaw));
-         matrices.method_22907(RotationAxis.field_40714.rotationDegrees(camPitch));
+         matrices.push();
+         double rx = particle.position.x - cameraPos.x;
+         double ry = particle.position.y - cameraPos.y;
+         double rz = particle.position.z - cameraPos.z;
+         matrices.translate(rx, ry, rz);
+         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-camYaw));
+         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(camPitch));
          float size = particle.size;
-         matrices.method_22905(size, size, size);
-         Matrix4f matrix = matrices.method_23760().method_23761();
+         matrices.scale(size, size, size);
+         Matrix4f matrix = matrices.peek().getPositionMatrix();
          int r = particle.color >> 16 & 0xFF;
          int g = particle.color >> 8 & 0xFF;
          int b = particle.color & 0xFF;
          int a = (int)(particle.alpha * 255.0F);
-         buffer.method_22918(matrix, -0.5F, 0.5F, 0.0F).method_22913(0.0F, 1.0F).method_1336(r, g, b, a);
-         buffer.method_22918(matrix, 0.5F, 0.5F, 0.0F).method_22913(1.0F, 1.0F).method_1336(r, g, b, a);
-         buffer.method_22918(matrix, 0.5F, -0.5F, 0.0F).method_22913(1.0F, 0.0F).method_1336(r, g, b, a);
-         buffer.method_22918(matrix, -0.5F, -0.5F, 0.0F).method_22913(0.0F, 0.0F).method_1336(r, g, b, a);
-         matrices.method_22909();
+         buffer.vertex(matrix, -0.5F, 0.5F, 0.0F).texture(0.0F, 1.0F).color(r, g, b, a);
+         buffer.vertex(matrix, 0.5F, 0.5F, 0.0F).texture(1.0F, 1.0F).color(r, g, b, a);
+         buffer.vertex(matrix, 0.5F, -0.5F, 0.0F).texture(1.0F, 0.0F).color(r, g, b, a);
+         buffer.vertex(matrix, -0.5F, -0.5F, 0.0F).texture(0.0F, 0.0F).color(r, g, b, a);
+         matrices.pop();
       }
    }
 
@@ -449,25 +449,25 @@ public class Particles extends Module {
       float colorBoost
    ) {
       if (!(particle.alpha <= 0.001F) && !(particle.size <= 1.0E-4F)) {
-         matrices.method_22903();
-         double rx = particle.position.field_1352 - cameraPos.field_1352;
-         double ry = particle.position.field_1351 - cameraPos.field_1351;
-         double rz = particle.position.field_1350 - cameraPos.field_1350;
-         matrices.method_22904(rx, ry, rz);
-         matrices.method_22907(RotationAxis.field_40716.rotationDegrees(-camYaw));
-         matrices.method_22907(RotationAxis.field_40714.rotationDegrees(camPitch));
+         matrices.push();
+         double rx = particle.position.x - cameraPos.x;
+         double ry = particle.position.y - cameraPos.y;
+         double rz = particle.position.z - cameraPos.z;
+         matrices.translate(rx, ry, rz);
+         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-camYaw));
+         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(camPitch));
          float size = particle.size * sizeMultiplier;
-         matrices.method_22905(size, size, size);
-         Matrix4f matrix = matrices.method_23760().method_23761();
+         matrices.scale(size, size, size);
+         Matrix4f matrix = matrices.peek().getPositionMatrix();
          int r = Math.min(255, (int)((float)(particle.color >> 16 & 0xFF) * colorBoost));
          int g = Math.min(255, (int)((float)(particle.color >> 8 & 0xFF) * colorBoost));
          int b = Math.min(255, (int)((float)(particle.color & 0xFF) * colorBoost));
          int a = (int)(particle.alpha * alphaMultiplier * 255.0F);
-         buffer.method_22918(matrix, -0.5F, 0.5F, 0.0F).method_22913(0.0F, 1.0F).method_1336(r, g, b, a);
-         buffer.method_22918(matrix, 0.5F, 0.5F, 0.0F).method_22913(1.0F, 1.0F).method_1336(r, g, b, a);
-         buffer.method_22918(matrix, 0.5F, -0.5F, 0.0F).method_22913(1.0F, 0.0F).method_1336(r, g, b, a);
-         buffer.method_22918(matrix, -0.5F, -0.5F, 0.0F).method_22913(0.0F, 0.0F).method_1336(r, g, b, a);
-         matrices.method_22909();
+         buffer.vertex(matrix, -0.5F, 0.5F, 0.0F).texture(0.0F, 1.0F).color(r, g, b, a);
+         buffer.vertex(matrix, 0.5F, 0.5F, 0.0F).texture(1.0F, 1.0F).color(r, g, b, a);
+         buffer.vertex(matrix, 0.5F, -0.5F, 0.0F).texture(1.0F, 0.0F).color(r, g, b, a);
+         buffer.vertex(matrix, -0.5F, -0.5F, 0.0F).texture(0.0F, 0.0F).color(r, g, b, a);
+         matrices.pop();
       }
    }
 
@@ -508,7 +508,7 @@ public class Particles extends Module {
       double gravity;
       String particleType;
       private long lastUpdateNs;
-      private static MinecraftClient mc = MinecraftClient.method_1551();
+      private static MinecraftClient mc = MinecraftClient.getInstance();
 
       public Particle(double x, double y, double z, Vec3d velocity, int color, float size, long lifeTime, float smooth, double gravity, String particleType) {
          this.position = new Vec3d(x, y, z);
@@ -530,28 +530,28 @@ public class Particles extends Module {
          long now = System.currentTimeMillis();
          float progress = Math.min(1.0F, (float)(now - this.startTime) / (float)this.lifeTime);
          double factor = Math.pow(1.0 - (double)progress, (double)this.smoothFactor);
-         double vx = this.velocity.field_1352;
-         double vy = this.velocity.field_1351;
-         double vz = this.velocity.field_1350;
-         double newX = this.position.field_1352;
-         double newY = this.position.field_1351;
-         double newZ = this.position.field_1350;
+         double vx = this.velocity.x;
+         double vy = this.velocity.y;
+         double vz = this.velocity.z;
+         double newX = this.position.x;
+         double newY = this.position.y;
+         double newZ = this.position.z;
          newX += vx * factor * deltaSec * 60.0;
-         if (checkCollision(newX, this.position.field_1351, this.position.field_1350, this.size) == null) {
+         if (checkCollision(newX, this.position.y, this.position.z, this.size) == null) {
             vx = -vx * 0.8;
-            newX = this.position.field_1352;
+            newX = this.position.x;
          }
 
          newY += vy * factor * deltaSec * 60.0;
-         if (checkCollision(newX, newY, this.position.field_1350, this.size) == null) {
+         if (checkCollision(newX, newY, this.position.z, this.size) == null) {
             vy = -vy * 1.5;
-            newY = this.position.field_1351;
+            newY = this.position.y;
          }
 
          newZ += vz * factor * deltaSec * 60.0;
          if (checkCollision(newX, newY, newZ, this.size) == null) {
             vz = -vz * 0.8;
-            newZ = this.position.field_1350;
+            newZ = this.position.z;
          }
 
          this.position = new Vec3d(newX, newY, newZ);
@@ -560,21 +560,21 @@ public class Particles extends Module {
       }
 
       private static Vec3d checkCollision(double x, double y, double z, float size) {
-         if (mc != null && mc.field_1687 != null) {
+         if (mc != null && mc.world != null) {
             double half = (double)size * 0.5;
-            int minX = MathHelper.method_15357(x - half);
-            int maxX = MathHelper.method_15357(x + half);
-            int minY = MathHelper.method_15357(y - half);
-            int maxY = MathHelper.method_15357(y + half);
-            int minZ = MathHelper.method_15357(z - half);
-            int maxZ = MathHelper.method_15357(z + half);
+            int minX = MathHelper.floor(x - half);
+            int maxX = MathHelper.floor(x + half);
+            int minY = MathHelper.floor(y - half);
+            int maxY = MathHelper.floor(y + half);
+            int minZ = MathHelper.floor(z - half);
+            int maxZ = MathHelper.floor(z + half);
             Mutable pos = new Mutable();
 
             for (int bx = minX; bx <= maxX; bx++) {
                for (int by = minY; by <= maxY; by++) {
                   for (int bz = minZ; bz <= maxZ; bz++) {
-                     BlockState state = mc.field_1687.method_8320(pos.method_10103(bx, by, bz));
-                     if (!state.method_26215() && state.method_26212(mc.field_1687, pos)) {
+                     BlockState state = mc.world.getBlockState(pos.set(bx, by, bz));
+                     if (!state.isAir() && state.isSolidBlock(mc.world, pos)) {
                         return null;
                      }
                   }

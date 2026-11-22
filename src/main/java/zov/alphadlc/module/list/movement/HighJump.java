@@ -34,44 +34,44 @@ public class HighJump extends Module {
 
    @Subscribe
    public void onUpdate(EventTick ignored) {
-      if (this.mc.field_1724 != null) {
-         int slot = InventoryUtil.searchItem(List.of(Items.field_8545, Items.field_8268, Items.field_8584, Items.field_8213, Items.field_8350));
+      if (this.mc.player != null) {
+         int slot = InventoryUtil.searchItem(List.of(Items.SHULKER_BOX, Items.BLACK_SHULKER_BOX, Items.BROWN_SHULKER_BOX, Items.CYAN_SHULKER_BOX, Items.BLUE_SHULKER_BOX));
          if (this.hasOpened) {
             this.pushPlayer();
          } else if (slot != -1) {
             BlockPos nearestBlock = WorldUtils.findNearestPlaceableBlock();
             if (nearestBlock != null) {
-               RotationComponent.update(new Rotation(RotationUtil.calculate(nearestBlock.method_46558())), 360.0F, 360.0F, 360.0F, 360.0F, 0, 10, false);
+               RotationComponent.update(new Rotation(RotationUtil.calculate(nearestBlock.toCenterPos())), 360.0F, 360.0F, 360.0F, 360.0F, 0, 10, false);
                SlownessManager.addTask(
                   new SlownessManager.SlowTask(
                      0L,
                      () -> {
                         if (!this.hasPlaced) {
-                           if (this.mc.field_1765 instanceof BlockHitResult hitResult) {
+                           if (this.mc.crosshairTarget instanceof BlockHitResult hitResult) {
                               this.shulkerPos = nearestBlock;
                               if (slot >= 0 && slot <= 8) {
                                  this.pickedSlot = slot;
-                                 this.mc.field_1724.method_31548().field_7545 = slot;
+                                 this.mc.player.getInventory().selectedSlot = slot;
                               } else {
                                  InventoryUtil.swapWithBypassGrim(
                                     () -> {
                                        this.pickedSlot = slot;
                                        this.mc
-                                          .field_1761
-                                          .method_2906(0, slot, this.mc.field_1724.method_31548().field_7545, SlotActionType.field_7791, this.mc.field_1724);
+                                          .interactionManager
+                                          .clickSlot(0, slot, this.mc.player.getInventory().selectedSlot, SlotActionType.SWAP, this.mc.player);
                                     }
                                  );
                               }
 
-                              this.mc.field_1761.method_2896(this.mc.field_1724, Hand.field_5808, hitResult);
+                              this.mc.interactionManager.interactBlock(this.mc.player, Hand.MAIN_HAND, hitResult);
                               if (this.pickedSlot >= 0 && this.pickedSlot <= 8) {
-                                 this.mc.field_1724.method_31548().field_7545 = this.pickedSlot;
+                                 this.mc.player.getInventory().selectedSlot = this.pickedSlot;
                               } else {
                                  InventoryUtil.swapWithBypassGrim(
                                     () -> this.mc
-                                          .field_1761
-                                          .method_2906(
-                                             0, this.pickedSlot, this.mc.field_1724.method_31548().field_7545, SlotActionType.field_7791, this.mc.field_1724
+                                          .interactionManager
+                                          .clickSlot(
+                                             0, this.pickedSlot, this.mc.player.getInventory().selectedSlot, SlotActionType.SWAP, this.mc.player
                                           )
                                  );
                               }
@@ -84,12 +84,12 @@ public class HighJump extends Module {
                            }
 
                            RotationComponent.update(
-                              new Rotation(RotationUtil.calculate(this.shulkerPos.method_46558())), 360.0F, 360.0F, 360.0F, 360.0F, 0, 1424821, false
+                              new Rotation(RotationUtil.calculate(this.shulkerPos.toCenterPos())), 360.0F, 360.0F, 360.0F, 360.0F, 0, 1424821, false
                            );
                            SlownessManager.addTask(new SlownessManager.SlowTask(50L, () -> {
                               if (this.shulkerPos != null) {
-                                 if (this.mc.field_1765 instanceof BlockHitResult hitResultx) {
-                                    this.mc.field_1761.method_2896(this.mc.field_1724, Hand.field_5808, hitResultx);
+                                 if (this.mc.crosshairTarget instanceof BlockHitResult hitResultx) {
+                                    this.mc.interactionManager.interactBlock(this.mc.player, Hand.MAIN_HAND, hitResultx);
                                  }
 
                                  this.hasOpened = true;
@@ -105,24 +105,24 @@ public class HighJump extends Module {
    }
 
    private void pushPlayer() {
-      for (BlockPos pos : BlockPos.method_10097(
-         this.mc.field_1724.method_24515().method_10069(-6, -6, -6), this.mc.field_1724.method_24515().method_10069(6, 6, 6)
+      for (BlockPos pos : BlockPos.iterate(
+         this.mc.player.getBlockPos().add(-6, -6, -6), this.mc.player.getBlockPos().add(6, 6, 6)
       )) {
-         BlockEntity be = this.mc.field_1687.method_8321(pos);
+         BlockEntity be = this.mc.world.getBlockEntity(pos);
          if (be instanceof ShulkerBoxBlockEntity) {
             ShulkerBoxBlockEntity shulker = (ShulkerBoxBlockEntity)be;
-            double dx = this.mc.field_1724.method_23317() - ((double)pos.method_10263() + 0.5);
-            double dz = this.mc.field_1724.method_23321() - ((double)pos.method_10260() + 0.5);
-            double dy = this.mc.field_1724.method_23318() - ((double)pos.method_10264() + 0.5);
+            double dx = this.mc.player.getX() - ((double)pos.getX() + 0.5);
+            double dz = this.mc.player.getZ() - ((double)pos.getZ() + 0.5);
+            double dy = this.mc.player.getY() - ((double)pos.getY() + 0.5);
             double horizontalDistance = Math.sqrt(dx * dx + dz * dz);
             if (horizontalDistance > 1.5) {
                this.setEnabled(false);
-            } else if (!(Math.abs(dy) > (this.mc.field_1724.method_18798().field_1351 > 1.0 ? 30.0 : 2.0)) && this.mc.field_1724.method_24828()) {
-               float progress = shulker.method_11312(1.0F);
+            } else if (!(Math.abs(dy) > (this.mc.player.getVelocity().y > 1.0 ? 30.0 : 2.0)) && this.mc.player.isOnGround()) {
+               float progress = shulker.getAnimationProgress(1.0F);
                if (progress > 0.0F && progress <= 1.0F) {
-                  Vec3d vel = this.mc.field_1724.method_18798();
-                  this.mc.field_1724.method_18800(vel.field_1352, 2.33F, vel.field_1350);
-                  this.mc.field_1724.field_6007 = true;
+                  Vec3d vel = this.mc.player.getVelocity();
+                  this.mc.player.setVelocity(vel.x, 2.33F, vel.z);
+                  this.mc.player.velocityDirty = true;
                   this.setEnabled(false);
                   break;
                }

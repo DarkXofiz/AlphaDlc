@@ -104,7 +104,7 @@ public class KillEffect extends Module {
             .add(
                new KillEffect.MasInstance(
                   name,
-                  new Vec3d(player.method_23317(), player.method_23318() + (double)player.method_17682() * 0.5, player.method_23321()),
+                  new Vec3d(player.getX(), player.getY() + (double)player.getHeight() * 0.5, player.getZ()),
                   System.currentTimeMillis(),
                   900L,
                   this.totemEffect.is("Shield Wave") ? 2.2F : 1.2F
@@ -115,8 +115,8 @@ public class KillEffect extends Module {
 
    @Subscribe
    public void onUpdate(EventTick ignored) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
-         if (this.entity != null && this.entity.method_35049() == RemovalReason.field_26999) {
+      if (this.mc.player != null && this.mc.world != null) {
+         if (this.entity != null && this.entity.getRemovalReason() == RemovalReason.DISCARDED) {
             this.playKillEffect(this.entity);
             this.entity = null;
          }
@@ -140,11 +140,11 @@ public class KillEffect extends Module {
 
    private void playKillEffect(Entity entity) {
       if (entity != null) {
-         double x = entity.method_23317();
-         double y = entity.method_23318();
-         double z = entity.method_23321();
-         double centerY = y + (double)(entity.method_17682() / 2.0F);
-         double height = (double)entity.method_17682();
+         double x = entity.getX();
+         double y = entity.getY();
+         double z = entity.getZ();
+         double centerY = y + (double)(entity.getHeight() / 2.0F);
+         double height = (double)entity.getHeight();
          String size = this.effect.getValue();
 
          String masEffect = switch (size) {
@@ -222,22 +222,22 @@ public class KillEffect extends Module {
    }
 
    private void playLightning(double x, double y, double z) {
-      LightningEntity lightning = new LightningEntity(EntityType.field_6112, this.mc.field_1687);
-      lightning.method_24203(x, y, z);
-      lightning.method_29498(true);
-      this.mc.field_1687.method_53875(lightning);
-      this.mc.field_1687.method_43128(this.mc.field_1724, x, y, z, SoundEvents.field_14865, SoundCategory.field_15252, 5.0F, 1.0F);
+      LightningEntity lightning = new LightningEntity(EntityType.LIGHTNING_BOLT, this.mc.world);
+      lightning.refreshPositionAfterTeleport(x, y, z);
+      lightning.setCosmetic(true);
+      this.mc.world.addEntity(lightning);
+      this.mc.world.playSound(this.mc.player, x, y, z, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, SoundCategory.WEATHER, 5.0F, 1.0F);
    }
 
    private void playExplosion(double x, double y, double z) {
       for (int i = 0; i < 20; i++) {
-         double ox = (this.mc.field_1687.field_9229.method_43058() - 0.5) * 2.0;
-         double oy = (this.mc.field_1687.field_9229.method_43058() - 0.5) * 2.0;
-         double oz = (this.mc.field_1687.field_9229.method_43058() - 0.5) * 2.0;
-         this.mc.field_1687.method_8406(ParticleTypes.field_11236, x + ox, y + oy, z + oz, ox * 0.1, oy * 0.1, oz * 0.1);
+         double ox = (this.mc.world.random.nextDouble() - 0.5) * 2.0;
+         double oy = (this.mc.world.random.nextDouble() - 0.5) * 2.0;
+         double oz = (this.mc.world.random.nextDouble() - 0.5) * 2.0;
+         this.mc.world.addParticle(ParticleTypes.EXPLOSION, x + ox, y + oy, z + oz, ox * 0.1, oy * 0.1, oz * 0.1);
       }
 
-      this.mc.field_1687.method_43128(this.mc.field_1724, x, y, z, (SoundEvent)SoundEvents.field_15152.comp_349(), SoundCategory.field_15250, 10.0F, 1.0F);
+      this.mc.world.playSound(this.mc.player, x, y, z, (SoundEvent)SoundEvents.ENTITY_GENERIC_EXPLODE.comp_349(), SoundCategory.MASTER, 10.0F, 1.0F);
    }
 
    private abstract class AnimatedEffect {
@@ -267,7 +267,7 @@ public class KillEffect extends Module {
       AscensionEffect(double x, double y, double z, double height) {
          super(x, y, z, 50);
          this.height = height;
-         KillEffect.this.mc.field_1687.method_43128(KillEffect.this.mc.field_1724, x, y, z, SoundEvents.field_14703, SoundCategory.field_15245, 2.0F, 1.2F);
+         KillEffect.this.mc.world.playSound(KillEffect.this.mc.player, x, y, z, SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.BLOCKS, 2.0F, 1.2F);
       }
 
       @Override
@@ -278,9 +278,9 @@ public class KillEffect extends Module {
          for (int i = 0; i < 10; i++) {
             double py = this.y + beamHeight * (double)i / 10.0;
             if (!(py > this.y + 15.0)) {
-               double ox = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.3;
-               double oz = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.3;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11207, this.x + ox, py, this.z + oz, 0.0, 0.05, 0.0);
+               double ox = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.3;
+               double oz = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.3;
+               KillEffect.this.mc.world.addParticle(ParticleTypes.END_ROD, this.x + ox, py, this.z + oz, 0.0, 0.05, 0.0);
             }
          }
 
@@ -291,27 +291,27 @@ public class KillEffect extends Module {
                double angle = (Math.PI / 4) * (double)ix + (double)this.ticks * 0.2;
                double px = this.x + Math.cos(angle) * radius;
                double pz = this.z + Math.sin(angle) * radius;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11207, px, this.y + 0.1, pz, 0.0, 0.1, 0.0);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.END_ROD, px, this.y + 0.1, pz, 0.0, 0.1, 0.0);
             }
          }
 
          if (this.ticks == 40) {
             KillEffect.this.mc
-               .field_1687
-               .method_43128(KillEffect.this.mc.field_1724, this.x, this.y, this.z, SoundEvents.field_19344, SoundCategory.field_15245, 2.0F, 1.5F);
+               .world
+               .playSound(KillEffect.this.mc.player, this.x, this.y, this.z, SoundEvents.BLOCK_BEACON_DEACTIVATE, SoundCategory.BLOCKS, 2.0F, 1.5F);
 
             for (int ix = 0; ix < 30; ix++) {
-               double angle = KillEffect.this.mc.field_1687.field_9229.method_43058() * Math.PI * 2.0;
-               double speed = 0.2 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.3;
+               double angle = KillEffect.this.mc.world.random.nextDouble() * Math.PI * 2.0;
+               double speed = 0.2 + KillEffect.this.mc.world.random.nextDouble() * 0.3;
                KillEffect.this.mc
-                  .field_1687
-                  .method_8406(
-                     ParticleTypes.field_11207,
+                  .world
+                  .addParticle(
+                     ParticleTypes.END_ROD,
                      this.x,
                      this.y + 10.0,
                      this.z,
                      Math.cos(angle) * speed,
-                     KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.2,
+                     KillEffect.this.mc.world.random.nextDouble() * 0.2,
                      Math.sin(angle) * speed
                   );
             }
@@ -325,7 +325,7 @@ public class KillEffect extends Module {
       BlackHoleEffect(double x, double y, double z, double height) {
          super(x, y, z, 50);
          this.height = height;
-         KillEffect.this.mc.field_1687.method_43128(KillEffect.this.mc.field_1724, x, y, z, SoundEvents.field_14802, SoundCategory.field_15245, 2.0F, 0.3F);
+         KillEffect.this.mc.world.playSound(KillEffect.this.mc.player, x, y, z, SoundEvents.BLOCK_PORTAL_AMBIENT, SoundCategory.BLOCKS, 2.0F, 0.3F);
       }
 
       @Override
@@ -336,29 +336,29 @@ public class KillEffect extends Module {
             double radius = 3.0 - (double)this.ticks * 0.07;
 
             for (int i = 0; i < 15; i++) {
-               double angle = KillEffect.this.mc.field_1687.field_9229.method_43058() * Math.PI * 2.0;
-               double r = radius * (0.5 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.5);
+               double angle = KillEffect.this.mc.world.random.nextDouble() * Math.PI * 2.0;
+               double r = radius * (0.5 + KillEffect.this.mc.world.random.nextDouble() * 0.5);
                double px = this.x + Math.cos(angle) * r;
                double pz = this.z + Math.sin(angle) * r;
-               double py = centerY + (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 2.0;
+               double py = centerY + (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 2.0;
                double vx = (this.x - px) * 0.1;
                double vy = (centerY - py) * 0.1;
                double vz = (this.z - pz) * 0.1;
                if (i % 2 == 0) {
-                  KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_23190, px, py, pz, vx, vy, vz);
+                  KillEffect.this.mc.world.addParticle(ParticleTypes.REVERSE_PORTAL, px, py, pz, vx, vy, vz);
                } else {
-                  KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11233, px, py, pz, vx, vy, vz);
+                  KillEffect.this.mc.world.addParticle(ParticleTypes.SQUID_INK, px, py, pz, vx, vy, vz);
                }
             }
 
             for (int ix = 0; ix < 5; ix++) {
                KillEffect.this.mc
-                  .field_1687
-                  .method_8406(
-                     ParticleTypes.field_11216,
-                     this.x + (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.3,
-                     centerY + (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.3,
-                     this.z + (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.3,
+                  .world
+                  .addParticle(
+                     ParticleTypes.DRAGON_BREATH,
+                     this.x + (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.3,
+                     centerY + (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.3,
+                     this.z + (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.3,
                      0.0,
                      0.0,
                      0.0
@@ -368,21 +368,21 @@ public class KillEffect extends Module {
 
          if (this.ticks == 36) {
             KillEffect.this.mc
-               .field_1687
-               .method_43128(
-                  KillEffect.this.mc.field_1724, this.x, this.y, this.z, (SoundEvent)SoundEvents.field_15152.comp_349(), SoundCategory.field_15250, 3.0F, 0.5F
+               .world
+               .playSound(
+                  KillEffect.this.mc.player, this.x, this.y, this.z, (SoundEvent)SoundEvents.ENTITY_GENERIC_EXPLODE.comp_349(), SoundCategory.MASTER, 3.0F, 0.5F
                );
 
             for (int ix = 0; ix < 50; ix++) {
-               double angle = KillEffect.this.mc.field_1687.field_9229.method_43058() * Math.PI * 2.0;
-               double pitch = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * Math.PI;
-               double speed = 0.5 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.5;
+               double angle = KillEffect.this.mc.world.random.nextDouble() * Math.PI * 2.0;
+               double pitch = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * Math.PI;
+               double speed = 0.5 + KillEffect.this.mc.world.random.nextDouble() * 0.5;
                double vx = Math.cos(angle) * Math.cos(pitch) * speed;
                double vy = Math.sin(pitch) * speed;
                double vz = Math.sin(angle) * Math.cos(pitch) * speed;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_23190, this.x, centerY, this.z, vx, vy, vz);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.REVERSE_PORTAL, this.x, centerY, this.z, vx, vy, vz);
                if (ix % 3 == 0) {
-                  KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11236, this.x, centerY, this.z, vx * 0.5, vy * 0.5, vz * 0.5);
+                  KillEffect.this.mc.world.addParticle(ParticleTypes.EXPLOSION, this.x, centerY, this.z, vx * 0.5, vy * 0.5, vz * 0.5);
                }
             }
          }
@@ -395,7 +395,7 @@ public class KillEffect extends Module {
       BloodRainEffect(double x, double y, double z, double height) {
          super(x, y, z, 50);
          this.height = height;
-         KillEffect.this.mc.field_1687.method_43128(KillEffect.this.mc.field_1724, x, y, z, SoundEvents.field_15115, SoundCategory.field_15248, 2.0F, 0.5F);
+         KillEffect.this.mc.world.playSound(KillEffect.this.mc.player, x, y, z, SoundEvents.ENTITY_PLAYER_HURT, SoundCategory.PLAYERS, 2.0F, 0.5F);
       }
 
       @Override
@@ -403,17 +403,17 @@ public class KillEffect extends Module {
          this.ticks++;
          if (this.ticks < 40) {
             for (int i = 0; i < 8; i++) {
-               double ox = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 3.0;
-               double oz = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 3.0;
-               double startY = this.y + this.height + 3.0 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 2.0;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_28077, this.x + ox, startY, this.z + oz, 0.0, -0.5, 0.0);
+               double ox = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 3.0;
+               double oz = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 3.0;
+               double startY = this.y + this.height + 3.0 + KillEffect.this.mc.world.random.nextDouble() * 2.0;
+               KillEffect.this.mc.world.addParticle(ParticleTypes.FALLING_DRIPSTONE_LAVA, this.x + ox, startY, this.z + oz, 0.0, -0.5, 0.0);
                if (i % 2 == 0) {
                   KillEffect.this.mc
-                     .field_1687
-                     .method_8406(
-                        ParticleTypes.field_11209,
+                     .world
+                     .addParticle(
+                        ParticleTypes.DAMAGE_INDICATOR,
                         this.x + ox,
-                        this.y + KillEffect.this.mc.field_1687.field_9229.method_43058() * this.height,
+                        this.y + KillEffect.this.mc.world.random.nextDouble() * this.height,
                         this.z + oz,
                         0.0,
                         0.0,
@@ -425,8 +425,8 @@ public class KillEffect extends Module {
 
          if (this.ticks % 10 == 0 && this.ticks < 35) {
             KillEffect.this.mc
-               .field_1687
-               .method_43128(KillEffect.this.mc.field_1724, this.x, this.y, this.z, SoundEvents.field_15194, SoundCategory.field_15245, 1.0F, 0.5F);
+               .world
+               .playSound(KillEffect.this.mc.player, this.x, this.y, this.z, SoundEvents.BLOCK_SLIME_BLOCK_BREAK, SoundCategory.BLOCKS, 1.0F, 0.5F);
          }
       }
    }
@@ -440,7 +440,7 @@ public class KillEffect extends Module {
          super(x, y, z, 50);
          this.height = height;
          this.crownY = y + height + 5.0;
-         KillEffect.this.mc.field_1687.method_43128(KillEffect.this.mc.field_1724, x, y, z, SoundEvents.field_14709, SoundCategory.field_15248, 2.0F, 1.2F);
+         KillEffect.this.mc.world.playSound(KillEffect.this.mc.player, x, y, z, SoundEvents.ENTITY_PLAYER_LEVELUP, SoundCategory.PLAYERS, 2.0F, 1.2F);
       }
 
       @Override
@@ -455,60 +455,60 @@ public class KillEffect extends Module {
                double angle = this.crownRotation + (Math.PI * 2.0 / 5.0) * (double)i;
                double px = this.x + Math.cos(angle) * crownRadius;
                double pz = this.z + Math.sin(angle) * crownRadius;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11207, px, this.crownY, pz, 0.0, 0.02, 0.0);
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11207, px, this.crownY + 0.3, pz, 0.0, 0.01, 0.0);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.END_ROD, px, this.crownY, pz, 0.0, 0.02, 0.0);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.END_ROD, px, this.crownY + 0.3, pz, 0.0, 0.01, 0.0);
             }
 
             for (int i = 0; i < 5; i++) {
                double angle = this.crownRotation + (Math.PI * 2.0 / 5.0) * (double)i + (Math.PI / 5);
                double px = this.x + Math.cos(angle) * crownRadius * 0.7;
                double pz = this.z + Math.sin(angle) * crownRadius * 0.7;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_28479, px, this.crownY + 0.5, pz, 0.0, 0.01, 0.0);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.GLOW, px, this.crownY + 0.5, pz, 0.0, 0.01, 0.0);
             }
 
             if (this.ticks % 3 == 0) {
-               double angle = KillEffect.this.mc.field_1687.field_9229.method_43058() * Math.PI * 2.0;
+               double angle = KillEffect.this.mc.world.random.nextDouble() * Math.PI * 2.0;
                KillEffect.this.mc
-                  .field_1687
-                  .method_8406(ParticleTypes.field_11248, this.x + Math.cos(angle) * 0.3, this.crownY + 0.2, this.z + Math.sin(angle) * 0.3, 0.0, -0.02, 0.0);
+                  .world
+                  .addParticle(ParticleTypes.FIREWORK, this.x + Math.cos(angle) * 0.3, this.crownY + 0.2, this.z + Math.sin(angle) * 0.3, 0.0, -0.02, 0.0);
             }
          }
 
          if (this.ticks == 35) {
             KillEffect.this.mc
-               .field_1687
-               .method_43128(KillEffect.this.mc.field_1724, this.x, this.y, this.z, SoundEvents.field_26980, SoundCategory.field_15245, 2.0F, 1.0F);
+               .world
+               .playSound(KillEffect.this.mc.player, this.x, this.y, this.z, SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, SoundCategory.BLOCKS, 2.0F, 1.0F);
 
             for (int i = 0; i < 30; i++) {
-               double angle = KillEffect.this.mc.field_1687.field_9229.method_43058() * Math.PI * 2.0;
-               double speed = 0.1 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.2;
+               double angle = KillEffect.this.mc.world.random.nextDouble() * Math.PI * 2.0;
+               double speed = 0.1 + KillEffect.this.mc.world.random.nextDouble() * 0.2;
                KillEffect.this.mc
-                  .field_1687
-                  .method_8406(
-                     ParticleTypes.field_11207,
+                  .world
+                  .addParticle(
+                     ParticleTypes.END_ROD,
                      this.x,
                      this.crownY,
                      this.z,
                      Math.cos(angle) * speed,
-                     0.1 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.1,
+                     0.1 + KillEffect.this.mc.world.random.nextDouble() * 0.1,
                      Math.sin(angle) * speed
                   );
                KillEffect.this.mc
-                  .field_1687
-                  .method_8406(ParticleTypes.field_28479, this.x, this.crownY, this.z, Math.cos(angle) * speed * 0.5, 0.05, Math.sin(angle) * speed * 0.5);
+                  .world
+                  .addParticle(ParticleTypes.GLOW, this.x, this.crownY, this.z, Math.cos(angle) * speed * 0.5, 0.05, Math.sin(angle) * speed * 0.5);
             }
          }
 
          if (this.ticks > 35 && this.ticks < 50) {
             for (int i = 0; i < 3; i++) {
-               double ox = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.5;
-               double oz = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.5;
+               double ox = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.5;
+               double oz = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.5;
                KillEffect.this.mc
-                  .field_1687
-                  .method_8406(
-                     ParticleTypes.field_11207,
+                  .world
+                  .addParticle(
+                     ParticleTypes.END_ROD,
                      this.x + ox,
-                     this.crownY + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.5,
+                     this.crownY + KillEffect.this.mc.world.random.nextDouble() * 0.5,
                      this.z + oz,
                      0.0,
                      0.03,
@@ -525,7 +525,7 @@ public class KillEffect extends Module {
       DisintegrateEffect(double x, double y, double z, double height) {
          super(x, y, z, 35);
          this.height = height;
-         KillEffect.this.mc.field_1687.method_43128(KillEffect.this.mc.field_1724, x, y, z, SoundEvents.field_14879, SoundCategory.field_15248, 2.0F, 0.3F);
+         KillEffect.this.mc.world.playSound(KillEffect.this.mc.player, x, y, z, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 2.0F, 0.3F);
       }
 
       @Override
@@ -535,35 +535,35 @@ public class KillEffect extends Module {
          int particleCount = (int)(20.0 * (1.0 - progress * 0.5));
 
          for (int i = 0; i < particleCount; i++) {
-            double ox = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.6;
-            double oy = KillEffect.this.mc.field_1687.field_9229.method_43058() * this.height;
-            double oz = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.6;
+            double ox = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.6;
+            double oy = KillEffect.this.mc.world.random.nextDouble() * this.height;
+            double oz = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.6;
             double speed = 0.1 + progress * 0.3;
-            double vx = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * speed;
-            double vy = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.3) * speed;
-            double vz = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * speed;
+            double vx = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * speed;
+            double vy = (KillEffect.this.mc.world.random.nextDouble() - 0.3) * speed;
+            double vz = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * speed;
             if (i % 3 == 0) {
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_22247, this.x + ox, this.y + oy, this.z + oz, vx, vy, vz);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.ASH, this.x + ox, this.y + oy, this.z + oz, vx, vy, vz);
             } else if (i % 3 == 1) {
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_23956, this.x + ox, this.y + oy, this.z + oz, vx, vy, vz);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.WHITE_ASH, this.x + ox, this.y + oy, this.z + oz, vx, vy, vz);
             } else {
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11251, this.x + ox, this.y + oy, this.z + oz, vx, vy, vz);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.SMOKE, this.x + ox, this.y + oy, this.z + oz, vx, vy, vz);
             }
          }
 
          if (this.ticks == this.maxTicks - 5) {
             for (int ix = 0; ix < 30; ix++) {
-               double angle = KillEffect.this.mc.field_1687.field_9229.method_43058() * Math.PI * 2.0;
-               double speed = 0.3 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.2;
+               double angle = KillEffect.this.mc.world.random.nextDouble() * Math.PI * 2.0;
+               double speed = 0.3 + KillEffect.this.mc.world.random.nextDouble() * 0.2;
                KillEffect.this.mc
-                  .field_1687
-                  .method_8406(
-                     ParticleTypes.field_11203,
+                  .world
+                  .addParticle(
+                     ParticleTypes.POOF,
                      this.x,
                      this.y + this.height / 2.0,
                      this.z,
                      Math.cos(angle) * speed,
-                     (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.2,
+                     (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.2,
                      Math.sin(angle) * speed
                   );
             }
@@ -578,7 +578,7 @@ public class KillEffect extends Module {
       FireworkBurstEffect(double x, double y, double z, double height) {
          super(x, y, z, 45);
          this.height = height;
-         KillEffect.this.mc.field_1687.method_43128(KillEffect.this.mc.field_1724, x, y, z, SoundEvents.field_14702, SoundCategory.field_15256, 2.0F, 1.0F);
+         KillEffect.this.mc.world.playSound(KillEffect.this.mc.player, x, y, z, SoundEvents.ENTITY_FIREWORK_ROCKET_LAUNCH, SoundCategory.AMBIENT, 2.0F, 1.0F);
       }
 
       @Override
@@ -587,9 +587,9 @@ public class KillEffect extends Module {
          double centerY = this.y + this.height / 2.0;
          if (this.ticks < 10) {
             for (int i = 0; i < 5; i++) {
-               double ox = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.3;
-               double oz = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.3;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11248, this.x + ox, this.y + (double)this.ticks * 0.3, this.z + oz, 0.0, 0.1, 0.0);
+               double ox = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.3;
+               double oz = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.3;
+               KillEffect.this.mc.world.addParticle(ParticleTypes.FIREWORK, this.x + ox, this.y + (double)this.ticks * 0.3, this.z + oz, 0.0, 0.1, 0.0);
             }
          }
 
@@ -597,72 +597,72 @@ public class KillEffect extends Module {
             this.burstCount++;
             double burstY = centerY + (double)(this.burstCount - 2) * 1.5;
             KillEffect.this.mc
-               .field_1687
-               .method_43128(
-                  KillEffect.this.mc.field_1724,
+               .world
+               .playSound(
+                  KillEffect.this.mc.player,
                   this.x,
                   burstY,
                   this.z,
-                  SoundEvents.field_14917,
-                  SoundCategory.field_15256,
+                  SoundEvents.ENTITY_FIREWORK_ROCKET_BLAST,
+                  SoundCategory.AMBIENT,
                   2.0F,
                   0.8F + (float)this.burstCount * 0.2F
                );
             KillEffect.this.mc
-               .field_1687
-               .method_43128(KillEffect.this.mc.field_1724, this.x, burstY, this.z, SoundEvents.field_14800, SoundCategory.field_15256, 1.5F, 1.0F);
+               .world
+               .playSound(KillEffect.this.mc.player, this.x, burstY, this.z, SoundEvents.ENTITY_FIREWORK_ROCKET_TWINKLE, SoundCategory.AMBIENT, 1.5F, 1.0F);
 
             for (int i = 0; i < 40; i++) {
-               double angle = KillEffect.this.mc.field_1687.field_9229.method_43058() * Math.PI * 2.0;
-               double pitch = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * Math.PI;
-               double speed = 0.25 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.35;
+               double angle = KillEffect.this.mc.world.random.nextDouble() * Math.PI * 2.0;
+               double pitch = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * Math.PI;
+               double speed = 0.25 + KillEffect.this.mc.world.random.nextDouble() * 0.35;
                double vx = Math.cos(angle) * Math.cos(pitch) * speed;
                double vy = Math.sin(pitch) * speed;
                double vz = Math.sin(angle) * Math.cos(pitch) * speed;
                switch ((i + this.burstCount) % 6) {
                   case 0:
-                     KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11248, this.x, burstY, this.z, vx, vy, vz);
+                     KillEffect.this.mc.world.addParticle(ParticleTypes.FIREWORK, this.x, burstY, this.z, vx, vy, vz);
                      break;
                   case 1:
-                     KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11207, this.x, burstY, this.z, vx * 0.7, vy * 0.7, vz * 0.7);
+                     KillEffect.this.mc.world.addParticle(ParticleTypes.END_ROD, this.x, burstY, this.z, vx * 0.7, vy * 0.7, vz * 0.7);
                      break;
                   case 2:
-                     KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11205, this.x, burstY, this.z, vx, vy, vz);
+                     KillEffect.this.mc.world.addParticle(ParticleTypes.CRIT, this.x, burstY, this.z, vx, vy, vz);
                      break;
                   case 3:
-                     KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11208, this.x, burstY, this.z, vx, vy, vz);
+                     KillEffect.this.mc.world.addParticle(ParticleTypes.ENCHANTED_HIT, this.x, burstY, this.z, vx, vy, vz);
                      break;
                   case 4:
-                     KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_28479, this.x, burstY, this.z, vx * 0.5, vy * 0.5, vz * 0.5);
+                     KillEffect.this.mc.world.addParticle(ParticleTypes.GLOW, this.x, burstY, this.z, vx * 0.5, vy * 0.5, vz * 0.5);
                      break;
                   case 5:
-                     KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_17909, this.x, burstY, this.z, 0.0, 0.0, 0.0);
+                     KillEffect.this.mc.world.addParticle(ParticleTypes.FLASH, this.x, burstY, this.z, 0.0, 0.0, 0.0);
                }
             }
          }
 
          if (this.ticks > 10 && this.ticks < 20 || this.ticks > 20 && this.ticks < 30 || this.ticks > 30 && this.ticks < 40) {
             for (int i = 0; i < 8; i++) {
-               double ox = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 2.0;
-               double oy = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 2.0;
-               double oz = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 2.0;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11248, this.x + ox, centerY + oy, this.z + oz, -ox * 0.02, -oy * 0.02, -oz * 0.02);
+               double ox = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 2.0;
+               double oy = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 2.0;
+               double oz = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 2.0;
+               KillEffect.this.mc.world.addParticle(ParticleTypes.FIREWORK, this.x + ox, centerY + oy, this.z + oz, -ox * 0.02, -oy * 0.02, -oz * 0.02);
             }
          }
 
          if (this.ticks == 40) {
             KillEffect.this.mc
-               .field_1687
-               .method_43128(KillEffect.this.mc.field_1724, this.x, centerY, this.z, SoundEvents.field_15188, SoundCategory.field_15256, 3.0F, 1.0F);
+               .world
+               .playSound(KillEffect.this.mc.player, this.x, centerY, this.z, SoundEvents.ENTITY_FIREWORK_ROCKET_LARGE_BLAST, SoundCategory.AMBIENT, 3.0F, 1.0F);
 
             for (int i = 0; i < 60; i++) {
-               double angle = KillEffect.this.mc.field_1687.field_9229.method_43058() * Math.PI * 2.0;
-               double pitch = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * Math.PI;
-               double speed = 0.4 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.4;
+               double angle = KillEffect.this.mc.world.random.nextDouble() * Math.PI * 2.0;
+               double pitch = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * Math.PI;
+               double speed = 0.4 + KillEffect.this.mc.world.random.nextDouble() * 0.4;
                double vx = Math.cos(angle) * Math.cos(pitch) * speed;
                double vy = Math.sin(pitch) * speed + 0.1;
                double vz = Math.sin(angle) * Math.cos(pitch) * speed;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11248, this.x, centerY, this.z, vx, vy, vz);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.FIREWORK, this.x, centerY, this.z, vx, vy, vz);
             }
          }
       }
@@ -674,7 +674,7 @@ public class KillEffect extends Module {
       FlameSpiralEffect(double x, double y, double z, double height) {
          super(x, y, z, 30);
          this.height = height;
-         KillEffect.this.mc.field_1687.method_43128(KillEffect.this.mc.field_1724, x, y, z, SoundEvents.field_15013, SoundCategory.field_15248, 2.0F, 1.0F);
+         KillEffect.this.mc.world.playSound(KillEffect.this.mc.player, x, y, z, SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.PLAYERS, 2.0F, 1.0F);
       }
 
       @Override
@@ -692,18 +692,18 @@ public class KillEffect extends Module {
                double px = this.x + Math.cos(angle) * radius;
                double pz = this.z + Math.sin(angle) * radius;
                double py = this.y + currentHeight - (double)i * 0.2;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11240, px, py, pz, 0.0, 0.02, 0.0);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.FLAME, px, py, pz, 0.0, 0.02, 0.0);
                if (i == 0) {
-                  KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_22246, px, py, pz, 0.0, 0.01, 0.0);
+                  KillEffect.this.mc.world.addParticle(ParticleTypes.SOUL_FIRE_FLAME, px, py, pz, 0.0, 0.01, 0.0);
                }
             }
          }
 
          if (this.ticks % 3 == 0) {
-            double angle = KillEffect.this.mc.field_1687.field_9229.method_43058() * Math.PI * 2.0;
+            double angle = KillEffect.this.mc.world.random.nextDouble() * Math.PI * 2.0;
             KillEffect.this.mc
-               .field_1687
-               .method_8406(ParticleTypes.field_11239, this.x + Math.cos(angle) * 0.5, this.y + currentHeight, this.z + Math.sin(angle) * 0.5, 0.0, 0.0, 0.0);
+               .world
+               .addParticle(ParticleTypes.LAVA, this.x + Math.cos(angle) * 0.5, this.y + currentHeight, this.z + Math.sin(angle) * 0.5, 0.0, 0.0, 0.0);
          }
       }
    }
@@ -719,8 +719,8 @@ public class KillEffect extends Module {
          super(x, y, z, 40);
          this.meteorY = y + 20.0;
          KillEffect.this.mc
-            .field_1687
-            .method_43128(KillEffect.this.mc.field_1724, x, y + 10.0, z, SoundEvents.field_14702, SoundCategory.field_15256, 2.0F, 0.5F);
+            .world
+            .playSound(KillEffect.this.mc.player, x, y + 10.0, z, SoundEvents.ENTITY_FIREWORK_ROCKET_LAUNCH, SoundCategory.AMBIENT, 2.0F, 0.5F);
       }
 
       @Override
@@ -730,52 +730,52 @@ public class KillEffect extends Module {
             this.meteorY--;
 
             for (int i = 0; i < 8; i++) {
-               double ox = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.5;
-               double oz = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.5;
+               double ox = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.5;
+               double oz = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.5;
                KillEffect.this.mc
-                  .field_1687
-                  .method_8406(ParticleTypes.field_11240, this.x + ox, this.meteorY + (double)i * 0.3, this.z + oz, ox * 0.05, 0.1, oz * 0.05);
+                  .world
+                  .addParticle(ParticleTypes.FLAME, this.x + ox, this.meteorY + (double)i * 0.3, this.z + oz, ox * 0.05, 0.1, oz * 0.05);
                if (i % 2 == 0) {
-                  KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11239, this.x + ox, this.meteorY + (double)i * 0.3, this.z + oz, 0.0, 0.0, 0.0);
+                  KillEffect.this.mc.world.addParticle(ParticleTypes.LAVA, this.x + ox, this.meteorY + (double)i * 0.3, this.z + oz, 0.0, 0.0, 0.0);
                }
             }
 
             for (int ix = 0; ix < 3; ix++) {
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11237, this.x, this.meteorY, this.z, 0.0, 0.0, 0.0);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.LARGE_SMOKE, this.x, this.meteorY, this.z, 0.0, 0.0, 0.0);
             }
 
             if (this.meteorY <= this.y + 1.0) {
                this.impacted = true;
                KillEffect.this.mc
-                  .field_1687
-                  .method_43128(
-                     KillEffect.this.mc.field_1724,
+                  .world
+                  .playSound(
+                     KillEffect.this.mc.player,
                      this.x,
                      this.y,
                      this.z,
-                     (SoundEvent)SoundEvents.field_15152.comp_349(),
-                     SoundCategory.field_15250,
+                     (SoundEvent)SoundEvents.ENTITY_GENERIC_EXPLODE.comp_349(),
+                     SoundCategory.MASTER,
                      5.0F,
                      0.7F
                   );
 
                for (int ix = 0; ix < 40; ix++) {
-                  double angle = KillEffect.this.mc.field_1687.field_9229.method_43058() * Math.PI * 2.0;
-                  double speed = 0.3 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.4;
+                  double angle = KillEffect.this.mc.world.random.nextDouble() * Math.PI * 2.0;
+                  double speed = 0.3 + KillEffect.this.mc.world.random.nextDouble() * 0.4;
                   double vx = Math.cos(angle) * speed;
-                  double vy = 0.2 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.3;
+                  double vy = 0.2 + KillEffect.this.mc.world.random.nextDouble() * 0.3;
                   double vz = Math.sin(angle) * speed;
-                  KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11240, this.x, this.y + 0.5, this.z, vx, vy, vz);
+                  KillEffect.this.mc.world.addParticle(ParticleTypes.FLAME, this.x, this.y + 0.5, this.z, vx, vy, vz);
                   if (ix % 2 == 0) {
-                     KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11236, this.x, this.y + 0.5, this.z, vx * 0.5, vy * 0.5, vz * 0.5);
+                     KillEffect.this.mc.world.addParticle(ParticleTypes.EXPLOSION, this.x, this.y + 0.5, this.z, vx * 0.5, vy * 0.5, vz * 0.5);
                   }
                }
             }
          } else if (this.ticks % 2 == 0) {
             for (int ixx = 0; ixx < 5; ixx++) {
-               double ox = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 2.0;
-               double oz = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 2.0;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11251, this.x + ox, this.y + 0.3, this.z + oz, 0.0, 0.05, 0.0);
+               double ox = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 2.0;
+               double oz = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 2.0;
+               KillEffect.this.mc.world.addParticle(ParticleTypes.SMOKE, this.x + ox, this.y + 0.3, this.z + oz, 0.0, 0.05, 0.0);
             }
          }
       }
@@ -788,7 +788,7 @@ public class KillEffect extends Module {
       OrbitalStrikeEffect(double x, double y, double z, double height) {
          super(x, y, z, 60);
          this.height = height;
-         KillEffect.this.mc.field_1687.method_43128(KillEffect.this.mc.field_1724, x, y, z, SoundEvents.field_14703, SoundCategory.field_15245, 3.0F, 0.5F);
+         KillEffect.this.mc.world.playSound(KillEffect.this.mc.player, x, y, z, SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.BLOCKS, 3.0F, 0.5F);
       }
 
       @Override
@@ -801,14 +801,14 @@ public class KillEffect extends Module {
                double angle = (Math.PI / 8) * (double)i + (double)this.ticks * 0.1;
                double px = this.x + Math.cos(angle) * radius;
                double pz = this.z + Math.sin(angle) * radius;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11207, px, this.y + 0.1, pz, 0.0, 0.02, 0.0);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.END_ROD, px, this.y + 0.1, pz, 0.0, 0.02, 0.0);
             }
 
             for (int i = 0; i < 8; i++) {
                double angle = (Math.PI / 4) * (double)i - (double)this.ticks * 0.15;
                double px = this.x + Math.cos(angle) * 0.7;
                double pz = this.z + Math.sin(angle) * 0.7;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_29644, px, this.y + 0.1, pz, 0.0, 0.01, 0.0);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.ELECTRIC_SPARK, px, this.y + 0.1, pz, 0.0, 0.01, 0.0);
             }
          }
 
@@ -817,11 +817,11 @@ public class KillEffect extends Module {
             double beamTop = this.y + 25.0 - beamProgress * 25.0;
 
             for (double py = beamTop; py < this.y + 25.0; py += 0.5) {
-               double ox = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.4;
-               double oz = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.4;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11207, this.x + ox, py, this.z + oz, 0.0, -0.5, 0.0);
-               if (KillEffect.this.mc.field_1687.field_9229.method_43058() < 0.3) {
-                  KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_29644, this.x + ox, py, this.z + oz, ox * 0.1, 0.0, oz * 0.1);
+               double ox = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.4;
+               double oz = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.4;
+               KillEffect.this.mc.world.addParticle(ParticleTypes.END_ROD, this.x + ox, py, this.z + oz, 0.0, -0.5, 0.0);
+               if (KillEffect.this.mc.world.random.nextDouble() < 0.3) {
+                  KillEffect.this.mc.world.addParticle(ParticleTypes.ELECTRIC_SPARK, this.x + ox, py, this.z + oz, ox * 0.1, 0.0, oz * 0.1);
                }
             }
          }
@@ -829,28 +829,28 @@ public class KillEffect extends Module {
          if (this.ticks == 25 && !this.struck) {
             this.struck = true;
             KillEffect.this.mc
-               .field_1687
-               .method_43128(KillEffect.this.mc.field_1724, this.x, this.y, this.z, SoundEvents.field_14865, SoundCategory.field_15252, 5.0F, 0.7F);
+               .world
+               .playSound(KillEffect.this.mc.player, this.x, this.y, this.z, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, SoundCategory.WEATHER, 5.0F, 0.7F);
             KillEffect.this.mc
-               .field_1687
-               .method_43128(
-                  KillEffect.this.mc.field_1724, this.x, this.y, this.z, (SoundEvent)SoundEvents.field_15152.comp_349(), SoundCategory.field_15250, 4.0F, 1.2F
+               .world
+               .playSound(
+                  KillEffect.this.mc.player, this.x, this.y, this.z, (SoundEvent)SoundEvents.ENTITY_GENERIC_EXPLODE.comp_349(), SoundCategory.MASTER, 4.0F, 1.2F
                );
 
             for (int i = 0; i < 30; i++) {
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_17909, this.x, this.y + this.height / 2.0, this.z, 0.0, 0.0, 0.0);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.FLASH, this.x, this.y + this.height / 2.0, this.z, 0.0, 0.0, 0.0);
             }
 
             for (int i = 0; i < 60; i++) {
-               double angle = KillEffect.this.mc.field_1687.field_9229.method_43058() * Math.PI * 2.0;
-               double pitch = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.3) * Math.PI * 0.5;
-               double speed = 0.4 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.5;
+               double angle = KillEffect.this.mc.world.random.nextDouble() * Math.PI * 2.0;
+               double pitch = (KillEffect.this.mc.world.random.nextDouble() - 0.3) * Math.PI * 0.5;
+               double speed = 0.4 + KillEffect.this.mc.world.random.nextDouble() * 0.5;
                double vx = Math.cos(angle) * Math.cos(pitch) * speed;
                double vy = Math.sin(pitch) * speed + 0.1;
                double vz = Math.sin(angle) * Math.cos(pitch) * speed;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11207, this.x, this.y + 0.5, this.z, vx, vy, vz);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.END_ROD, this.x, this.y + 0.5, this.z, vx, vy, vz);
                if (i % 2 == 0) {
-                  KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_29644, this.x, this.y + 0.5, this.z, vx * 1.5, vy * 1.5, vz * 1.5);
+                  KillEffect.this.mc.world.addParticle(ParticleTypes.ELECTRIC_SPARK, this.x, this.y + 0.5, this.z, vx * 1.5, vy * 1.5, vz * 1.5);
                }
             }
          }
@@ -863,19 +863,19 @@ public class KillEffect extends Module {
                double angle = (Math.PI * 2) / (double)particles * (double)ix;
                double px = this.x + Math.cos(angle) * waveRadius;
                double pz = this.z + Math.sin(angle) * waveRadius;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11204, px, this.y + 0.2, pz, Math.cos(angle) * 0.05, 0.02, Math.sin(angle) * 0.05);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.CLOUD, px, this.y + 0.2, pz, Math.cos(angle) * 0.05, 0.02, Math.sin(angle) * 0.05);
             }
 
             if (this.ticks % 2 == 0) {
                for (int ix = 0; ix < 5; ix++) {
-                  double ox = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 1.5;
-                  double oz = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 1.5;
+                  double ox = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 1.5;
+                  double oz = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 1.5;
                   KillEffect.this.mc
-                     .field_1687
-                     .method_8406(
-                        ParticleTypes.field_29644,
+                     .world
+                     .addParticle(
+                        ParticleTypes.ELECTRIC_SPARK,
                         this.x + ox,
-                        this.y + KillEffect.this.mc.field_1687.field_9229.method_43058() * 2.0,
+                        this.y + KillEffect.this.mc.world.random.nextDouble() * 2.0,
                         this.z + oz,
                         0.0,
                         0.05,
@@ -893,7 +893,7 @@ public class KillEffect extends Module {
       PhoenixRiseEffect(double x, double y, double z, double height) {
          super(x, y, z, 55);
          this.height = height;
-         KillEffect.this.mc.field_1687.method_43128(KillEffect.this.mc.field_1724, x, y, z, SoundEvents.field_14580, SoundCategory.field_15251, 2.0F, 1.5F);
+         KillEffect.this.mc.world.playSound(KillEffect.this.mc.player, x, y, z, SoundEvents.ENTITY_BLAZE_DEATH, SoundCategory.HOSTILE, 2.0F, 1.5F);
       }
 
       @Override
@@ -903,12 +903,12 @@ public class KillEffect extends Module {
          double phoenixY = this.y + riseHeight;
          if (this.ticks < 45) {
             for (int i = 0; i < 8; i++) {
-               double ox = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.4;
-               double oy = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.6;
-               double oz = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.4;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11240, this.x + ox, phoenixY + oy, this.z + oz, ox * 0.02, 0.1, oz * 0.02);
+               double ox = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.4;
+               double oy = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.6;
+               double oz = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.4;
+               KillEffect.this.mc.world.addParticle(ParticleTypes.FLAME, this.x + ox, phoenixY + oy, this.z + oz, ox * 0.02, 0.1, oz * 0.02);
                if (i % 2 == 0) {
-                  KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_22246, this.x + ox, phoenixY + oy, this.z + oz, ox * 0.01, 0.08, oz * 0.01);
+                  KillEffect.this.mc.world.addParticle(ParticleTypes.SOUL_FIRE_FLAME, this.x + ox, phoenixY + oy, this.z + oz, ox * 0.01, 0.08, oz * 0.01);
                }
             }
 
@@ -918,10 +918,10 @@ public class KillEffect extends Module {
                for (int ix = 0; ix < 5; ix++) {
                   double wingX = this.x + (double)wing * wingSpan * (0.3 + (double)ix * 0.2);
                   double wingY = phoenixY - (double)ix * 0.15 + Math.sin((double)this.ticks * 0.3 + (double)ix) * 0.1;
-                  double oy = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.2;
-                  KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11240, wingX, wingY + oy, this.z, (double)wing * 0.05, 0.02, 0.0);
+                  double oy = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.2;
+                  KillEffect.this.mc.world.addParticle(ParticleTypes.FLAME, wingX, wingY + oy, this.z, (double)wing * 0.05, 0.02, 0.0);
                   if (ix < 3) {
-                     KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_27783, wingX, wingY + oy, this.z, (double)wing * 0.03, 0.01, 0.0);
+                     KillEffect.this.mc.world.addParticle(ParticleTypes.SMALL_FLAME, wingX, wingY + oy, this.z, (double)wing * 0.03, 0.01, 0.0);
                   }
                }
             }
@@ -929,10 +929,10 @@ public class KillEffect extends Module {
             for (int ixx = 0; ixx < 4; ixx++) {
                double tailY = phoenixY - 0.5 - (double)ixx * 0.3;
                if (tailY > this.y) {
-                  double ox = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.3;
-                  double oz = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.3;
-                  KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11240, this.x + ox, tailY, this.z + oz, 0.0, -0.05, 0.0);
-                  KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11239, this.x + ox, tailY, this.z + oz, 0.0, 0.0, 0.0);
+                  double ox = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.3;
+                  double oz = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.3;
+                  KillEffect.this.mc.world.addParticle(ParticleTypes.FLAME, this.x + ox, tailY, this.z + oz, 0.0, -0.05, 0.0);
+                  KillEffect.this.mc.world.addParticle(ParticleTypes.LAVA, this.x + ox, tailY, this.z + oz, 0.0, 0.0, 0.0);
                }
             }
          }
@@ -944,35 +944,35 @@ public class KillEffect extends Module {
                double angle = (Math.PI / 3) * (double)ixxx + (double)this.ticks * 0.1;
                double px = this.x + Math.cos(angle) * trailRadius;
                double pz = this.z + Math.sin(angle) * trailRadius;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11240, px, this.y + 0.1, pz, 0.0, 0.05, 0.0);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.FLAME, px, this.y + 0.1, pz, 0.0, 0.05, 0.0);
             }
          }
 
          if (this.ticks == 45) {
             KillEffect.this.mc
-               .field_1687
-               .method_43128(KillEffect.this.mc.field_1724, this.x, phoenixY, this.z, SoundEvents.field_15188, SoundCategory.field_15256, 2.0F, 1.2F);
+               .world
+               .playSound(KillEffect.this.mc.player, this.x, phoenixY, this.z, SoundEvents.ENTITY_FIREWORK_ROCKET_LARGE_BLAST, SoundCategory.AMBIENT, 2.0F, 1.2F);
 
             for (int ixxx = 0; ixxx < 50; ixxx++) {
-               double angle = KillEffect.this.mc.field_1687.field_9229.method_43058() * Math.PI * 2.0;
-               double pitch = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * Math.PI;
-               double speed = 0.3 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.4;
+               double angle = KillEffect.this.mc.world.random.nextDouble() * Math.PI * 2.0;
+               double pitch = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * Math.PI;
+               double speed = 0.3 + KillEffect.this.mc.world.random.nextDouble() * 0.4;
                double vx = Math.cos(angle) * Math.cos(pitch) * speed;
                double vy = Math.sin(pitch) * speed + 0.2;
                double vz = Math.sin(angle) * Math.cos(pitch) * speed;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11240, this.x, phoenixY, this.z, vx, vy, vz);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.FLAME, this.x, phoenixY, this.z, vx, vy, vz);
                if (ixxx % 3 == 0) {
-                  KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_22246, this.x, phoenixY, this.z, vx * 0.8, vy * 0.8, vz * 0.8);
+                  KillEffect.this.mc.world.addParticle(ParticleTypes.SOUL_FIRE_FLAME, this.x, phoenixY, this.z, vx * 0.8, vy * 0.8, vz * 0.8);
                }
             }
          }
 
          if (this.ticks > 45 && this.ticks < 55) {
             for (int ixxxx = 0; ixxxx < 8; ixxxx++) {
-               double ox = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 4.0;
-               double oz = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 4.0;
-               double startY = this.y + 8.0 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 2.0;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_18304, this.x + ox, startY, this.z + oz, 0.0, 0.0, 0.0);
+               double ox = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 4.0;
+               double oz = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 4.0;
+               double startY = this.y + 8.0 + KillEffect.this.mc.world.random.nextDouble() * 2.0;
+               KillEffect.this.mc.world.addParticle(ParticleTypes.FALLING_LAVA, this.x + ox, startY, this.z + oz, 0.0, 0.0, 0.0);
             }
          }
       }
@@ -990,16 +990,16 @@ public class KillEffect extends Module {
          this.pigY = y + 15.0;
          this.spawnPig();
          KillEffect.this.mc
-            .field_1687
-            .method_43128(KillEffect.this.mc.field_1724, x, y + 15.0, z, SoundEvents.field_14615, SoundCategory.field_15254, 3.0F, 1.5F);
+            .world
+            .playSound(KillEffect.this.mc.player, x, y + 15.0, z, SoundEvents.ENTITY_PIG_AMBIENT, SoundCategory.NEUTRAL, 3.0F, 1.5F);
       }
 
       private void spawnPig() {
-         this.pig = new PigEntity(EntityType.field_6093, KillEffect.this.mc.field_1687);
-         this.pig.method_5808(this.x, this.pigY, this.z, 0.0F, 0.0F);
-         this.pig.method_5875(true);
-         this.pig.method_5684(true);
-         KillEffect.this.mc.field_1687.method_53875(this.pig);
+         this.pig = new PigEntity(EntityType.PIG, KillEffect.this.mc.world);
+         this.pig.refreshPositionAndAngles(this.x, this.pigY, this.z, 0.0F, 0.0F);
+         this.pig.setNoGravity(true);
+         this.pig.setInvulnerable(true);
+         KillEffect.this.mc.world.addEntity(this.pig);
       }
 
       @Override
@@ -1007,38 +1007,38 @@ public class KillEffect extends Module {
          this.ticks++;
          if (!this.impacted && this.pig != null) {
             this.pigY -= 0.8;
-            this.pig.method_5808(this.x, this.pigY, this.z, this.pig.method_36454() + 15.0F, 0.0F);
+            this.pig.refreshPositionAndAngles(this.x, this.pigY, this.z, this.pig.getYaw() + 15.0F, 0.0F);
 
             for (int i = 0; i < 6; i++) {
-               double ox = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.6;
-               double oz = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.6;
+               double ox = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.6;
+               double oz = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.6;
                double trailY = this.pigY + 0.5 + (double)i * 0.25;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11240, this.x + ox, trailY, this.z + oz, ox * 0.02, 0.05, oz * 0.02);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.FLAME, this.x + ox, trailY, this.z + oz, ox * 0.02, 0.05, oz * 0.02);
                if (i % 2 == 0) {
-                  KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11251, this.x + ox, trailY, this.z + oz, 0.0, 0.03, 0.0);
+                  KillEffect.this.mc.world.addParticle(ParticleTypes.SMOKE, this.x + ox, trailY, this.z + oz, 0.0, 0.03, 0.0);
                }
             }
 
             if (this.ticks % 2 == 0) {
                for (int ix = 0; ix < 3; ix++) {
-                  double angle = KillEffect.this.mc.field_1687.field_9229.method_43058() * Math.PI * 2.0;
-                  double r = 0.4 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.3;
+                  double angle = KillEffect.this.mc.world.random.nextDouble() * Math.PI * 2.0;
+                  double r = 0.4 + KillEffect.this.mc.world.random.nextDouble() * 0.3;
                   KillEffect.this.mc
-                     .field_1687
-                     .method_8406(ParticleTypes.field_11239, this.x + Math.cos(angle) * r, this.pigY + 0.3, this.z + Math.sin(angle) * r, 0.0, 0.0, 0.0);
+                     .world
+                     .addParticle(ParticleTypes.LAVA, this.x + Math.cos(angle) * r, this.pigY + 0.3, this.z + Math.sin(angle) * r, 0.0, 0.0, 0.0);
                }
             }
 
             if (this.ticks % 5 == 0) {
                KillEffect.this.mc
-                  .field_1687
-                  .method_43128(
-                     KillEffect.this.mc.field_1724,
+                  .world
+                  .playSound(
+                     KillEffect.this.mc.player,
                      this.x,
                      this.pigY,
                      this.z,
-                     SoundEvents.field_14750,
-                     SoundCategory.field_15254,
+                     SoundEvents.ENTITY_PIG_HURT,
+                     SoundCategory.NEUTRAL,
                      1.5F,
                      0.5F + (float)this.ticks * 0.03F
                   );
@@ -1046,7 +1046,7 @@ public class KillEffect extends Module {
 
             if (this.pigY <= this.y + 1.0) {
                this.impacted = true;
-               this.pig.method_31472();
+               this.pig.discard();
                this.pig = null;
                this.playExplosion();
             }
@@ -1054,47 +1054,47 @@ public class KillEffect extends Module {
 
          if (this.impacted && this.ticks < this.maxTicks && this.ticks % 2 == 0) {
             for (int ix = 0; ix < 4; ix++) {
-               double ox = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 2.5;
-               double oz = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 2.5;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_17430, this.x + ox, this.y + 0.3, this.z + oz, 0.0, 0.08, 0.0);
+               double ox = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 2.5;
+               double oz = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 2.5;
+               KillEffect.this.mc.world.addParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, this.x + ox, this.y + 0.3, this.z + oz, 0.0, 0.08, 0.0);
             }
          }
       }
 
       private void playExplosion() {
          KillEffect.this.mc
-            .field_1687
-            .method_43128(
-               KillEffect.this.mc.field_1724, this.x, this.y, this.z, (SoundEvent)SoundEvents.field_15152.comp_349(), SoundCategory.field_15250, 5.0F, 0.8F
+            .world
+            .playSound(
+               KillEffect.this.mc.player, this.x, this.y, this.z, (SoundEvent)SoundEvents.ENTITY_GENERIC_EXPLODE.comp_349(), SoundCategory.MASTER, 5.0F, 0.8F
             );
          KillEffect.this.mc
-            .field_1687
-            .method_43128(KillEffect.this.mc.field_1724, this.x, this.y, this.z, SoundEvents.field_14689, SoundCategory.field_15254, 3.0F, 0.5F);
+            .world
+            .playSound(KillEffect.this.mc.player, this.x, this.y, this.z, SoundEvents.ENTITY_PIG_DEATH, SoundCategory.NEUTRAL, 3.0F, 0.5F);
 
          for (int i = 0; i < 50; i++) {
-            double angle = KillEffect.this.mc.field_1687.field_9229.method_43058() * Math.PI * 2.0;
-            double pitch = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * Math.PI;
-            double speed = 0.4 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.5;
+            double angle = KillEffect.this.mc.world.random.nextDouble() * Math.PI * 2.0;
+            double pitch = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * Math.PI;
+            double speed = 0.4 + KillEffect.this.mc.world.random.nextDouble() * 0.5;
             double vx = Math.cos(angle) * Math.cos(pitch) * speed;
             double vy = Math.sin(pitch) * speed + 0.2;
             double vz = Math.sin(angle) * Math.cos(pitch) * speed;
-            KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11240, this.x, this.y + 0.5, this.z, vx, vy, vz);
+            KillEffect.this.mc.world.addParticle(ParticleTypes.FLAME, this.x, this.y + 0.5, this.z, vx, vy, vz);
             if (i % 2 == 0) {
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11236, this.x, this.y + 0.5, this.z, vx * 0.3, vy * 0.3, vz * 0.3);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.EXPLOSION, this.x, this.y + 0.5, this.z, vx * 0.3, vy * 0.3, vz * 0.3);
             }
 
             if (i % 4 == 0) {
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11239, this.x, this.y + 0.5, this.z, vx * 0.5, vy * 0.5, vz * 0.5);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.LAVA, this.x, this.y + 0.5, this.z, vx * 0.5, vy * 0.5, vz * 0.5);
             }
          }
 
          for (int i = 0; i < 25; i++) {
-            double anglex = KillEffect.this.mc.field_1687.field_9229.method_43058() * Math.PI * 2.0;
-            double speedx = 0.2 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.3;
+            double anglex = KillEffect.this.mc.world.random.nextDouble() * Math.PI * 2.0;
+            double speedx = 0.2 + KillEffect.this.mc.world.random.nextDouble() * 0.3;
             double vxx = Math.cos(anglex) * speedx;
-            double vyx = 0.1 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.3;
+            double vyx = 0.1 + KillEffect.this.mc.world.random.nextDouble() * 0.3;
             double vzx = Math.sin(anglex) * speedx;
-            KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11201, this.x, this.y + 0.5, this.z, vxx, vyx, vzx);
+            KillEffect.this.mc.world.addParticle(ParticleTypes.HEART, this.x, this.y + 0.5, this.z, vxx, vyx, vzx);
          }
 
          for (int ring = 0; ring < 3; ring++) {
@@ -1105,7 +1105,7 @@ public class KillEffect extends Module {
                double anglex = (Math.PI * 2) / (double)particles * (double)i;
                double px = this.x + Math.cos(anglex) * radius;
                double pz = this.z + Math.sin(anglex) * radius;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11204, px, this.y + 0.2, pz, Math.cos(anglex) * 0.1, 0.05, Math.sin(anglex) * 0.1);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.CLOUD, px, this.y + 0.2, pz, Math.cos(anglex) * 0.1, 0.05, Math.sin(anglex) * 0.1);
             }
          }
       }
@@ -1113,7 +1113,7 @@ public class KillEffect extends Module {
       @Override
       boolean isFinished() {
          if (this.pig != null && this.ticks >= this.maxTicks) {
-            this.pig.method_31472();
+            this.pig.discard();
             this.pig = null;
          }
 
@@ -1127,7 +1127,7 @@ public class KillEffect extends Module {
       RainbowBurstEffect(double x, double y, double z, double height) {
          super(x, y, z, 40);
          this.height = height;
-         KillEffect.this.mc.field_1687.method_43128(KillEffect.this.mc.field_1724, x, y, z, SoundEvents.field_15188, SoundCategory.field_15256, 2.0F, 1.5F);
+         KillEffect.this.mc.world.playSound(KillEffect.this.mc.player, x, y, z, SoundEvents.ENTITY_FIREWORK_ROCKET_LARGE_BLAST, SoundCategory.AMBIENT, 2.0F, 1.5F);
       }
 
       @Override
@@ -1136,33 +1136,33 @@ public class KillEffect extends Module {
          double centerY = this.y + this.height / 2.0;
          if (this.ticks == 1) {
             for (int i = 0; i < 60; i++) {
-               double angle = KillEffect.this.mc.field_1687.field_9229.method_43058() * Math.PI * 2.0;
-               double pitch = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * Math.PI;
-               double speed = 0.3 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.4;
+               double angle = KillEffect.this.mc.world.random.nextDouble() * Math.PI * 2.0;
+               double pitch = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * Math.PI;
+               double speed = 0.3 + KillEffect.this.mc.world.random.nextDouble() * 0.4;
                double vx = Math.cos(angle) * Math.cos(pitch) * speed;
                double vy = Math.sin(pitch) * speed + 0.1;
                double vz = Math.sin(angle) * Math.cos(pitch) * speed;
                switch (i % 7) {
                   case 0:
-                     KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11240, this.x, centerY, this.z, vx, vy, vz);
+                     KillEffect.this.mc.world.addParticle(ParticleTypes.FLAME, this.x, centerY, this.z, vx, vy, vz);
                      break;
                   case 1:
-                     KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_22246, this.x, centerY, this.z, vx, vy, vz);
+                     KillEffect.this.mc.world.addParticle(ParticleTypes.SOUL_FIRE_FLAME, this.x, centerY, this.z, vx, vy, vz);
                      break;
                   case 2:
-                     KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11207, this.x, centerY, this.z, vx, vy, vz);
+                     KillEffect.this.mc.world.addParticle(ParticleTypes.END_ROD, this.x, centerY, this.z, vx, vy, vz);
                      break;
                   case 3:
-                     KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_28479, this.x, centerY, this.z, vx, vy, vz);
+                     KillEffect.this.mc.world.addParticle(ParticleTypes.GLOW, this.x, centerY, this.z, vx, vy, vz);
                      break;
                   case 4:
-                     KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11208, this.x, centerY, this.z, vx, vy, vz);
+                     KillEffect.this.mc.world.addParticle(ParticleTypes.ENCHANTED_HIT, this.x, centerY, this.z, vx, vy, vz);
                      break;
                   case 5:
-                     KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11205, this.x, centerY, this.z, vx, vy, vz);
+                     KillEffect.this.mc.world.addParticle(ParticleTypes.CRIT, this.x, centerY, this.z, vx, vy, vz);
                      break;
                   case 6:
-                     KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11248, this.x, centerY, this.z, vx, vy, vz);
+                     KillEffect.this.mc.world.addParticle(ParticleTypes.FIREWORK, this.x, centerY, this.z, vx, vy, vz);
                }
             }
          }
@@ -1179,19 +1179,19 @@ public class KillEffect extends Module {
                   double pz = this.z + Math.sin(angle) * radius;
                   switch ((i + ring + this.ticks) % 5) {
                      case 0:
-                        KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11207, px, ringY, pz, 0.0, 0.02, 0.0);
+                        KillEffect.this.mc.world.addParticle(ParticleTypes.END_ROD, px, ringY, pz, 0.0, 0.02, 0.0);
                         break;
                      case 1:
-                        KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_28479, px, ringY, pz, 0.0, 0.02, 0.0);
+                        KillEffect.this.mc.world.addParticle(ParticleTypes.GLOW, px, ringY, pz, 0.0, 0.02, 0.0);
                         break;
                      case 2:
-                        KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11248, px, ringY, pz, 0.0, 0.02, 0.0);
+                        KillEffect.this.mc.world.addParticle(ParticleTypes.FIREWORK, px, ringY, pz, 0.0, 0.02, 0.0);
                         break;
                      case 3:
-                        KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11208, px, ringY, pz, 0.0, 0.02, 0.0);
+                        KillEffect.this.mc.world.addParticle(ParticleTypes.ENCHANTED_HIT, px, ringY, pz, 0.0, 0.02, 0.0);
                         break;
                      case 4:
-                        KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11205, px, ringY, pz, 0.0, 0.02, 0.0);
+                        KillEffect.this.mc.world.addParticle(ParticleTypes.CRIT, px, ringY, pz, 0.0, 0.02, 0.0);
                   }
                }
             }
@@ -1199,14 +1199,14 @@ public class KillEffect extends Module {
 
          if (this.ticks % 10 == 0 && this.ticks < 30) {
             KillEffect.this.mc
-               .field_1687
-               .method_43128(
-                  KillEffect.this.mc.field_1724,
+               .world
+               .playSound(
+                  KillEffect.this.mc.player,
                   this.x,
                   this.y,
                   this.z,
-                  SoundEvents.field_14800,
-                  SoundCategory.field_15256,
+                  SoundEvents.ENTITY_FIREWORK_ROCKET_TWINKLE,
+                  SoundCategory.AMBIENT,
                   1.0F,
                   1.0F + (float)this.ticks * 0.02F
                );
@@ -1223,17 +1223,17 @@ public class KillEffect extends Module {
          this.height = height;
 
          for (int i = 0; i < this.shards.length; i++) {
-            this.shards[i][0] = x + (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.6;
-            this.shards[i][1] = y + KillEffect.this.mc.field_1687.field_9229.method_43058() * height;
-            this.shards[i][2] = z + (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.6;
-            double angle = KillEffect.this.mc.field_1687.field_9229.method_43058() * Math.PI * 2.0;
-            double speed = 0.15 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.2;
+            this.shards[i][0] = x + (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.6;
+            this.shards[i][1] = y + KillEffect.this.mc.world.random.nextDouble() * height;
+            this.shards[i][2] = z + (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.6;
+            double angle = KillEffect.this.mc.world.random.nextDouble() * Math.PI * 2.0;
+            double speed = 0.15 + KillEffect.this.mc.world.random.nextDouble() * 0.2;
             this.shards[i][3] = Math.cos(angle) * speed;
-            this.shards[i][4] = 0.1 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.15;
+            this.shards[i][4] = 0.1 + KillEffect.this.mc.world.random.nextDouble() * 0.15;
             this.shards[i][5] = Math.sin(angle) * speed;
          }
 
-         KillEffect.this.mc.field_1687.method_43128(KillEffect.this.mc.field_1724, x, y, z, SoundEvents.field_15081, SoundCategory.field_15245, 2.0F, 0.8F);
+         KillEffect.this.mc.world.playSound(KillEffect.this.mc.player, x, y, z, SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.BLOCKS, 2.0F, 0.8F);
       }
 
       @Override
@@ -1245,16 +1245,16 @@ public class KillEffect extends Module {
             shard[1] += shard[4];
             shard[2] += shard[5];
             shard[4] -= 0.02;
-            KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11205, shard[0], shard[1], shard[2], 0.0, 0.0, 0.0);
-            if (KillEffect.this.mc.field_1687.field_9229.method_43058() < 0.3) {
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11208, shard[0], shard[1], shard[2], 0.0, 0.0, 0.0);
+            KillEffect.this.mc.world.addParticle(ParticleTypes.CRIT, shard[0], shard[1], shard[2], 0.0, 0.0, 0.0);
+            if (KillEffect.this.mc.world.random.nextDouble() < 0.3) {
+               KillEffect.this.mc.world.addParticle(ParticleTypes.ENCHANTED_HIT, shard[0], shard[1], shard[2], 0.0, 0.0, 0.0);
             }
          }
 
          if (this.ticks % 5 == 0 && this.ticks < 25) {
             KillEffect.this.mc
-               .field_1687
-               .method_43128(KillEffect.this.mc.field_1724, this.x, this.y, this.z, SoundEvents.field_15081, SoundCategory.field_15245, 0.5F, 1.2F);
+               .world
+               .playSound(KillEffect.this.mc.player, this.x, this.y, this.z, SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.BLOCKS, 0.5F, 1.2F);
          }
       }
    }
@@ -1263,8 +1263,8 @@ public class KillEffect extends Module {
       ShockwaveEffect(double x, double y, double z) {
          super(x, y, z, 25);
          KillEffect.this.mc
-            .field_1687
-            .method_43128(KillEffect.this.mc.field_1724, x, y, z, (SoundEvent)SoundEvents.field_15152.comp_349(), SoundCategory.field_15250, 2.0F, 1.5F);
+            .world
+            .playSound(KillEffect.this.mc.player, x, y, z, (SoundEvent)SoundEvents.ENTITY_GENERIC_EXPLODE.comp_349(), SoundCategory.MASTER, 2.0F, 1.5F);
       }
 
       @Override
@@ -1279,16 +1279,16 @@ public class KillEffect extends Module {
             double pz = this.z + Math.sin(angle) * radius;
             double vx = Math.cos(angle) * 0.1;
             double vz = Math.sin(angle) * 0.1;
-            KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11204, px, this.y + 0.1, pz, vx, 0.02, vz);
+            KillEffect.this.mc.world.addParticle(ParticleTypes.CLOUD, px, this.y + 0.1, pz, vx, 0.02, vz);
             if (i % 3 == 0) {
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11227, px, this.y + 0.5, pz, 0.0, 0.0, 0.0);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.SWEEP_ATTACK, px, this.y + 0.5, pz, 0.0, 0.0, 0.0);
             }
          }
 
          if (this.ticks % 5 == 0) {
             KillEffect.this.mc
-               .field_1687
-               .method_43128(KillEffect.this.mc.field_1724, this.x, this.y, this.z, SoundEvents.field_14706, SoundCategory.field_15248, 1.0F, 0.8F);
+               .world
+               .playSound(KillEffect.this.mc.player, this.x, this.y, this.z, SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.PLAYERS, 1.0F, 0.8F);
          }
       }
    }
@@ -1301,7 +1301,7 @@ public class KillEffect extends Module {
          super(x, y, z, 55);
          this.height = height;
          this.soulY = y + height / 2.0;
-         KillEffect.this.mc.field_1687.method_60511(KillEffect.this.mc.field_1724, x, y, z, SoundEvents.field_23060, SoundCategory.field_15248, 2.0F, 0.6F);
+         KillEffect.this.mc.world.playSound(KillEffect.this.mc.player, x, y, z, SoundEvents.PARTICLE_SOUL_ESCAPE, SoundCategory.PLAYERS, 2.0F, 0.6F);
       }
 
       @Override
@@ -1309,13 +1309,13 @@ public class KillEffect extends Module {
          this.ticks++;
          if (this.ticks < 15) {
             for (int i = 0; i < 5; i++) {
-               double ox = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.8;
-               double oy = KillEffect.this.mc.field_1687.field_9229.method_43058() * this.height;
-               double oz = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.8;
+               double ox = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.8;
+               double oy = KillEffect.this.mc.world.random.nextDouble() * this.height;
+               double oz = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.8;
                KillEffect.this.mc
-                  .field_1687
-                  .method_8406(
-                     ParticleTypes.field_23114, this.x + ox, this.y + oy, this.z + oz, (this.x - (this.x + ox)) * 0.05, 0.1, (this.z - (this.z + oz)) * 0.05
+                  .world
+                  .addParticle(
+                     ParticleTypes.SOUL, this.x + ox, this.y + oy, this.z + oz, (this.x - (this.x + ox)) * 0.05, 0.1, (this.z - (this.z + oz)) * 0.05
                   );
             }
          }
@@ -1327,26 +1327,26 @@ public class KillEffect extends Module {
             double soulZ = this.z + Math.cos((double)this.ticks * 0.3) * 0.2;
 
             for (int i = 0; i < 4; i++) {
-               double ox = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.3;
-               double oy = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.5;
-               double oz = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.3;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_23114, soulX + ox, this.soulY + oy, soulZ + oz, 0.0, 0.05, 0.0);
+               double ox = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.3;
+               double oy = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.5;
+               double oz = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.3;
+               KillEffect.this.mc.world.addParticle(ParticleTypes.SOUL, soulX + ox, this.soulY + oy, soulZ + oz, 0.0, 0.05, 0.0);
             }
 
             if (this.ticks % 2 == 0) {
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_38002, soulX, this.soulY, soulZ, 0.0, 0.08, 0.0);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.SCULK_SOUL, soulX, this.soulY, soulZ, 0.0, 0.08, 0.0);
             }
 
             for (int i = 0; i < 2; i++) {
                double trailY = this.soulY - 0.5 - (double)i * 0.3;
                if (trailY > this.y) {
                   KillEffect.this.mc
-                     .field_1687
-                     .method_8406(
-                        ParticleTypes.field_23114,
-                        soulX + (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.2,
+                     .world
+                     .addParticle(
+                        ParticleTypes.SOUL,
+                        soulX + (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.2,
                         trailY,
-                        soulZ + (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.2,
+                        soulZ + (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.2,
                         0.0,
                         -0.02,
                         0.0
@@ -1357,21 +1357,21 @@ public class KillEffect extends Module {
 
          if (this.ticks == 50) {
             KillEffect.this.mc
-               .field_1687
-               .method_43128(KillEffect.this.mc.field_1724, this.x, this.soulY, this.z, SoundEvents.field_19344, SoundCategory.field_15245, 1.5F, 2.0F);
+               .world
+               .playSound(KillEffect.this.mc.player, this.x, this.soulY, this.z, SoundEvents.BLOCK_BEACON_DEACTIVATE, SoundCategory.BLOCKS, 1.5F, 2.0F);
 
             for (int ix = 0; ix < 20; ix++) {
-               double angle = KillEffect.this.mc.field_1687.field_9229.method_43058() * Math.PI * 2.0;
-               double speed = 0.1 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.15;
+               double angle = KillEffect.this.mc.world.random.nextDouble() * Math.PI * 2.0;
+               double speed = 0.1 + KillEffect.this.mc.world.random.nextDouble() * 0.15;
                KillEffect.this.mc
-                  .field_1687
-                  .method_8406(
-                     ParticleTypes.field_23114,
+                  .world
+                  .addParticle(
+                     ParticleTypes.SOUL,
                      this.x,
                      this.soulY,
                      this.z,
                      Math.cos(angle) * speed,
-                     0.2 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.1,
+                     0.2 + KillEffect.this.mc.world.random.nextDouble() * 0.1,
                      Math.sin(angle) * speed
                   );
             }
@@ -1385,7 +1385,7 @@ public class KillEffect extends Module {
       SoulEffect(double x, double y, double z, double height) {
          super(x, y, z, 40);
          this.height = height;
-         KillEffect.this.mc.field_1687.method_60511(KillEffect.this.mc.field_1724, x, y, z, SoundEvents.field_23060, SoundCategory.field_15248, 2.0F, 0.8F);
+         KillEffect.this.mc.world.playSound(KillEffect.this.mc.player, x, y, z, SoundEvents.PARTICLE_SOUL_ESCAPE, SoundCategory.PLAYERS, 2.0F, 0.8F);
       }
 
       @Override
@@ -1393,37 +1393,37 @@ public class KillEffect extends Module {
          this.ticks++;
          if (this.ticks < 25) {
             for (int i = 0; i < 3; i++) {
-               double ox = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.8;
-               double oz = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.8;
-               double oy = KillEffect.this.mc.field_1687.field_9229.method_43058() * this.height;
+               double ox = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.8;
+               double oz = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.8;
+               double oy = KillEffect.this.mc.world.random.nextDouble() * this.height;
                KillEffect.this.mc
-                  .field_1687
-                  .method_8406(
-                     ParticleTypes.field_23114,
+                  .world
+                  .addParticle(
+                     ParticleTypes.SOUL,
                      this.x + ox,
                      this.y + oy,
                      this.z + oz,
-                     (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.02,
+                     (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.02,
                      0.08,
-                     (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.02
+                     (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.02
                   );
             }
          }
 
          if (this.ticks % 2 == 0 && this.ticks < 30) {
-            double angle = KillEffect.this.mc.field_1687.field_9229.method_43058() * Math.PI * 2.0;
-            double r = KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.6;
+            double angle = KillEffect.this.mc.world.random.nextDouble() * Math.PI * 2.0;
+            double r = KillEffect.this.mc.world.random.nextDouble() * 0.6;
             KillEffect.this.mc
-               .field_1687
-               .method_8406(ParticleTypes.field_38002, this.x + Math.cos(angle) * r, this.y + this.height * 0.5, this.z + Math.sin(angle) * r, 0.0, 0.1, 0.0);
+               .world
+               .addParticle(ParticleTypes.SCULK_SOUL, this.x + Math.cos(angle) * r, this.y + this.height * 0.5, this.z + Math.sin(angle) * r, 0.0, 0.1, 0.0);
          }
 
          if (this.ticks == 25) {
             for (int i = 0; i < 10; i++) {
-               double angle = KillEffect.this.mc.field_1687.field_9229.method_43058() * Math.PI * 2.0;
+               double angle = KillEffect.this.mc.world.random.nextDouble() * Math.PI * 2.0;
                KillEffect.this.mc
-                  .field_1687
-                  .method_8406(ParticleTypes.field_23114, this.x, this.y + this.height + 1.0, this.z, Math.cos(angle) * 0.1, 0.15, Math.sin(angle) * 0.1);
+                  .world
+                  .addParticle(ParticleTypes.SOUL, this.x, this.y + this.height + 1.0, this.z, Math.cos(angle) * 0.1, 0.15, Math.sin(angle) * 0.1);
             }
          }
       }
@@ -1444,13 +1444,13 @@ public class KillEffect extends Module {
          double centerY = this.y + this.height / 2.0;
          if (this.ticks < 10) {
             for (int i = 0; i < 8; i++) {
-               double ox = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.5;
-               double oy = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * this.height;
-               double oz = (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.5;
+               double ox = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.5;
+               double oy = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * this.height;
+               double oz = (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.5;
                KillEffect.this.mc
-                  .field_1687
-                  .method_8406(
-                     ParticleTypes.field_29644, this.x + ox, centerY + oy, this.z + oz, (this.x - (this.x + ox)) * 0.1, 0.0, (this.z - (this.z + oz)) * 0.1
+                  .world
+                  .addParticle(
+                     ParticleTypes.ELECTRIC_SPARK, this.x + ox, centerY + oy, this.z + oz, (this.x - (this.x + ox)) * 0.1, 0.0, (this.z - (this.z + oz)) * 0.1
                   );
             }
          }
@@ -1458,30 +1458,30 @@ public class KillEffect extends Module {
          if (this.ticks == 10 && !this.clapped) {
             this.clapped = true;
             KillEffect.this.mc
-               .field_1687
-               .method_43128(KillEffect.this.mc.field_1724, this.x, this.y, this.z, SoundEvents.field_14865, SoundCategory.field_15252, 5.0F, 1.5F);
+               .world
+               .playSound(KillEffect.this.mc.player, this.x, this.y, this.z, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, SoundCategory.WEATHER, 5.0F, 1.5F);
             KillEffect.this.mc
-               .field_1687
-               .method_43128(
-                  KillEffect.this.mc.field_1724, this.x, this.y, this.z, (SoundEvent)SoundEvents.field_15152.comp_349(), SoundCategory.field_15250, 3.0F, 1.8F
+               .world
+               .playSound(
+                  KillEffect.this.mc.player, this.x, this.y, this.z, (SoundEvent)SoundEvents.ENTITY_GENERIC_EXPLODE.comp_349(), SoundCategory.MASTER, 3.0F, 1.8F
                );
 
             for (int i = 0; i < 40; i++) {
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_17909, this.x, centerY, this.z, 0.0, 0.0, 0.0);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.FLASH, this.x, centerY, this.z, 0.0, 0.0, 0.0);
             }
 
             for (int i = 0; i < 30; i++) {
-               double angle = KillEffect.this.mc.field_1687.field_9229.method_43058() * Math.PI * 2.0;
-               double speed = 0.5 + KillEffect.this.mc.field_1687.field_9229.method_43058() * 0.3;
+               double angle = KillEffect.this.mc.world.random.nextDouble() * Math.PI * 2.0;
+               double speed = 0.5 + KillEffect.this.mc.world.random.nextDouble() * 0.3;
                KillEffect.this.mc
-                  .field_1687
-                  .method_8406(
-                     ParticleTypes.field_29644,
+                  .world
+                  .addParticle(
+                     ParticleTypes.ELECTRIC_SPARK,
                      this.x,
                      centerY,
                      this.z,
                      Math.cos(angle) * speed,
-                     (KillEffect.this.mc.field_1687.field_9229.method_43058() - 0.5) * 0.3,
+                     (KillEffect.this.mc.world.random.nextDouble() - 0.5) * 0.3,
                      Math.sin(angle) * speed
                   );
             }
@@ -1495,9 +1495,9 @@ public class KillEffect extends Module {
                double angle = (Math.PI * 2) / (double)particles * (double)i;
                double px = this.x + Math.cos(angle) * waveRadius;
                double pz = this.z + Math.sin(angle) * waveRadius;
-               KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11204, px, centerY, pz, Math.cos(angle) * 0.08, 0.0, Math.sin(angle) * 0.08);
+               KillEffect.this.mc.world.addParticle(ParticleTypes.CLOUD, px, centerY, pz, Math.cos(angle) * 0.08, 0.0, Math.sin(angle) * 0.08);
                if (i % 4 == 0) {
-                  KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_38908, px, centerY, pz, 0.0, 0.0, 0.0);
+                  KillEffect.this.mc.world.addParticle(ParticleTypes.SONIC_BOOM, px, centerY, pz, 0.0, 0.0, 0.0);
                }
             }
          }
@@ -1510,7 +1510,7 @@ public class KillEffect extends Module {
       TornadoEffect(double x, double y, double z, double height) {
          super(x, y, z, 45);
          this.height = height;
-         KillEffect.this.mc.field_1687.method_43128(KillEffect.this.mc.field_1724, x, y, z, SoundEvents.field_14869, SoundCategory.field_15251, 2.0F, 0.5F);
+         KillEffect.this.mc.world.playSound(KillEffect.this.mc.player, x, y, z, SoundEvents.ENTITY_PHANTOM_FLAP, SoundCategory.HOSTILE, 2.0F, 0.5F);
       }
 
       @Override
@@ -1532,20 +1532,20 @@ public class KillEffect extends Module {
                   double vx = Math.cos(angle + (Math.PI / 2)) * 0.1;
                   double vz = Math.sin(angle + (Math.PI / 2)) * 0.1;
                   if (layer % 2 == 0) {
-                     KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_11204, px, layerY, pz, vx, 0.05, vz);
+                     KillEffect.this.mc.world.addParticle(ParticleTypes.CLOUD, px, layerY, pz, vx, 0.05, vz);
                   } else {
-                     KillEffect.this.mc.field_1687.method_8406(ParticleTypes.field_17430, px, layerY, pz, vx, 0.03, vz);
+                     KillEffect.this.mc.world.addParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, px, layerY, pz, vx, 0.03, vz);
                   }
                }
             }
          }
 
          if (this.ticks % 3 == 0) {
-            double angle = KillEffect.this.mc.field_1687.field_9229.method_43058() * Math.PI * 2.0;
+            double angle = KillEffect.this.mc.world.random.nextDouble() * Math.PI * 2.0;
             KillEffect.this.mc
-               .field_1687
-               .method_8406(
-                  ParticleTypes.field_11205,
+               .world
+               .addParticle(
+                  ParticleTypes.CRIT,
                   this.x + Math.cos(angle) * 1.5,
                   this.y + 0.2,
                   this.z + Math.sin(angle) * 1.5,
@@ -1557,8 +1557,8 @@ public class KillEffect extends Module {
 
          if (this.ticks % 15 == 0) {
             KillEffect.this.mc
-               .field_1687
-               .method_43128(KillEffect.this.mc.field_1724, this.x, this.y, this.z, SoundEvents.field_14869, SoundCategory.field_15251, 1.5F, 0.6F);
+               .world
+               .playSound(KillEffect.this.mc.player, this.x, this.y, this.z, SoundEvents.ENTITY_PHANTOM_FLAP, SoundCategory.HOSTILE, 1.5F, 0.6F);
          }
       }
    }

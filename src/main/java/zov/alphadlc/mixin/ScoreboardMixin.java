@@ -15,7 +15,7 @@ public class ScoreboardMixin {
       cancellable = true
    )
    private void ignoreInvalidRemove(String scoreHolderName, Team team, CallbackInfo ci) {
-      if (((Scoreboard)this).method_1164(scoreHolderName) != team) {
+      if (((Scoreboard)this).getScoreHolderTeam(scoreHolderName) != team) {
          ci.cancel();
       }
    }

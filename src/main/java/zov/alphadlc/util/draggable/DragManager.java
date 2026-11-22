@@ -23,7 +23,7 @@ import zov.alphadlc.util.IMinecraft;
 public class DragManager implements IMinecraft {
    @Expose
    public static LinkedHashMap<String, Draggable> draggableElements = new LinkedHashMap<>();
-   private static final File dataFile = new File(MinecraftClient.method_1551().field_1697, "alphadlc/draggable.json");
+   private static final File dataFile = new File(MinecraftClient.getInstance().runDirectory, "alphadlc/draggable.json");
    private static final Gson jsonParser = new GsonBuilder().setPrettyPrinting().excludeFieldsWithoutExposeAnnotation().create();
    private static Draggable activeDragging = null;
 

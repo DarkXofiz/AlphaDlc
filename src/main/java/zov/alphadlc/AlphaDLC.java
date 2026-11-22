@@ -86,7 +86,7 @@ public class AlphaDLC implements ModInitializer {
    @Subscribe
    private void onModuleKeyPressed(EventKeyInput event) {
       for (Module module : this.getModuleStorage().getModules()) {
-         if (event.getAction() == 1 && MinecraftClient.method_1551().field_1755 == null && module.getKey() == event.getKey()) {
+         if (event.getAction() == 1 && MinecraftClient.getInstance().currentScreen == null && module.getKey() == event.getKey()) {
             module.toggle();
          }
       }

@@ -25,23 +25,23 @@ public class NoSlow extends Module {
          case "Vanilla":
             if (AlphaDLC.getInstance().getModuleStorage().get(KillAura.class).getTarget() == null
                || !(SimulatedPlayer.simulateLocalPlayer(1).fallDistance > 0.0F)) {
-               this.mc.field_1724.method_5728(true);
+               this.mc.player.setSprinting(true);
             }
 
             e.cancelEvent();
             break;
          case "Grim":
             this.mc
-               .field_1724
-               .method_5728(
-                  this.mc.field_1724.method_6048() > 4
+               .player
+               .setSprinting(
+                  this.mc.player.getItemUseTime() > 4
                      && (
                         AlphaDLC.getInstance().getModuleStorage().get(KillAura.class).getTarget() == null
                            || !(SimulatedPlayer.simulateLocalPlayer(1).fallDistance > 0.0F)
                      )
                      && AlphaDLC.getInstance().getServerManager().getSprintingChangeTicks() > 0.0F
                );
-            if (this.mc.field_1724.method_6048() % 2 == 0) {
+            if (this.mc.player.getItemUseTime() % 2 == 0) {
                e.cancelEvent();
             }
       }

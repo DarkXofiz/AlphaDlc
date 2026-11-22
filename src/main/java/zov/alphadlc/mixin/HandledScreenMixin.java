@@ -16,13 +16,13 @@ import zov.alphadlc.event.list.EventHandledScreen;
 public abstract class HandledScreenMixin {
    @Shadow
    @Nullable
-   protected Slot field_2787;
+   protected Slot focusedSlot;
 
    @Inject(
       method = {"render"},
       at = {@At("RETURN")}
    )
    private void onRender(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-      AlphaDLC.getInstance().getEventBus().post(new EventHandledScreen(this.field_2787, context, mouseX, mouseY));
+      AlphaDLC.getInstance().getEventBus().post(new EventHandledScreen(this.focusedSlot, context, mouseX, mouseY));
    }
 }

@@ -23,32 +23,32 @@ public class ElytraMotion extends Module {
 
    @Subscribe
    private void onPlayerTick(EventPlayerUpdate e2) {
-      if (this.mc.field_1724 != null) {
+      if (this.mc.player != null) {
          LivingEntity target = Instance.get(KillAura.class).getTarget();
          if (target == null) {
             if (!this.waitTarget) {
-               this.mc.field_1724.method_5875(false);
+               this.mc.player.setNoGravity(false);
                this.waitTarget = true;
             }
          } else {
             this.waitTarget = false;
-            float dist = (float)this.mc.field_1724.method_33571().method_1022(target.method_5829().method_1005());
-            if (this.mc.field_1724.method_6128() && dist < this.distance.getFloatValue()) {
+            float dist = (float)this.mc.player.getEyePos().distanceTo(target.getBoundingBox().getCenter());
+            if (this.mc.player.isGliding() && dist < this.distance.getFloatValue()) {
                if (this.bypass.getValue()) {
-                  float yaw = this.mc.field_1724.method_36454();
+                  float yaw = this.mc.player.getYaw();
                   double rad = Math.toRadians((double)yaw);
                   double forward = 0.01;
                   double down = -1.0E-4;
                   double moveX = -Math.sin(rad) * forward;
                   double moveZ = Math.cos(rad) * forward;
-                  this.mc.field_1724.method_18800(moveX, down, moveZ);
+                  this.mc.player.setVelocity(moveX, down, moveZ);
                } else {
-                  this.mc.field_1724.method_18800(0.0, 0.0, 0.0);
+                  this.mc.player.setVelocity(0.0, 0.0, 0.0);
                }
 
-               this.mc.field_1724.method_5875(true);
+               this.mc.player.setNoGravity(true);
             } else {
-               this.mc.field_1724.method_5875(false);
+               this.mc.player.setNoGravity(false);
             }
          }
       }
@@ -57,9 +57,9 @@ public class ElytraMotion extends Module {
    @Override
    public void onDisable() {
       super.onDisable();
-      if (this.mc.field_1724 != null) {
+      if (this.mc.player != null) {
          this.waitTarget = false;
-         this.mc.field_1724.method_5875(false);
+         this.mc.player.setNoGravity(false);
       }
    }
 }

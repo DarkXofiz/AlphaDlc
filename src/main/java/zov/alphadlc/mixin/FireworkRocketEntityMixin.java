@@ -18,9 +18,9 @@ import zov.alphadlc.event.list.FireworkEvent;
 @Mixin({FireworkRocketEntity.class})
 public abstract class FireworkRocketEntityMixin {
    @Shadow
-   public LivingEntity field_7616;
+   public LivingEntity shooter;
    @Unique
-   private static final MinecraftClient mc = MinecraftClient.method_1551();
+   private static final MinecraftClient mc = MinecraftClient.getInstance();
 
    @ModifyConstant(
       method = {"tick"},
@@ -29,7 +29,7 @@ public abstract class FireworkRocketEntityMixin {
       )}
    )
    private double replaceSpeed(double original) {
-      FireworkEvent event = new FireworkEvent(this.field_7616, (float)original);
+      FireworkEvent event = new FireworkEvent(this.shooter, (float)original);
       event.post();
       return (double)event.getSpeed();
    }
@@ -39,35 +39,35 @@ public abstract class FireworkRocketEntityMixin {
       at = {@At("HEAD")}
    )
    private void onTick(CallbackInfo ci) {
-      if (mc.field_1724 != null && mc.field_1687 != null && mc.field_1724.method_6128()) {
-         if (this.field_7616 != mc.field_1724) {
+      if (mc.player != null && mc.world != null && mc.player.isGliding()) {
+         if (this.shooter != mc.player) {
             if (!this.hasActiveOwnFirework()) {
                FireworkRocketEntity self = (FireworkRocketEntity)this;
-               Vec3d fireworkPos = self.method_19538();
-               Vec3d playerPos = mc.field_1724.method_19538();
-               double distance = fireworkPos.method_1022(playerPos);
+               Vec3d fireworkPos = self.getPos();
+               Vec3d playerPos = mc.player.getPos();
+               double distance = fireworkPos.distanceTo(playerPos);
                if (distance < 5.0) {
-                  Vec3d fireworkVel = self.method_18798();
-                  if (fireworkVel.method_1027() < 0.01) {
+                  Vec3d fireworkVel = self.getVelocity();
+                  if (fireworkVel.lengthSquared() < 0.01) {
                      return;
                   }
 
-                  Vec3d toPlayer = playerPos.method_1020(fireworkPos).method_1029();
-                  double dot = fireworkVel.method_1029().method_1026(toPlayer);
+                  Vec3d toPlayer = playerPos.subtract(fireworkPos).normalize();
+                  double dot = fireworkVel.normalize().dotProduct(toPlayer);
                   if (dot > 0.4) {
-                     Vec3d fireworkDir = fireworkVel.method_1029();
-                     Vec3d right = new Vec3d(fireworkDir.field_1352, 0.0, -fireworkDir.field_1350).method_1029();
-                     double dotRight = toPlayer.method_1026(right);
+                     Vec3d fireworkDir = fireworkVel.normalize();
+                     Vec3d right = new Vec3d(fireworkDir.x, 0.0, -fireworkDir.z).normalize();
+                     double dotRight = toPlayer.dotProduct(right);
                      if (dotRight < 0.0) {
-                        right = right.method_1021(-1.0);
+                        right = right.multiply(-1.0);
                      }
 
                      double urgency = 1.0 - distance / 5.0;
                      double strength = 0.25 * urgency;
                      double upward = 0.1 * urgency;
-                     Vec3d currentVel = mc.field_1724.method_18798();
-                     Vec3d dodge = right.method_1021(strength).method_1031(0.0, upward, 0.0);
-                     mc.field_1724.method_18799(currentVel.method_1019(dodge));
+                     Vec3d currentVel = mc.player.getVelocity();
+                     Vec3d dodge = right.multiply(strength).add(0.0, upward, 0.0);
+                     mc.player.setVelocity(currentVel.add(dodge));
                   }
                }
             }
@@ -77,10 +77,10 @@ public abstract class FireworkRocketEntityMixin {
 
    @Unique
    private boolean hasActiveOwnFirework() {
-      for (Entity entity : mc.field_1687.method_18112()) {
+      for (Entity entity : mc.world.getEntities()) {
          if (entity instanceof FireworkRocketEntity firework) {
             IFireworkRocketEntityAccessor accessor = (IFireworkRocketEntityAccessor)firework;
-            if (accessor.getShooter() == mc.field_1724) {
+            if (accessor.getShooter() == mc.player) {
                return true;
             }
          }

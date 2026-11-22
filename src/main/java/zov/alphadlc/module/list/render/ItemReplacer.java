@@ -143,9 +143,9 @@ public class ItemReplacer extends Module {
    }
 
    public ItemStack apply(ItemStack original) {
-      if (this.isEnabled() && !original.method_7960() && original.method_7909() instanceof SwordItem) {
-         ItemStack replacement = original.method_7972();
-         replacement.method_57379(DataComponentTypes.field_54199, this.getSelectedModelId());
+      if (this.isEnabled() && !original.isEmpty() && original.getItem() instanceof SwordItem) {
+         ItemStack replacement = original.copy();
+         replacement.set(DataComponentTypes.ITEM_MODEL, this.getSelectedModelId());
          return replacement;
       } else {
          return original;

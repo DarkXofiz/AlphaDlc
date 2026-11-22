@@ -19,16 +19,16 @@ public class ParseTextUtil implements IMinecraft {
    }
 
    private static void parseTextRecursive(Text text, int currentColor, List<MsdfFont.ColoredGlyph> result) {
-      Style style = text.method_10866();
-      int color = style.method_10973() != null ? style.method_10973().method_27716() | 0xFF000000 : currentColor;
-      TextContent content = text.method_10851();
+      Style style = text.getStyle();
+      int color = style.getColor() != null ? style.getColor().getRgb() | 0xFF000000 : currentColor;
+      TextContent content = text.getContent();
       String raw = "";
       if (content instanceof Literal literal) {
          raw = literal.comp_737();
       } else if (content instanceof TranslatableTextContent translatable) {
-         raw = translatable.method_11022();
+         raw = translatable.getKey();
       } else if (content instanceof KeybindTextContent keybind) {
-         raw = keybind.method_10901();
+         raw = keybind.getKey();
       }
 
       for (int i = 0; i < raw.length(); i++) {
@@ -40,7 +40,7 @@ public class ParseTextUtil implements IMinecraft {
          }
       }
 
-      for (Text sibling : text.method_10855()) {
+      for (Text sibling : text.getSiblings()) {
          parseTextRecursive(sibling, color, result);
       }
    }

@@ -14,14 +14,14 @@ public class ItemModelSetting extends ModeSetting {
       super(name, defaultValue, models);
 
       for (String model : models) {
-         ItemStack preview = new ItemStack(Items.field_8600);
-         preview.method_57379(DataComponentTypes.field_54199, this.getModelId(model));
+         ItemStack preview = new ItemStack(Items.STICK);
+         preview.set(DataComponentTypes.ITEM_MODEL, this.getModelId(model));
          this.previewStacks.put(model, preview);
       }
    }
 
    public Identifier getModelId(String model) {
-      return Identifier.method_60655("mre", "item_replacer/sword/" + model);
+      return Identifier.of("mre", "item_replacer/sword/" + model);
    }
 
    public ItemStack getPreviewStack(String model) {

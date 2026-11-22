@@ -195,11 +195,11 @@ public final class ColorProvider {
    }
 
    public static int setAlpha(int color, int alpha) {
-      return MathHelper.method_15340(alpha, 0, 255) << 24 | color & 16777215;
+      return MathHelper.clamp(alpha, 0, 255) << 24 | color & 16777215;
    }
 
    public static int setAlpha(int color, double alpha) {
-      return MathHelper.method_15340((int)alpha, 0, 255) << 24 | color & 16777215;
+      return MathHelper.clamp((int)alpha, 0, 255) << 24 | color & 16777215;
    }
 
    public static int brighter(int color, float factor) {

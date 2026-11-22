@@ -29,17 +29,17 @@ public class CrystalSpammer extends Module {
 
    @Subscribe
    private void onUpdate(EventTick e) {
-      if (this.active && this.mc.field_1724 != null && this.mc.field_1687 != null) {
-         if (this.mc.field_1755 != null) {
+      if (this.active && this.mc.player != null && this.mc.world != null) {
+         if (this.mc.currentScreen != null) {
             this.active = false;
          }
 
-         ClientPlayerEntity player = this.mc.field_1724;
+         ClientPlayerEntity player = this.mc.player;
          if (this.holdCrystal(player)) {
             this.placeCrystal();
-            if (this.mc.field_1765.method_17783() == Type.field_1331 && this.mc.field_1765 instanceof EntityHitResult hitResult) {
-               this.mc.field_1761.method_2918(this.mc.field_1724, hitResult.method_17782());
-               player.method_6104(Hand.field_5808);
+            if (this.mc.crosshairTarget.getType() == Type.ENTITY && this.mc.crosshairTarget instanceof EntityHitResult hitResult) {
+               this.mc.interactionManager.attackEntity(this.mc.player, hitResult.getEntity());
+               player.swingHand(Hand.MAIN_HAND);
             }
          }
       }
@@ -53,13 +53,13 @@ public class CrystalSpammer extends Module {
    }
 
    private boolean holdCrystal(ClientPlayerEntity player) {
-      ItemStack main = player.method_6047();
-      if (main.method_7909() instanceof EndCrystalItem) {
+      ItemStack main = player.getMainHandStack();
+      if (main.getItem() instanceof EndCrystalItem) {
          return true;
       } else {
          for (int i = 0; i < 9; i++) {
-            if (player.method_31548().method_5438(i).method_7909() instanceof EndCrystalItem) {
-               player.method_31548().field_7545 = i;
+            if (player.getInventory().getStack(i).getItem() instanceof EndCrystalItem) {
+               player.getInventory().selectedSlot = i;
                return true;
             }
          }
@@ -69,16 +69,16 @@ public class CrystalSpammer extends Module {
    }
 
    private void placeCrystal() {
-      if (this.mc.field_1761 != null && this.mc.field_1724 != null) {
-         if (this.mc.field_1765 != null && this.mc.field_1765.method_17783() == Type.field_1332) {
-            BlockHitResult blockHitResult = (BlockHitResult)this.mc.field_1765;
-            ItemStack itemStack = this.mc.field_1724.method_5998(Hand.field_5808);
-            int i = itemStack.method_7947();
-            if (this.mc.field_1761.method_2896(this.mc.field_1724, Hand.field_5808, blockHitResult) instanceof Success success2
-               && success2.comp_2909() == SwingSource.field_52427) {
-               this.mc.field_1724.method_6104(Hand.field_5808);
-               if (!itemStack.method_7960() && (itemStack.method_7947() != i || this.mc.field_1761.method_2914())) {
-                  this.mc.field_1773.field_4012.method_3215(Hand.field_5808);
+      if (this.mc.interactionManager != null && this.mc.player != null) {
+         if (this.mc.crosshairTarget != null && this.mc.crosshairTarget.getType() == Type.BLOCK) {
+            BlockHitResult blockHitResult = (BlockHitResult)this.mc.crosshairTarget;
+            ItemStack itemStack = this.mc.player.getStackInHand(Hand.MAIN_HAND);
+            int i = itemStack.getCount();
+            if (this.mc.interactionManager.interactBlock(this.mc.player, Hand.MAIN_HAND, blockHitResult) instanceof Success success2
+               && success2.comp_2909() == SwingSource.CLIENT) {
+               this.mc.player.swingHand(Hand.MAIN_HAND);
+               if (!itemStack.isEmpty() && (itemStack.getCount() != i || this.mc.interactionManager.hasCreativeInventory())) {
+                  this.mc.gameRenderer.firstPersonRenderer.resetEquipProgress(Hand.MAIN_HAND);
                }
             }
 

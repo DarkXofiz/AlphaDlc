@@ -60,8 +60,8 @@ public class Blink extends Module {
    @Override
    public void onEnable() {
       super.onEnable();
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
-         this.box = this.mc.field_1724.method_5829();
+      if (this.mc.player != null && this.mc.world != null) {
+         this.box = this.mc.player.getBoundingBox();
          this.packets.clear();
          if (this.dummy.getValue()) {
             this.createDummyPlayer();
@@ -85,11 +85,11 @@ public class Blink extends Module {
 
    @Subscribe
    public void onPacket(EventPacket e) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
+      if (this.mc.player != null && this.mc.world != null) {
          Packet<?> packet = e.getPacket();
          if (e.getType() != EventPacket.Type.RECEIVE || !(packet instanceof PlayerRespawnS2CPacket) && !(packet instanceof GameJoinS2CPacket)) {
             if (e.getType() == EventPacket.Type.SEND) {
-               if (packet instanceof ClientStatusC2SPacket status && status.method_12119() == Mode.field_12774) {
+               if (packet instanceof ClientStatusC2SPacket status && status.getMode() == Mode.PERFORM_RESPAWN) {
                   this.setEnabled(false);
                   return;
                }
@@ -110,17 +110,17 @@ public class Blink extends Module {
 
    @Subscribe
    public void onTick(EventTick event) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
+      if (this.mc.player != null && this.mc.world != null) {
          if (this.autoReset.getValue() && this.packets.size() > this.resetAfter.getIntValue()) {
             if (this.resetAction.is("Reset")) {
                this.cancelPackets();
             } else if (this.resetAction.is("Blink")) {
                this.flushPackets();
                if (this.dummyPlayer != null) {
-                  this.dummyPlayer.method_5719(this.mc.field_1724);
+                  this.dummyPlayer.copyPositionAndRotation(this.mc.player);
                }
 
-               this.box = this.mc.field_1724.method_5829();
+               this.box = this.mc.player.getBoundingBox();
             }
 
             if (this.autoDisable.getValue()) {
@@ -131,50 +131,50 @@ public class Blink extends Module {
    }
 
    private void onRender3D(WorldRenderContext context) {
-      if (this.isEnabled() && this.mc.field_1724 != null && this.renderBox.getValue() && this.box != null) {
+      if (this.isEnabled() && this.mc.player != null && this.renderBox.getValue() && this.box != null) {
          Camera camera = context.camera();
-         double camX = camera.method_19326().field_1352;
-         double camY = camera.method_19326().field_1351;
-         double camZ = camera.method_19326().field_1350;
+         double camX = camera.getPos().x;
+         double camY = camera.getPos().y;
+         double camZ = camera.getPos().z;
          RenderSystem.enableBlend();
          RenderSystem.defaultBlendFunc();
          RenderSystem.disableDepthTest();
          RenderSystem.depthMask(false);
-         RenderSystem.setShader(ShaderProgramKeys.field_53876);
-         Tessellator tessellator = Tessellator.method_1348();
-         BufferBuilder buffer = tessellator.method_60827(DrawMode.field_29344, VertexFormats.field_1576);
-         Matrix4f matrix = context.matrixStack().method_23760().method_23761();
-         double minX = this.box.field_1323 - camX;
-         double minY = this.box.field_1322 - camY;
-         double minZ = this.box.field_1321 - camZ;
-         double maxX = this.box.field_1320 - camX;
-         double maxY = this.box.field_1325 - camY;
-         double maxZ = this.box.field_1324 - camZ;
-         buffer.method_22918(matrix, (float)minX, (float)minY, (float)minZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)maxX, (float)minY, (float)minZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)maxX, (float)minY, (float)minZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)maxX, (float)minY, (float)maxZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)maxX, (float)minY, (float)maxZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)minX, (float)minY, (float)maxZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)minX, (float)minY, (float)maxZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)minX, (float)minY, (float)minZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)minX, (float)maxY, (float)minZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)maxX, (float)maxY, (float)minZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)maxX, (float)maxY, (float)minZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)maxX, (float)maxY, (float)maxZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)maxX, (float)maxY, (float)maxZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)minX, (float)maxY, (float)maxZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)minX, (float)maxY, (float)maxZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)minX, (float)maxY, (float)minZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)minX, (float)minY, (float)minZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)minX, (float)maxY, (float)minZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)maxX, (float)minY, (float)minZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)maxX, (float)maxY, (float)minZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)maxX, (float)minY, (float)maxZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)maxX, (float)maxY, (float)maxZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)minX, (float)minY, (float)maxZ).method_1336(255, 255, 255, 255);
-         buffer.method_22918(matrix, (float)minX, (float)maxY, (float)maxZ).method_1336(255, 255, 255, 255);
-         BufferRenderer.method_43433(buffer.method_60800());
+         RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
+         Tessellator tessellator = Tessellator.getInstance();
+         BufferBuilder buffer = tessellator.begin(DrawMode.DEBUG_LINES, VertexFormats.POSITION_COLOR);
+         Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
+         double minX = this.box.minX - camX;
+         double minY = this.box.minY - camY;
+         double minZ = this.box.minZ - camZ;
+         double maxX = this.box.maxX - camX;
+         double maxY = this.box.maxY - camY;
+         double maxZ = this.box.maxZ - camZ;
+         buffer.vertex(matrix, (float)minX, (float)minY, (float)minZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)maxX, (float)minY, (float)minZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)maxX, (float)minY, (float)minZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)maxX, (float)minY, (float)maxZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)maxX, (float)minY, (float)maxZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)minX, (float)minY, (float)maxZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)minX, (float)minY, (float)maxZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)minX, (float)minY, (float)minZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)minX, (float)maxY, (float)minZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)maxX, (float)maxY, (float)minZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)maxX, (float)maxY, (float)minZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)maxX, (float)maxY, (float)maxZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)maxX, (float)maxY, (float)maxZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)minX, (float)maxY, (float)maxZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)minX, (float)maxY, (float)maxZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)minX, (float)maxY, (float)minZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)minX, (float)minY, (float)minZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)minX, (float)maxY, (float)minZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)maxX, (float)minY, (float)minZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)maxX, (float)maxY, (float)minZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)maxX, (float)minY, (float)maxZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)maxX, (float)maxY, (float)maxZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)minX, (float)minY, (float)maxZ).color(255, 255, 255, 255);
+         buffer.vertex(matrix, (float)minX, (float)maxY, (float)maxZ).color(255, 255, 255, 255);
+         BufferRenderer.drawWithGlobalProgram(buffer.end());
          RenderSystem.depthMask(true);
          RenderSystem.enableDepthTest();
          RenderSystem.disableBlend();
@@ -182,19 +182,19 @@ public class Blink extends Module {
    }
 
    private void createDummyPlayer() {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
-         GameProfile profile = new GameProfile(UUID.randomUUID(), this.mc.field_1724.method_5477().getString());
-         this.dummyPlayer = new OtherClientPlayerEntity(this.mc.field_1687, profile);
-         this.dummyPlayer.method_5878(this.mc.field_1724);
-         this.dummyPlayer.method_23327(this.mc.field_1724.method_23317(), this.mc.field_1724.method_23318(), this.mc.field_1724.method_23321());
-         this.dummyPlayer.method_5847(this.mc.field_1724.method_5791());
-         this.mc.field_1687.method_53875(this.dummyPlayer);
+      if (this.mc.player != null && this.mc.world != null) {
+         GameProfile profile = new GameProfile(UUID.randomUUID(), this.mc.player.getName().getString());
+         this.dummyPlayer = new OtherClientPlayerEntity(this.mc.world, profile);
+         this.dummyPlayer.copyFrom(this.mc.player);
+         this.dummyPlayer.setPos(this.mc.player.getX(), this.mc.player.getY(), this.mc.player.getZ());
+         this.dummyPlayer.setHeadYaw(this.mc.player.getHeadYaw());
+         this.mc.world.addEntity(this.dummyPlayer);
       }
    }
 
    private void removeDummyPlayer() {
-      if (this.dummyPlayer != null && this.mc.field_1687 != null) {
-         this.mc.field_1687.method_2945(this.dummyPlayer.method_5628(), RemovalReason.field_26999);
+      if (this.dummyPlayer != null && this.mc.world != null) {
+         this.mc.world.removeEntity(this.dummyPlayer.getId(), RemovalReason.DISCARDED);
          this.dummyPlayer = null;
       }
    }

@@ -45,8 +45,8 @@ public class InventoryUtil implements IMinecraft {
    public static final InventoryUtil instance = new InventoryUtil();
 
    public static int searchItem(Item item) {
-      for (int i = 0; i < mc.field_1724.method_31548().method_7364(); i++) {
-         if (mc.field_1724.method_31548().method_5438(i).method_7909().equals(item)) {
+      for (int i = 0; i < mc.player.getInventory().getChangeCount(); i++) {
+         if (mc.player.getInventory().getStack(i).getItem().equals(item)) {
             return i;
          }
       }
@@ -56,7 +56,7 @@ public class InventoryUtil implements IMinecraft {
 
    public static int searchItem(Item item, int start, int end) {
       for (int i = start; i < end; i++) {
-         if (mc.field_1724.method_31548().method_5438(i).method_7909().equals(item)) {
+         if (mc.player.getInventory().getStack(i).getItem().equals(item)) {
             return i;
          }
       }
@@ -65,9 +65,9 @@ public class InventoryUtil implements IMinecraft {
    }
 
    public static int searchItem(List<Item> items) {
-      for (int i = 0; i < mc.field_1724.method_31548().method_7364(); i++) {
+      for (int i = 0; i < mc.player.getInventory().getChangeCount(); i++) {
          for (Item item : items) {
-            if (mc.field_1724.method_31548().method_5438(i).method_7909().equals(item)) {
+            if (mc.player.getInventory().getStack(i).getItem().equals(item)) {
                return i;
             }
          }
@@ -78,7 +78,7 @@ public class InventoryUtil implements IMinecraft {
 
    public static int searchItemHotbar(Item item) {
       for (int i = 0; i < 9; i++) {
-         if (mc.field_1724.method_31548().method_5438(i).method_7909().equals(item)) {
+         if (mc.player.getInventory().getStack(i).getItem().equals(item)) {
             return i;
          }
       }
@@ -89,7 +89,7 @@ public class InventoryUtil implements IMinecraft {
    public static int searchItemHotbar(List<Item> items) {
       for (int i = 0; i < 9; i++) {
          for (Item item : items) {
-            if (mc.field_1724.method_31548().method_5438(i).method_7909().equals(item)) {
+            if (mc.player.getInventory().getStack(i).getItem().equals(item)) {
                return i;
             }
          }
@@ -100,8 +100,8 @@ public class InventoryUtil implements IMinecraft {
 
    public static int searchItemStack(Predicate<ItemStack> predicate) {
       for (int i = 0; i < 45; i++) {
-         ItemStack stack = mc.field_1724.method_31548().method_5438(i);
-         if (!stack.method_7960() && predicate.test(stack)) {
+         ItemStack stack = mc.player.getInventory().getStack(i);
+         if (!stack.isEmpty() && predicate.test(stack)) {
             return i;
          }
       }
@@ -111,8 +111,8 @@ public class InventoryUtil implements IMinecraft {
 
    public static int searchHotbarStack(Predicate<ItemStack> predicate) {
       for (int i = 0; i < 9; i++) {
-         ItemStack stack = mc.field_1724.method_31548().method_5438(i);
-         if (!stack.method_7960() && predicate.test(stack)) {
+         ItemStack stack = mc.player.getInventory().getStack(i);
+         if (!stack.isEmpty() && predicate.test(stack)) {
             return i;
          }
       }
@@ -121,20 +121,20 @@ public class InventoryUtil implements IMinecraft {
    }
 
    public static void swapWithBypassGrim(Runnable runnable) {
-      if (mc.field_1724 != null && mc.method_1562() != null) {
+      if (mc.player != null && mc.getNetworkHandler() != null) {
          try {
-            mc.method_1562().method_52787(new PlayerInputC2SPacket(new PlayerInput(false, false, false, false, false, false, false)));
+            mc.getNetworkHandler().sendPacket(new PlayerInputC2SPacket(new PlayerInput(false, false, false, false, false, false, false)));
             if (AlphaDLC.getInstance().getServerManager().isServerSprinting()) {
-               mc.field_1724.method_5728(false);
-               mc.method_1562().method_52787(new ClientCommandC2SPacket(mc.field_1724, Mode.field_12985));
+               mc.player.setSprinting(false);
+               mc.getNetworkHandler().sendPacket(new ClientCommandC2SPacket(mc.player, Mode.STOP_SPRINTING));
                if (!Instance.get(Sprint.class).isEnabled()) {
-                  mc.field_1690.field_1867.method_23481(false);
+                  mc.options.sprintKey.setPressed(false);
                }
             }
 
             runnable.run();
             NetworkUtils.sendSilentPacket(new CloseHandledScreenC2SPacket(0));
-            mc.method_1562().method_52787(new PlayerInputC2SPacket(mc.field_1724.field_3913.field_54155));
+            mc.getNetworkHandler().sendPacket(new PlayerInputC2SPacket(mc.player.input.playerInput));
          } catch (Exception var2) {
             var2.printStackTrace();
          }
@@ -146,11 +146,11 @@ public class InventoryUtil implements IMinecraft {
    }
 
    public static void swapWithBypassPolar(Runnable runnable, long duration) {
-      if (mc.field_1724 != null && mc.method_1562() != null) {
+      if (mc.player != null && mc.getNetworkHandler() != null) {
          try {
             SlownessManager.addTask(new SlownessManager.SlowTask(duration, () -> {
-               if (mc.field_1724.method_6115()) {
-                  mc.field_1761.method_2897(mc.field_1724);
+               if (mc.player.isUsingItem()) {
+                  mc.interactionManager.stopUsingItem(mc.player);
                }
 
                runnable.run();
@@ -163,70 +163,70 @@ public class InventoryUtil implements IMinecraft {
    }
 
    public static void swapAndUseHvH(Item item) {
-      if (!mc.field_1724.method_7357().method_7904(new ItemStack(item))) {
+      if (!mc.player.getItemCooldownManager().isCoolingDown(new ItemStack(item))) {
          int slot = searchItem(item, 9, 45);
          int slotHotbar = searchItem(item, 0, 9);
-         int previousSlot = mc.field_1724.method_31548().field_7545;
-         if (mc.field_1724.method_6047().method_7909() == item) {
-            mc.field_1761.method_2919(mc.field_1724, Hand.field_5808);
-         } else if (mc.field_1724.method_6079().method_7909() == item) {
-            mc.field_1761.method_2919(mc.field_1724, Hand.field_5810);
+         int previousSlot = mc.player.getInventory().selectedSlot;
+         if (mc.player.getMainHandStack().getItem() == item) {
+            mc.interactionManager.interactItem(mc.player, Hand.MAIN_HAND);
+         } else if (mc.player.getOffHandStack().getItem() == item) {
+            mc.interactionManager.interactItem(mc.player, Hand.OFF_HAND);
          } else {
             if (slotHotbar != -1) {
-               mc.method_1562().method_52787(new UpdateSelectedSlotC2SPacket(slotHotbar));
-               mc.field_1761.method_2919(mc.field_1724, Hand.field_5808);
-               mc.method_1562().method_52787(new UpdateSelectedSlotC2SPacket(previousSlot));
+               mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slotHotbar));
+               mc.interactionManager.interactItem(mc.player, Hand.MAIN_HAND);
+               mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(previousSlot));
             }
 
             if (slotHotbar == -1 && slot != -1) {
                int slotCorrectable = -1;
 
                for (int slotNone = 0; slotNone < 8; slotNone++) {
-                  ItemStack stack = mc.field_1724.method_31548().method_5438(slotNone);
-                  if (stack.method_7960()) {
+                  ItemStack stack = mc.player.getInventory().getStack(slotNone);
+                  if (stack.isEmpty()) {
                      slotCorrectable = slotNone;
                   }
 
-                  UseAction action = stack.method_7976();
-                  if (action == UseAction.field_8952) {
+                  UseAction action = stack.getUseAction();
+                  if (action == UseAction.NONE) {
                      slotCorrectable = slotNone;
                   }
                }
 
                if (slotCorrectable == -1) {
-                  mc.method_1562().method_52787(new PlayerInputC2SPacket(new PlayerInput(false, false, false, false, false, false, false)));
+                  mc.getNetworkHandler().sendPacket(new PlayerInputC2SPacket(new PlayerInput(false, false, false, false, false, false, false)));
                   if (AlphaDLC.getInstance().getServerManager().isServerSprinting()) {
-                     mc.field_1724.method_5728(false);
-                     mc.method_1562().method_52787(new ClientCommandC2SPacket(mc.field_1724, Mode.field_12985));
+                     mc.player.setSprinting(false);
+                     mc.getNetworkHandler().sendPacket(new ClientCommandC2SPacket(mc.player, Mode.STOP_SPRINTING));
                      if (!Instance.get(Sprint.class).isEnabled()) {
-                        mc.field_1690.field_1867.method_23481(false);
+                        mc.options.sprintKey.setPressed(false);
                      }
                   }
 
-                  mc.field_1761.method_2906(0, slot, 8, SlotActionType.field_7791, mc.field_1724);
-                  mc.method_1562().method_52787(new CloseHandledScreenC2SPacket(0));
-                  mc.method_1562().method_52787(new UpdateSelectedSlotC2SPacket(8));
-                  mc.field_1761.method_2919(mc.field_1724, Hand.field_5808);
-                  mc.method_1562().method_52787(new UpdateSelectedSlotC2SPacket(previousSlot));
-                  mc.method_1562().method_52787(new PlayerInputC2SPacket(mc.field_1724.field_3913.field_54155));
+                  mc.interactionManager.clickSlot(0, slot, 8, SlotActionType.SWAP, mc.player);
+                  mc.getNetworkHandler().sendPacket(new CloseHandledScreenC2SPacket(0));
+                  mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(8));
+                  mc.interactionManager.interactItem(mc.player, Hand.MAIN_HAND);
+                  mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(previousSlot));
+                  mc.getNetworkHandler().sendPacket(new PlayerInputC2SPacket(mc.player.input.playerInput));
                } else {
-                  mc.method_1562().method_52787(new PlayerInputC2SPacket(new PlayerInput(false, false, false, false, false, false, false)));
+                  mc.getNetworkHandler().sendPacket(new PlayerInputC2SPacket(new PlayerInput(false, false, false, false, false, false, false)));
                   if (AlphaDLC.getInstance().getServerManager().isServerSprinting()) {
-                     mc.field_1724.method_5728(false);
-                     mc.method_1562().method_52787(new ClientCommandC2SPacket(mc.field_1724, Mode.field_12985));
+                     mc.player.setSprinting(false);
+                     mc.getNetworkHandler().sendPacket(new ClientCommandC2SPacket(mc.player, Mode.STOP_SPRINTING));
                      if (!Instance.get(Sprint.class).isEnabled()) {
-                        mc.field_1690.field_1867.method_23481(false);
+                        mc.options.sprintKey.setPressed(false);
                      }
                   }
 
-                  mc.field_1761.method_2906(0, slot, slotCorrectable, SlotActionType.field_7791, mc.field_1724);
-                  mc.method_1562().method_52787(new CloseHandledScreenC2SPacket(0));
-                  mc.method_1562().method_52787(new UpdateSelectedSlotC2SPacket(slotCorrectable));
-                  mc.field_1761.method_2919(mc.field_1724, Hand.field_5808);
-                  mc.method_1562().method_52787(new UpdateSelectedSlotC2SPacket(previousSlot));
-                  mc.field_1761.method_2906(0, slot, slotCorrectable, SlotActionType.field_7791, mc.field_1724);
-                  mc.method_1562().method_52787(new CloseHandledScreenC2SPacket(0));
-                  mc.method_1562().method_52787(new PlayerInputC2SPacket(mc.field_1724.field_3913.field_54155));
+                  mc.interactionManager.clickSlot(0, slot, slotCorrectable, SlotActionType.SWAP, mc.player);
+                  mc.getNetworkHandler().sendPacket(new CloseHandledScreenC2SPacket(0));
+                  mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slotCorrectable));
+                  mc.interactionManager.interactItem(mc.player, Hand.MAIN_HAND);
+                  mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(previousSlot));
+                  mc.interactionManager.clickSlot(0, slot, slotCorrectable, SlotActionType.SWAP, mc.player);
+                  mc.getNetworkHandler().sendPacket(new CloseHandledScreenC2SPacket(0));
+                  mc.getNetworkHandler().sendPacket(new PlayerInputC2SPacket(mc.player.input.playerInput));
                }
             }
          }
@@ -234,58 +234,58 @@ public class InventoryUtil implements IMinecraft {
    }
 
    public static void swapAndUseLegit(Item item) {
-      if (mc.field_1724 != null && mc.field_1687 != null) {
-         if (!mc.field_1724.method_7357().method_7904(new ItemStack(item))) {
+      if (mc.player != null && mc.world != null) {
+         if (!mc.player.getItemCooldownManager().isCoolingDown(new ItemStack(item))) {
             int slot = searchItem(item, 9, 45);
             int slotHotbar = searchItem(item, 0, 9);
-            int previousSlot = mc.field_1724.method_31548().field_7545;
-            if (mc.field_1724.method_6047().method_7909() == item) {
-               mc.field_1761.method_2919(mc.field_1724, Hand.field_5808);
-            } else if (mc.field_1724.method_6079().method_7909() == item) {
-               mc.field_1761.method_2919(mc.field_1724, Hand.field_5810);
+            int previousSlot = mc.player.getInventory().selectedSlot;
+            if (mc.player.getMainHandStack().getItem() == item) {
+               mc.interactionManager.interactItem(mc.player, Hand.MAIN_HAND);
+            } else if (mc.player.getOffHandStack().getItem() == item) {
+               mc.interactionManager.interactItem(mc.player, Hand.OFF_HAND);
             } else if (slotHotbar != -1) {
-               mc.field_1724.method_31548().field_7545 = slotHotbar;
-               mc.field_1761.method_2911();
-               mc.field_1761
-                  .method_41931(
-                     mc.field_1687,
-                     sequence -> new PlayerInteractItemC2SPacket(Hand.field_5808, sequence, mc.field_1724.method_36454(), mc.field_1724.method_36455())
+               mc.player.getInventory().selectedSlot = slotHotbar;
+               mc.interactionManager.syncSelectedSlot();
+               mc.interactionManager
+                  .sendSequencedPacket(
+                     mc.world,
+                     sequence -> new PlayerInteractItemC2SPacket(Hand.MAIN_HAND, sequence, mc.player.getYaw(), mc.player.getPitch())
                   );
-               mc.field_1724.method_31548().field_7545 = previousSlot;
-               mc.field_1761.method_2911();
+               mc.player.getInventory().selectedSlot = previousSlot;
+               mc.interactionManager.syncSelectedSlot();
             } else {
                if (slotHotbar == -1 && slot != -1) {
                   int slotCorrectable = -1;
 
                   for (int slotNone = 0; slotNone < 9; slotNone++) {
-                     ItemStack stack = mc.field_1724.method_31548().method_5438(slotNone);
-                     if (stack.method_7960()) {
+                     ItemStack stack = mc.player.getInventory().getStack(slotNone);
+                     if (stack.isEmpty()) {
                         slotCorrectable = slotNone;
                         break;
                      }
 
-                     UseAction action = stack.method_7976();
-                     if (action == UseAction.field_8952) {
+                     UseAction action = stack.getUseAction();
+                     if (action == UseAction.NONE) {
                         slotCorrectable = slotNone;
                      }
                   }
 
                   if (slotCorrectable != -1) {
-                     mc.method_1562().method_52787(new PlayerInputC2SPacket(new PlayerInput(false, false, false, false, false, false, false)));
-                     mc.field_1761.method_2906(0, slot, slotCorrectable, SlotActionType.field_7791, mc.field_1724);
-                     mc.method_1562().method_52787(new CloseHandledScreenC2SPacket(0));
-                     mc.field_1724.method_31548().field_7545 = slotCorrectable;
-                     mc.field_1761.method_2911();
-                     mc.field_1761
-                        .method_41931(
-                           mc.field_1687,
-                           sequence -> new PlayerInteractItemC2SPacket(Hand.field_5808, sequence, mc.field_1724.method_36454(), mc.field_1724.method_36455())
+                     mc.getNetworkHandler().sendPacket(new PlayerInputC2SPacket(new PlayerInput(false, false, false, false, false, false, false)));
+                     mc.interactionManager.clickSlot(0, slot, slotCorrectable, SlotActionType.SWAP, mc.player);
+                     mc.getNetworkHandler().sendPacket(new CloseHandledScreenC2SPacket(0));
+                     mc.player.getInventory().selectedSlot = slotCorrectable;
+                     mc.interactionManager.syncSelectedSlot();
+                     mc.interactionManager
+                        .sendSequencedPacket(
+                           mc.world,
+                           sequence -> new PlayerInteractItemC2SPacket(Hand.MAIN_HAND, sequence, mc.player.getYaw(), mc.player.getPitch())
                         );
-                     mc.field_1724.method_31548().field_7545 = previousSlot;
-                     mc.field_1761.method_2911();
-                     mc.field_1761.method_2906(0, slot, slotCorrectable, SlotActionType.field_7791, mc.field_1724);
-                     mc.method_1562().method_52787(new CloseHandledScreenC2SPacket(0));
-                     mc.method_1562().method_52787(new PlayerInputC2SPacket(mc.field_1724.field_3913.field_54155));
+                     mc.player.getInventory().selectedSlot = previousSlot;
+                     mc.interactionManager.syncSelectedSlot();
+                     mc.interactionManager.clickSlot(0, slot, slotCorrectable, SlotActionType.SWAP, mc.player);
+                     mc.getNetworkHandler().sendPacket(new CloseHandledScreenC2SPacket(0));
+                     mc.getNetworkHandler().sendPacket(new PlayerInputC2SPacket(mc.player.input.playerInput));
                   }
                }
             }
@@ -294,31 +294,31 @@ public class InventoryUtil implements IMinecraft {
    }
 
    public static void clickSlotNoSync(int syncId, int slotId, int button, SlotActionType actionType, PlayerEntity player) {
-      ScreenHandler screenHandler = player.field_7512;
-      if (syncId != screenHandler.field_7763) {
-         Narrator.LOGGER.warn("Ignoring click in mismatching container. Click in {}, player has {}.", syncId, screenHandler.field_7763);
+      ScreenHandler screenHandler = player.currentScreenHandler;
+      if (syncId != screenHandler.syncId) {
+         Narrator.LOGGER.warn("Ignoring click in mismatching container. Click in {}, player has {}.", syncId, screenHandler.syncId);
       } else {
-         DefaultedList<Slot> defaultedList = screenHandler.field_7761;
+         DefaultedList<Slot> defaultedList = screenHandler.slots;
          int i = defaultedList.size();
          List<ItemStack> list = Lists.newArrayListWithCapacity(i);
 
          for (Slot slot : defaultedList) {
-            list.add(slot.method_7677().method_7972());
+            list.add(slot.getStack().copy());
          }
 
-         screenHandler.method_7593(slotId, button, actionType, player);
+         screenHandler.onSlotClick(slotId, button, actionType, player);
          Int2ObjectMap<ItemStack> int2ObjectMap = new Int2ObjectOpenHashMap();
 
          for (int j = 0; j < i; j++) {
             ItemStack itemStack = list.get(j);
-            ItemStack itemStack2 = ((Slot)defaultedList.get(j)).method_7677();
-            if (!ItemStack.method_7973(itemStack, itemStack2)) {
-               int2ObjectMap.put(j, itemStack2.method_7972());
+            ItemStack itemStack2 = ((Slot)defaultedList.get(j)).getStack();
+            if (!ItemStack.areEqual(itemStack, itemStack2)) {
+               int2ObjectMap.put(j, itemStack2.copy());
             }
          }
 
          NetworkUtils.sendSilentPacket(
-            new ClickSlotC2SPacket(syncId, screenHandler.method_37421(), slotId, button, actionType, screenHandler.method_34255().method_7972(), int2ObjectMap)
+            new ClickSlotC2SPacket(syncId, screenHandler.getRevision(), slotId, button, actionType, screenHandler.getCursorStack().copy(), int2ObjectMap)
          );
       }
    }
@@ -326,36 +326,36 @@ public class InventoryUtil implements IMinecraft {
    public static int findBestElytraSlot() {
       int bestSlot = -1;
       double bestScore = -1.0;
-      RegistryEntry<Enchantment> protection = (RegistryEntry<Enchantment>)((Registry)MinecraftClient.method_1551()
-            .field_1687
-            .method_30349()
-            .method_46759(RegistryKeys.field_41265)
+      RegistryEntry<Enchantment> protection = (RegistryEntry<Enchantment>)((Registry)MinecraftClient.getInstance()
+            .world
+            .getRegistryManager()
+            .getOptional(RegistryKeys.ENCHANTMENT)
             .get())
-         .method_10223(Enchantments.field_9111.method_29177())
+         .getEntry(Enchantments.PROTECTION.getValue())
          .orElseThrow();
-      RegistryEntry<Enchantment> unbreaking = (RegistryEntry<Enchantment>)((Registry)MinecraftClient.method_1551()
-            .field_1687
-            .method_30349()
-            .method_46759(RegistryKeys.field_41265)
+      RegistryEntry<Enchantment> unbreaking = (RegistryEntry<Enchantment>)((Registry)MinecraftClient.getInstance()
+            .world
+            .getRegistryManager()
+            .getOptional(RegistryKeys.ENCHANTMENT)
             .get())
-         .method_10223(Enchantments.field_9119.method_29177())
+         .getEntry(Enchantments.UNBREAKING.getValue())
          .orElseThrow();
-      RegistryEntry<Enchantment> mending = (RegistryEntry<Enchantment>)((Registry)MinecraftClient.method_1551()
-            .field_1687
-            .method_30349()
-            .method_46759(RegistryKeys.field_41265)
+      RegistryEntry<Enchantment> mending = (RegistryEntry<Enchantment>)((Registry)MinecraftClient.getInstance()
+            .world
+            .getRegistryManager()
+            .getOptional(RegistryKeys.ENCHANTMENT)
             .get())
-         .method_10223(Enchantments.field_9101.method_29177())
+         .getEntry(Enchantments.MENDING.getValue())
          .orElseThrow();
 
       for (int slot = 0; slot < 36; slot++) {
-         ItemStack stack = mc.field_1724.method_31548().method_5438(slot);
-         if (stack.method_31574(Items.field_8833)) {
-            int protLevel = EnchantmentHelper.method_8225(protection, stack);
-            int unbLevel = EnchantmentHelper.method_8225(unbreaking, stack);
-            int mendLevel = EnchantmentHelper.method_8225(mending, stack);
-            int maxDurability = stack.method_7936();
-            int currentDamage = stack.method_7919();
+         ItemStack stack = mc.player.getInventory().getStack(slot);
+         if (stack.isOf(Items.ELYTRA)) {
+            int protLevel = EnchantmentHelper.getLevel(protection, stack);
+            int unbLevel = EnchantmentHelper.getLevel(unbreaking, stack);
+            int mendLevel = EnchantmentHelper.getLevel(mending, stack);
+            int maxDurability = stack.getMaxDamage();
+            int currentDamage = stack.getDamage();
             double durabilityRatio = (double)(maxDurability - currentDamage) / (double)maxDurability;
             double score = (double)(protLevel * 100 + unbLevel * 10 + (mendLevel > 0 ? 1 : 0)) + durabilityRatio * 10.0;
             if (score > bestScore) {
@@ -371,27 +371,27 @@ public class InventoryUtil implements IMinecraft {
    public static int findBestChestplateSlot() {
       int bestSlot = -1;
       double bestScore = -1.0;
-      Reference<Enchantment> protection = (Reference<Enchantment>)((Registry)mc.field_1687.method_30349().method_46759(RegistryKeys.field_41265).get())
-         .method_10223(Enchantments.field_9111.method_29177())
+      Reference<Enchantment> protection = (Reference<Enchantment>)((Registry)mc.world.getRegistryManager().getOptional(RegistryKeys.ENCHANTMENT).get())
+         .getEntry(Enchantments.PROTECTION.getValue())
          .orElseThrow();
-      Reference<Enchantment> unbreaking = (Reference<Enchantment>)((Registry)mc.field_1687.method_30349().method_46759(RegistryKeys.field_41265).get())
-         .method_10223(Enchantments.field_9119.method_29177())
+      Reference<Enchantment> unbreaking = (Reference<Enchantment>)((Registry)mc.world.getRegistryManager().getOptional(RegistryKeys.ENCHANTMENT).get())
+         .getEntry(Enchantments.UNBREAKING.getValue())
          .orElseThrow();
-      Reference<Enchantment> mending = (Reference<Enchantment>)((Registry)mc.field_1687.method_30349().method_46759(RegistryKeys.field_41265).get())
-         .method_10223(Enchantments.field_9101.method_29177())
+      Reference<Enchantment> mending = (Reference<Enchantment>)((Registry)mc.world.getRegistryManager().getOptional(RegistryKeys.ENCHANTMENT).get())
+         .getEntry(Enchantments.MENDING.getValue())
          .orElseThrow();
 
       for (int slot = 0; slot < 36; slot++) {
-         ItemStack stack = mc.field_1724.method_31548().method_5438(slot);
-         Item protLevel = stack.method_7909();
+         ItemStack stack = mc.player.getInventory().getStack(slot);
+         Item protLevel = stack.getItem();
          if (protLevel instanceof ArmorItem) {
             ArmorItem armor = (ArmorItem)protLevel;
-            int protLevelx = EnchantmentHelper.method_8225(protection, stack);
-            int unbLevel = EnchantmentHelper.method_8225(unbreaking, stack);
-            int mendLevel = EnchantmentHelper.method_8225(mending, stack);
+            int protLevelx = EnchantmentHelper.getLevel(protection, stack);
+            int unbLevel = EnchantmentHelper.getLevel(unbreaking, stack);
+            int mendLevel = EnchantmentHelper.getLevel(mending, stack);
             int armorTypePriority = getChestplatePriority(armor);
-            int maxDurability = stack.method_7936();
-            int currentDamage = stack.method_7919();
+            int maxDurability = stack.getMaxDamage();
+            int currentDamage = stack.getDamage();
             double durabilityRatio = (double)(maxDurability - currentDamage) / (double)maxDurability;
             double score = (double)(armorTypePriority * 10000 + protLevelx * 100 + unbLevel * 10 + (mendLevel > 0 ? 1 : 0)) + durabilityRatio * 10.0;
             if (score > bestScore) {
@@ -405,34 +405,34 @@ public class InventoryUtil implements IMinecraft {
    }
 
    private static int getArmorPriority(Item item) {
-      if (item == Items.field_22027 || item == Items.field_22028 || item == Items.field_22029 || item == Items.field_22030) {
+      if (item == Items.NETHERITE_HELMET || item == Items.NETHERITE_CHESTPLATE || item == Items.NETHERITE_LEGGINGS || item == Items.NETHERITE_BOOTS) {
          return 6;
-      } else if (item == Items.field_8805 || item == Items.field_8058 || item == Items.field_8348 || item == Items.field_8285) {
+      } else if (item == Items.DIAMOND_HELMET || item == Items.DIAMOND_CHESTPLATE || item == Items.DIAMOND_LEGGINGS || item == Items.DIAMOND_BOOTS) {
          return 5;
-      } else if (item == Items.field_8743 || item == Items.field_8523 || item == Items.field_8396 || item == Items.field_8660) {
+      } else if (item == Items.IRON_HELMET || item == Items.IRON_CHESTPLATE || item == Items.IRON_LEGGINGS || item == Items.IRON_BOOTS) {
          return 4;
-      } else if (item == Items.field_8283 || item == Items.field_8873 || item == Items.field_8218 || item == Items.field_8313) {
+      } else if (item == Items.CHAINMAIL_HELMET || item == Items.CHAINMAIL_CHESTPLATE || item == Items.CHAINMAIL_LEGGINGS || item == Items.CHAINMAIL_BOOTS) {
          return 3;
-      } else if (item == Items.field_8862 || item == Items.field_8678 || item == Items.field_8416 || item == Items.field_8753) {
+      } else if (item == Items.GOLDEN_HELMET || item == Items.GOLDEN_CHESTPLATE || item == Items.GOLDEN_LEGGINGS || item == Items.GOLDEN_BOOTS) {
          return 2;
       } else {
-         return item != Items.field_8267 && item != Items.field_8577 && item != Items.field_8570 && item != Items.field_8370 ? 0 : 1;
+         return item != Items.LEATHER_HELMET && item != Items.LEATHER_CHESTPLATE && item != Items.LEATHER_LEGGINGS && item != Items.LEATHER_BOOTS ? 0 : 1;
       }
    }
 
    private static int getChestplatePriority(Item item) {
-      if (item == Items.field_22028) {
+      if (item == Items.NETHERITE_CHESTPLATE) {
          return 6;
-      } else if (item == Items.field_8058) {
+      } else if (item == Items.DIAMOND_CHESTPLATE) {
          return 5;
-      } else if (item == Items.field_8523) {
+      } else if (item == Items.IRON_CHESTPLATE) {
          return 4;
-      } else if (item == Items.field_8873) {
+      } else if (item == Items.CHAINMAIL_CHESTPLATE) {
          return 3;
-      } else if (item == Items.field_8678) {
+      } else if (item == Items.GOLDEN_CHESTPLATE) {
          return 2;
       } else {
-         return item == Items.field_8577 ? 1 : 0;
+         return item == Items.LEATHER_CHESTPLATE ? 1 : 0;
       }
    }
 
@@ -441,8 +441,8 @@ public class InventoryUtil implements IMinecraft {
       double bestScore = -1.0;
 
       for (int i = 0; i < 36; i++) {
-         ItemStack stack = mc.field_1724.method_31548().method_5438(i);
-         if (stack.method_7909() instanceof ArmorItem && getNeededArmorSlot(stack) == slot) {
+         ItemStack stack = mc.player.getInventory().getStack(i);
+         if (stack.getItem() instanceof ArmorItem && getNeededArmorSlot(stack) == slot) {
             double score = getArmorScore(stack);
             if (score > bestScore) {
                bestScore = score;
@@ -455,42 +455,42 @@ public class InventoryUtil implements IMinecraft {
    }
 
    private static EquipmentSlot getNeededArmorSlot(ItemStack stack) {
-      Item item = stack.method_7909();
+      Item item = stack.getItem();
       if (item instanceof ArmorItem) {
-         if (item == Items.field_22027
-            || item == Items.field_8805
-            || item == Items.field_8743
-            || item == Items.field_8862
-            || item == Items.field_8283
-            || item == Items.field_8267) {
-            return EquipmentSlot.field_6169;
+         if (item == Items.NETHERITE_HELMET
+            || item == Items.DIAMOND_HELMET
+            || item == Items.IRON_HELMET
+            || item == Items.GOLDEN_HELMET
+            || item == Items.CHAINMAIL_HELMET
+            || item == Items.LEATHER_HELMET) {
+            return EquipmentSlot.HEAD;
          }
 
-         if (item == Items.field_22028
-            || item == Items.field_8058
-            || item == Items.field_8523
-            || item == Items.field_8678
-            || item == Items.field_8873
-            || item == Items.field_8577) {
-            return EquipmentSlot.field_6174;
+         if (item == Items.NETHERITE_CHESTPLATE
+            || item == Items.DIAMOND_CHESTPLATE
+            || item == Items.IRON_CHESTPLATE
+            || item == Items.GOLDEN_CHESTPLATE
+            || item == Items.CHAINMAIL_CHESTPLATE
+            || item == Items.LEATHER_CHESTPLATE) {
+            return EquipmentSlot.CHEST;
          }
 
-         if (item == Items.field_22029
-            || item == Items.field_8348
-            || item == Items.field_8396
-            || item == Items.field_8416
-            || item == Items.field_8218
-            || item == Items.field_8570) {
-            return EquipmentSlot.field_6172;
+         if (item == Items.NETHERITE_LEGGINGS
+            || item == Items.DIAMOND_LEGGINGS
+            || item == Items.IRON_LEGGINGS
+            || item == Items.GOLDEN_LEGGINGS
+            || item == Items.CHAINMAIL_LEGGINGS
+            || item == Items.LEATHER_LEGGINGS) {
+            return EquipmentSlot.LEGS;
          }
 
-         if (item == Items.field_22030
-            || item == Items.field_8285
-            || item == Items.field_8660
-            || item == Items.field_8753
-            || item == Items.field_8313
-            || item == Items.field_8370) {
-            return EquipmentSlot.field_6166;
+         if (item == Items.NETHERITE_BOOTS
+            || item == Items.DIAMOND_BOOTS
+            || item == Items.IRON_BOOTS
+            || item == Items.GOLDEN_BOOTS
+            || item == Items.CHAINMAIL_BOOTS
+            || item == Items.LEATHER_BOOTS) {
+            return EquipmentSlot.FEET;
          }
       }
 
@@ -499,23 +499,23 @@ public class InventoryUtil implements IMinecraft {
 
    public static double getArmorScore(ItemStack stack) {
       double score = 0.0;
-      score += (double)getArmorPriority(stack.method_7909());
-      Reference<Enchantment> protection = (Reference<Enchantment>)((Registry)mc.field_1687.method_30349().method_46759(RegistryKeys.field_41265).get())
-         .method_10223(Enchantments.field_9111.method_29177())
+      score += (double)getArmorPriority(stack.getItem());
+      Reference<Enchantment> protection = (Reference<Enchantment>)((Registry)mc.world.getRegistryManager().getOptional(RegistryKeys.ENCHANTMENT).get())
+         .getEntry(Enchantments.PROTECTION.getValue())
          .orElseThrow();
-      Reference<Enchantment> unbreaking = (Reference<Enchantment>)((Registry)mc.field_1687.method_30349().method_46759(RegistryKeys.field_41265).get())
-         .method_10223(Enchantments.field_9119.method_29177())
+      Reference<Enchantment> unbreaking = (Reference<Enchantment>)((Registry)mc.world.getRegistryManager().getOptional(RegistryKeys.ENCHANTMENT).get())
+         .getEntry(Enchantments.UNBREAKING.getValue())
          .orElseThrow();
-      Reference<Enchantment> mending = (Reference<Enchantment>)((Registry)mc.field_1687.method_30349().method_46759(RegistryKeys.field_41265).get())
-         .method_10223(Enchantments.field_9101.method_29177())
+      Reference<Enchantment> mending = (Reference<Enchantment>)((Registry)mc.world.getRegistryManager().getOptional(RegistryKeys.ENCHANTMENT).get())
+         .getEntry(Enchantments.MENDING.getValue())
          .orElseThrow();
-      score += (double)EnchantmentHelper.method_8225(protection, stack) * 0.75;
-      score += (double)EnchantmentHelper.method_8225(unbreaking, stack) * 0.3;
-      score += (double)EnchantmentHelper.method_8225(mending, stack) * 0.1;
+      score += (double)EnchantmentHelper.getLevel(protection, stack) * 0.75;
+      score += (double)EnchantmentHelper.getLevel(unbreaking, stack) * 0.3;
+      score += (double)EnchantmentHelper.getLevel(mending, stack) * 0.1;
       double durabilityFactor = 1.0;
-      if (stack.method_7963()) {
-         int max = stack.method_7936();
-         int left = max - stack.method_7919();
+      if (stack.isDamageable()) {
+         int max = stack.getMaxDamage();
+         int left = max - stack.getDamage();
          durabilityFactor = Math.max(0.05, (double)left / (double)max);
       }
 

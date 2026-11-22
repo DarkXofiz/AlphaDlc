@@ -41,18 +41,18 @@ public class FakePlayer extends Module {
    }
 
    private void spawnFake() {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null && this.mc.method_1562() != null) {
+      if (this.mc.player != null && this.mc.world != null && this.mc.getNetworkHandler() != null) {
          if (this.fakePlayer == null) {
             this.health = 20.0F;
             this.lastHitTime = 0L;
-            GameProfile profile = new GameProfile(UUID.randomUUID(), this.mc.field_1724.method_5477().getString());
-            this.fakePlayer = new OtherClientPlayerEntity(this.mc.field_1687, profile);
-            this.fakePlayer.method_5878(this.mc.field_1724);
-            this.fakePlayer.method_23327(this.mc.field_1724.method_23317(), this.mc.field_1724.method_23318(), this.mc.field_1724.method_23321());
-            this.fakePlayer.method_36456(this.mc.field_1724.method_36454());
-            this.fakePlayer.method_36457(this.mc.field_1724.method_36455());
-            this.fakePlayer.method_6033(20.0F);
-            this.mc.field_1687.method_53875(this.fakePlayer);
+            GameProfile profile = new GameProfile(UUID.randomUUID(), this.mc.player.getName().getString());
+            this.fakePlayer = new OtherClientPlayerEntity(this.mc.world, profile);
+            this.fakePlayer.copyFrom(this.mc.player);
+            this.fakePlayer.setPos(this.mc.player.getX(), this.mc.player.getY(), this.mc.player.getZ());
+            this.fakePlayer.setYaw(this.mc.player.getYaw());
+            this.fakePlayer.setPitch(this.mc.player.getPitch());
+            this.fakePlayer.setHealth(20.0F);
+            this.mc.world.addEntity(this.fakePlayer);
          }
       }
    }
@@ -65,8 +65,8 @@ public class FakePlayer extends Module {
 
    private void removeFake() {
       if (this.fakePlayer != null) {
-         if (this.mc.field_1687 != null) {
-            this.mc.field_1687.method_2945(this.fakePlayer.method_5628(), RemovalReason.field_26999);
+         if (this.mc.world != null) {
+            this.mc.world.removeEntity(this.fakePlayer.getId(), RemovalReason.DISCARDED);
          }
 
          this.fakePlayer = null;
@@ -80,39 +80,39 @@ public class FakePlayer extends Module {
    }
 
    public void handleLocalAttack(PlayerEntity attacker) {
-      if (attacker != null && this.fakePlayer != null && this.mc.field_1687 != null) {
+      if (attacker != null && this.fakePlayer != null && this.mc.world != null) {
          long now = System.currentTimeMillis();
          if (now - this.lastHitTime >= 500L) {
             this.lastHitTime = now;
-            float cooldown = attacker.method_7261(0.5F);
-            float base = (float)attacker.method_45325(EntityAttributes.field_23721);
+            float cooldown = attacker.getAttackCooldownProgress(0.5F);
+            float base = (float)attacker.getAttributeValue(EntityAttributes.ATTACK_DAMAGE);
             float damage = base * (0.2F + cooldown * cooldown * 0.8F);
             boolean charged = cooldown > 0.9F;
             boolean crit = charged
-               && attacker.field_6017 > 0.0F
-               && !attacker.method_24828()
-               && !attacker.method_6101()
-               && !attacker.method_5799()
-               && !attacker.method_6059(StatusEffects.field_5919)
-               && !attacker.method_5765();
+               && attacker.fallDistance > 0.0F
+               && !attacker.isOnGround()
+               && !attacker.isClimbing()
+               && !attacker.isTouchingWater()
+               && !attacker.hasStatusEffect(StatusEffects.BLINDNESS)
+               && !attacker.hasVehicle();
             if (crit) {
                damage *= 1.5F;
             }
 
-            boolean enchanted = attacker.method_6047().method_7942();
+            boolean enchanted = attacker.getMainHandStack().hasEnchantments();
             boolean sweeping = charged
                && !crit
-               && attacker.method_24828()
-               && !attacker.method_5624()
-               && attacker.method_6047().method_7909() instanceof SwordItem;
+               && attacker.isOnGround()
+               && !attacker.isSprinting()
+               && attacker.getMainHandStack().getItem() instanceof SwordItem;
             this.playAttackSound(attacker, charged, crit, sweeping, damage);
             this.playHurtReaction(attacker);
             if (crit) {
-               attacker.method_7277(this.fakePlayer);
+               attacker.addCritParticles(this.fakePlayer);
             }
 
             if (enchanted) {
-               attacker.method_7304(this.fakePlayer);
+               attacker.addEnchantedHitParticles(this.fakePlayer);
             }
 
             if (sweeping) {
@@ -126,7 +126,7 @@ public class FakePlayer extends Module {
                this.health -= damage;
             }
 
-            this.fakePlayer.method_6033(Math.max(this.health, 1.0F));
+            this.fakePlayer.setHealth(Math.max(this.health, 1.0F));
          }
       }
    }
@@ -134,77 +134,77 @@ public class FakePlayer extends Module {
    private void playAttackSound(PlayerEntity attacker, boolean charged, boolean crit, boolean sweeping, float damage) {
       SoundEvent sound;
       if (sweeping) {
-         sound = SoundEvents.field_14706;
+         sound = SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP;
       } else if (crit) {
-         sound = SoundEvents.field_15016;
+         sound = SoundEvents.ENTITY_PLAYER_ATTACK_CRIT;
       } else if (charged) {
-         sound = SoundEvents.field_14840;
+         sound = SoundEvents.ENTITY_PLAYER_ATTACK_STRONG;
       } else if (damage <= 0.0F) {
-         sound = SoundEvents.field_14914;
+         sound = SoundEvents.ENTITY_PLAYER_ATTACK_NODAMAGE;
       } else {
-         sound = SoundEvents.field_14625;
+         sound = SoundEvents.ENTITY_PLAYER_ATTACK_WEAK;
       }
 
       this.mc
-         .field_1687
-         .method_43128((PlayerEntity)null, attacker.method_23317(), attacker.method_23318(), attacker.method_23321(), sound, attacker.method_5634(), 1.0F, 1.0F);
+         .world
+         .playSound((PlayerEntity)null, attacker.getX(), attacker.getY(), attacker.getZ(), sound, attacker.getSoundCategory(), 1.0F, 1.0F);
    }
 
    private void playHurtReaction(PlayerEntity attacker) {
-      double dx = this.fakePlayer.method_23317() - attacker.method_23317();
-      double dz = this.fakePlayer.method_23321() - attacker.method_23321();
-      float hitYaw = (float)(Math.toDegrees(Math.atan2(dz, dx)) - (double)attacker.method_36454());
-      this.fakePlayer.field_6235 = this.fakePlayer.field_6254 = 10;
-      this.fakePlayer.method_5879(hitYaw);
+      double dx = this.fakePlayer.getX() - attacker.getX();
+      double dz = this.fakePlayer.getZ() - attacker.getZ();
+      float hitYaw = (float)(Math.toDegrees(Math.atan2(dz, dx)) - (double)attacker.getYaw());
+      this.fakePlayer.hurtTime = this.fakePlayer.maxHurtTime = 10;
+      this.fakePlayer.animateDamage(hitYaw);
       this.mc
-         .field_1687
-         .method_43128(
+         .world
+         .playSound(
             (PlayerEntity)null,
-            this.fakePlayer.method_23317(),
-            this.fakePlayer.method_23318(),
-            this.fakePlayer.method_23321(),
-            SoundEvents.field_15115,
-            this.fakePlayer.method_5634(),
+            this.fakePlayer.getX(),
+            this.fakePlayer.getY(),
+            this.fakePlayer.getZ(),
+            SoundEvents.ENTITY_PLAYER_HURT,
+            this.fakePlayer.getSoundCategory(),
             1.0F,
             1.0F
          );
    }
 
    private void spawnSweepParticle(PlayerEntity attacker) {
-      double rad = Math.toRadians((double)attacker.method_36454());
+      double rad = Math.toRadians((double)attacker.getYaw());
       double dx = -Math.sin(rad);
       double dz = Math.cos(rad);
       this.mc
-         .field_1687
-         .method_8406(
-            ParticleTypes.field_11227, this.fakePlayer.method_23317() + dx, this.fakePlayer.method_23323(0.5), this.fakePlayer.method_23321() + dz, dx, 0.0, dz
+         .world
+         .addParticle(
+            ParticleTypes.SWEEP_ATTACK, this.fakePlayer.getX() + dx, this.fakePlayer.getBodyY(0.5), this.fakePlayer.getZ() + dz, dx, 0.0, dz
          );
    }
 
    private void popTotem() {
       for (int i = 0; i < 40; i++) {
          this.mc
-            .field_1687
-            .method_8406(
-               ParticleTypes.field_11220,
-               this.fakePlayer.method_23317(),
-               this.fakePlayer.method_23323(0.5),
-               this.fakePlayer.method_23321(),
-               (this.mc.field_1687.field_9229.method_43058() - 0.5) * 2.0,
-               this.mc.field_1687.field_9229.method_43058() * 0.5 + 0.5,
-               (this.mc.field_1687.field_9229.method_43058() - 0.5) * 2.0
+            .world
+            .addParticle(
+               ParticleTypes.TOTEM_OF_UNDYING,
+               this.fakePlayer.getX(),
+               this.fakePlayer.getBodyY(0.5),
+               this.fakePlayer.getZ(),
+               (this.mc.world.random.nextDouble() - 0.5) * 2.0,
+               this.mc.world.random.nextDouble() * 0.5 + 0.5,
+               (this.mc.world.random.nextDouble() - 0.5) * 2.0
             );
       }
 
       this.mc
-         .field_1687
-         .method_43128(
+         .world
+         .playSound(
             (PlayerEntity)null,
-            this.fakePlayer.method_23317(),
-            this.fakePlayer.method_23318(),
-            this.fakePlayer.method_23321(),
-            SoundEvents.field_14931,
-            this.fakePlayer.method_5634(),
+            this.fakePlayer.getX(),
+            this.fakePlayer.getY(),
+            this.fakePlayer.getZ(),
+            SoundEvents.ITEM_TOTEM_USE,
+            this.fakePlayer.getSoundCategory(),
             1.0F,
             1.0F
          );

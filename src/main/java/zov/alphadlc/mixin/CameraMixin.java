@@ -31,7 +31,7 @@ public abstract class CameraMixin {
          newPitch = -newPitch;
       }
 
-      instance.method_19325(newYaw, newPitch);
+      instance.setRotation(newYaw, newPitch);
    }
 
    @Redirect(
@@ -45,6 +45,6 @@ public abstract class CameraMixin {
       return Instance.get(NoRender.class).isEnabled()
             && Instance.get(NoRender.class).elements.isEnabled("\u041a\u0430\u043c\u0435\u0440\u0430\u043a\u043b\u0438\u043f")
          ? f
-         : instance.method_19318(f);
+         : instance.clipToSpace(f);
    }
 }

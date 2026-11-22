@@ -36,20 +36,20 @@ import zov.alphadlc.util.render.hands.GlassHandsRenderer;
 @Mixin({HeldItemRenderer.class})
 public abstract class HeldItemRendererMixin implements HeldItemRendererAccessor {
    @Shadow
-   private ItemStack field_4047;
+   private ItemStack mainHand;
    @Shadow
-   private float field_4043;
+   private float equipProgressMainHand;
    @Shadow
-   private float field_4053;
+   private float prevEquipProgressMainHand;
    @Shadow
-   private float field_4051;
+   private float prevEquipProgressOffHand;
    @Shadow
-   private float field_4052;
+   private float equipProgressOffHand;
    @Shadow
-   private ItemStack field_4048;
+   private ItemStack offHand;
 
    @Shadow
-   protected abstract void method_3228(
+   protected abstract void renderFirstPersonItem(
       AbstractClientPlayerEntity var1,
       float var2,
       float var3,
@@ -63,10 +63,10 @@ public abstract class HeldItemRendererMixin implements HeldItemRendererAccessor 
    );
 
    @Shadow
-   protected abstract void method_65816(float var1, float var2, MatrixStack var3, int var4, Arm var5);
+   protected abstract void swingArm(float var1, float var2, MatrixStack var3, int var4, Arm var5);
 
    @Shadow
-   private static HandRenderType method_33303(ClientPlayerEntity player) {
+   private static HandRenderType getHandRenderType(ClientPlayerEntity player) {
       throw new AssertionError();
    }
 
@@ -149,9 +149,9 @@ public abstract class HeldItemRendererMixin implements HeldItemRendererAccessor 
       CallbackInfo ci
    ) {
       ViewModel viewModel = Instance.get(ViewModel.class);
-      if (viewModel != null && viewModel.isEnabled() && !item.method_7960() && !item.method_57826(DataComponentTypes.field_49646)) {
-         boolean isMainHand = hand == Hand.field_5808;
-         Arm arm = isMainHand ? player.method_6068() : player.method_6068().method_5928();
+      if (viewModel != null && viewModel.isEnabled() && !item.isEmpty() && !item.contains(DataComponentTypes.MAP_ID)) {
+         boolean isMainHand = hand == Hand.MAIN_HAND;
+         Arm arm = isMainHand ? player.getMainArm() : player.getMainArm().getOpposite();
          viewModel.applyHandPosition(matrices, arm);
       }
    }
@@ -167,39 +167,39 @@ public abstract class HeldItemRendererMixin implements HeldItemRendererAccessor 
    public void redirectSwingArmForCustomAnim(HeldItemRenderer instance, float swingProgress, float equipProgress, MatrixStack matrices, int armX, Arm arm) {
       SwingAnimations swingAnimation = Instance.get(SwingAnimations.class);
       if (swingAnimation == null || !swingAnimation.isEnabled()) {
-         this.method_65816(swingProgress, equipProgress, matrices, armX, arm);
-      } else if (arm == Arm.field_6183) {
+         this.swingArm(swingProgress, equipProgress, matrices, armX, arm);
+      } else if (arm == Arm.RIGHT) {
          swingAnimation.renderSwordAnimation(matrices, swingProgress, equipProgress, arm);
       } else {
-         this.method_65816(swingProgress, equipProgress, matrices, armX, arm);
+         this.swingArm(swingProgress, equipProgress, matrices, armX, arm);
       }
    }
 
    @Overwrite
-   public void method_22976(float tickDelta, MatrixStack matrices, Immediate vertexConsumers, ClientPlayerEntity player, int light) {
+   public void renderItem(float tickDelta, MatrixStack matrices, Immediate vertexConsumers, ClientPlayerEntity player, int light) {
       GlassHands glassHands = Instance.get(GlassHands.class);
       boolean glassActive = glassHands != null && glassHands.isEnabled();
       if (glassActive) {
          GlassHandsRenderer.getInstance().captureBeforeHands(glassHands);
       }
 
-      float f = player.method_6055(tickDelta);
-      Hand hand = (Hand)MoreObjects.firstNonNull(player.field_6266, Hand.field_5808);
-      float g = player.method_61414(tickDelta);
-      HandRenderType handRenderType = method_33303(player);
-      if (handRenderType.field_28387) {
-         float j = hand == Hand.field_5808 ? f : 0.0F;
-         float k = 1.0F - MathHelper.method_16439(tickDelta, this.field_4053, this.field_4043);
-         this.method_3228(player, tickDelta, g, Hand.field_5808, j, this.field_4047, k, matrices, vertexConsumers, light);
+      float f = player.getHandSwingProgress(tickDelta);
+      Hand hand = (Hand)MoreObjects.firstNonNull(player.preferredHand, Hand.MAIN_HAND);
+      float g = player.getLerpedPitch(tickDelta);
+      HandRenderType handRenderType = getHandRenderType(player);
+      if (handRenderType.renderMainHand) {
+         float j = hand == Hand.MAIN_HAND ? f : 0.0F;
+         float k = 1.0F - MathHelper.lerp(tickDelta, this.prevEquipProgressMainHand, this.equipProgressMainHand);
+         this.renderFirstPersonItem(player, tickDelta, g, Hand.MAIN_HAND, j, this.mainHand, k, matrices, vertexConsumers, light);
       }
 
-      if (handRenderType.field_28388) {
-         float j = hand == Hand.field_5810 ? f : 0.0F;
-         float k = 1.0F - MathHelper.method_16439(tickDelta, this.field_4051, this.field_4052);
-         this.method_3228(player, tickDelta, g, Hand.field_5810, j, this.field_4048, k, matrices, vertexConsumers, light);
+      if (handRenderType.renderOffHand) {
+         float j = hand == Hand.OFF_HAND ? f : 0.0F;
+         float k = 1.0F - MathHelper.lerp(tickDelta, this.prevEquipProgressOffHand, this.equipProgressOffHand);
+         this.renderFirstPersonItem(player, tickDelta, g, Hand.OFF_HAND, j, this.offHand, k, matrices, vertexConsumers, light);
       }
 
-      vertexConsumers.method_22993();
+      vertexConsumers.draw();
       if (glassActive) {
          GlassHandsRenderer.getInstance().captureAfterHands(glassHands);
       }

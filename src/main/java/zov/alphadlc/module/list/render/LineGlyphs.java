@@ -89,7 +89,7 @@ public class LineGlyphs extends Module {
 
    @Subscribe
    private void onTick(EventTick e) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
+      if (this.mc.player != null && this.mc.world != null) {
          this.glyphs.removeIf(LineGlyphs.Glyph::isDead);
          int cap = this.count.getIntValue();
          int attempts = 4;
@@ -106,8 +106,8 @@ public class LineGlyphs extends Module {
 
    private void onRender(MatrixStack matrix, Camera camera) {
       if (!this.glyphs.isEmpty()) {
-         Vec3d cam = camera.method_19326();
-         Matrix4f base = matrix.method_23760().method_23761();
+         Vec3d cam = camera.getPos();
+         Matrix4f base = matrix.peek().getPositionMatrix();
          float baseOpacity = this.opacity.getFloatValue();
          float halfWidth = this.thickness.getFloatValue() * 0.02F;
          float dash = this.dashLength.getFloatValue();
@@ -116,13 +116,13 @@ public class LineGlyphs extends Module {
          double cullDistSq = (double)(cullRadius * cullRadius);
          boolean dots = this.glowDots.getValue();
          float dotSize = this.glowSize.getFloatValue();
-         RenderSystem.setShader(ShaderProgramKeys.field_53876);
+         RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
          RenderSystem.enableBlend();
          RenderSystem.blendFunc(SrcFactor.SRC_ALPHA, DstFactor.ONE);
          RenderSystem.disableCull();
          RenderSystem.disableDepthTest();
          RenderSystem.depthMask(false);
-         BufferBuilder buffer = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1576);
+         BufferBuilder buffer = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_COLOR);
          int glyphIndex = 0;
 
          for (LineGlyphs.Glyph glyph : this.glyphs) {
@@ -130,9 +130,9 @@ public class LineGlyphs extends Module {
                glyphIndex++;
             } else {
                int[] first = glyph.nodes.get(0);
-               double ddx = (double)first[0] - cam.field_1352;
-               double ddy = (double)first[1] - cam.field_1351;
-               double ddz = (double)first[2] - cam.field_1350;
+               double ddx = (double)first[0] - cam.x;
+               double ddy = (double)first[1] - cam.y;
+               double ddz = (double)first[2] - cam.z;
                if (ddx * ddx + ddy * ddy + ddz * ddz > cullDistSq) {
                   glyphIndex++;
                } else {
@@ -148,16 +148,16 @@ public class LineGlyphs extends Module {
                         glyph.getNodeCoord(i - 1, a);
                         glyph.getNodeCoord(i, b);
                         float segAlpha = alphaBase * (0.35F + (float)i / (float)size * 0.65F);
-                        int color = ColorProvider.setAlpha(this.baseColor(glyphIndex + i * 40), (int)(MathHelper.method_15363(segAlpha, 0.0F, 1.0F) * 255.0F));
+                        int color = ColorProvider.setAlpha(this.baseColor(glyphIndex + i * 40), (int)(MathHelper.clamp(segAlpha, 0.0F, 1.0F) * 255.0F));
                         this.appendDashes(
                            buffer,
                            base,
-                           a[0] - cam.field_1352,
-                           a[1] - cam.field_1351,
-                           a[2] - cam.field_1350,
-                           b[0] - cam.field_1352,
-                           b[1] - cam.field_1351,
-                           b[2] - cam.field_1350,
+                           a[0] - cam.x,
+                           a[1] - cam.y,
+                           a[2] - cam.z,
+                           b[0] - cam.x,
+                           b[1] - cam.y,
+                           b[2] - cam.z,
                            halfWidth,
                            dash,
                            gap,
@@ -172,17 +172,17 @@ public class LineGlyphs extends Module {
          }
 
          try {
-            BuiltBuffer builtBuffer = buffer.method_60800();
+            BuiltBuffer builtBuffer = buffer.end();
             if (builtBuffer != null) {
-               BufferRenderer.method_43433(builtBuffer);
+               BufferRenderer.drawWithGlobalProgram(builtBuffer);
             }
          } catch (IllegalStateException var33) {
          }
 
          if (dots) {
-            RenderSystem.setShader(ShaderProgramKeys.field_53880);
-            RenderSystem.setShaderTexture(0, Identifier.method_60655("mre", "images/glow.png"));
-            BufferBuilder dotBuffer = Tessellator.method_1348().method_60827(DrawMode.field_27382, VertexFormats.field_1575);
+            RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX_COLOR);
+            RenderSystem.setShaderTexture(0, Identifier.of("mre", "images/glow.png"));
+            BufferBuilder dotBuffer = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
             glyphIndex = 0;
 
             for (LineGlyphs.Glyph glyphx : this.glyphs) {
@@ -200,7 +200,7 @@ public class LineGlyphs extends Module {
                         glyphx.getNodeCoord(i, a);
                         int color = this.baseColor(glyphIndex + i * 40);
                         this.appendGlowDot(
-                           dotBuffer, matrix, camera, a[0] - cam.field_1352, a[1] - cam.field_1351, a[2] - cam.field_1350, dotSize, color, alphaBase
+                           dotBuffer, matrix, camera, a[0] - cam.x, a[1] - cam.y, a[2] - cam.z, dotSize, color, alphaBase
                         );
                      }
 
@@ -210,9 +210,9 @@ public class LineGlyphs extends Module {
             }
 
             try {
-               BuiltBuffer dotBuiltBuffer = dotBuffer.method_60800();
+               BuiltBuffer dotBuiltBuffer = dotBuffer.end();
                if (dotBuiltBuffer != null) {
-                  BufferRenderer.method_43433(dotBuiltBuffer);
+                  BufferRenderer.drawWithGlobalProgram(dotBuiltBuffer);
                }
             } catch (IllegalStateException var32) {
             }
@@ -323,24 +323,24 @@ public class LineGlyphs extends Module {
    private void quad(
       BufferBuilder buffer, Matrix4f m, double ax, double ay, double az, double bx, double by, double bz, double ox, double oy, double oz, int color
    ) {
-      buffer.method_22918(m, (float)(ax + ox), (float)(ay + oy), (float)(az + oz)).method_39415(color);
-      buffer.method_22918(m, (float)(ax - ox), (float)(ay - oy), (float)(az - oz)).method_39415(color);
-      buffer.method_22918(m, (float)(bx - ox), (float)(by - oy), (float)(bz - oz)).method_39415(color);
-      buffer.method_22918(m, (float)(bx + ox), (float)(by + oy), (float)(bz + oz)).method_39415(color);
+      buffer.vertex(m, (float)(ax + ox), (float)(ay + oy), (float)(az + oz)).color(color);
+      buffer.vertex(m, (float)(ax - ox), (float)(ay - oy), (float)(az - oz)).color(color);
+      buffer.vertex(m, (float)(bx - ox), (float)(by - oy), (float)(bz - oz)).color(color);
+      buffer.vertex(m, (float)(bx + ox), (float)(by + oy), (float)(bz + oz)).color(color);
    }
 
    private void appendGlowDot(BufferBuilder buffer, MatrixStack stack, Camera camera, double x, double y, double z, float size, int color, float alpha) {
-      stack.method_22903();
-      stack.method_22904(x, y, z);
-      stack.method_22907(RotationAxis.field_40716.rotationDegrees(-camera.method_19330()));
-      stack.method_22907(RotationAxis.field_40714.rotationDegrees(camera.method_19329()));
-      Matrix4f m = stack.method_23760().method_23761();
-      int outer = ColorProvider.setAlpha(color, (int)(MathHelper.method_15363(alpha * 0.3F, 0.0F, 1.0F) * 255.0F));
+      stack.push();
+      stack.translate(x, y, z);
+      stack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-camera.getYaw()));
+      stack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(camera.getPitch()));
+      Matrix4f m = stack.peek().getPositionMatrix();
+      int outer = ColorProvider.setAlpha(color, (int)(MathHelper.clamp(alpha * 0.3F, 0.0F, 1.0F) * 255.0F));
       float outerSize = size * 3.0F;
       this.billboardQuadTextured(buffer, m, outerSize, outer);
-      int inner = ColorProvider.setAlpha(color, (int)(MathHelper.method_15363(alpha, 0.0F, 1.0F) * 255.0F));
+      int inner = ColorProvider.setAlpha(color, (int)(MathHelper.clamp(alpha, 0.0F, 1.0F) * 255.0F));
       this.billboardQuadTextured(buffer, m, size, inner);
-      stack.method_22909();
+      stack.pop();
    }
 
    private void billboardQuadTextured(BufferBuilder buffer, Matrix4f m, float size, int color) {
@@ -349,10 +349,10 @@ public class LineGlyphs extends Module {
       int g = color >> 8 & 0xFF;
       int b = color & 0xFF;
       int a = color >> 24 & 0xFF;
-      buffer.method_22918(m, -half, half, 0.0F).method_22913(0.0F, 0.0F).method_1336(r, g, b, a);
-      buffer.method_22918(m, half, half, 0.0F).method_22913(1.0F, 0.0F).method_1336(r, g, b, a);
-      buffer.method_22918(m, half, -half, 0.0F).method_22913(1.0F, 1.0F).method_1336(r, g, b, a);
-      buffer.method_22918(m, -half, -half, 0.0F).method_22913(0.0F, 1.0F).method_1336(r, g, b, a);
+      buffer.vertex(m, -half, half, 0.0F).texture(0.0F, 0.0F).color(r, g, b, a);
+      buffer.vertex(m, half, half, 0.0F).texture(1.0F, 0.0F).color(r, g, b, a);
+      buffer.vertex(m, half, -half, 0.0F).texture(1.0F, 1.0F).color(r, g, b, a);
+      buffer.vertex(m, -half, -half, 0.0F).texture(0.0F, 1.0F).color(r, g, b, a);
    }
 
    private int baseColor(int index) {
@@ -369,16 +369,16 @@ public class LineGlyphs extends Module {
    }
 
    private int[] spawnPos() {
-      double fov = (double)((Integer)this.mc.field_1690.method_41808().method_41753()).intValue();
-      double yaw = Math.toRadians((double)this.mc.field_1724.method_36454() + (this.random.nextDouble() - 0.5) * fov * 1.5);
+      double fov = (double)((Integer)this.mc.options.getFov().getValue()).intValue();
+      double yaw = Math.toRadians((double)this.mc.player.getYaw() + (this.random.nextDouble() - 0.5) * fov * 1.5);
       float radius = this.spawnRadius.getFloatValue();
       float minDistance = Math.max(4.0F, radius * 0.25F);
       double distance = (double)minDistance + this.random.nextDouble() * (double)(radius - minDistance);
       int dx = (int)(-(Math.sin(yaw) * distance));
       int dy = this.random.nextInt(12);
       int dz = (int)(Math.cos(yaw) * distance);
-      Vec3d eye = this.mc.field_1724.method_33571();
-      return new int[]{(int)eye.field_1352 + dx, (int)eye.field_1351 + dy, (int)eye.field_1350 + dz};
+      Vec3d eye = this.mc.player.getEyePos();
+      return new int[]{(int)eye.x + dx, (int)eye.y + dy, (int)eye.z + dz};
    }
 
    private int[] randomDirection() {
@@ -471,9 +471,9 @@ public class LineGlyphs extends Module {
          if (index == this.nodes.size() - 1 && this.nodes.size() >= 2) {
             int[] previous = this.nodes.get(index - 1);
             float advance = this.lastSet > 0 ? Math.max(0.0F, Math.min(1.0F, 1.0F - (float)this.ticksLeft / (float)this.lastSet)) : 1.0F;
-            x = MathHelper.method_16436((double)advance, (double)previous[0], x);
-            y = MathHelper.method_16436((double)advance, (double)previous[1], y);
-            z = MathHelper.method_16436((double)advance, (double)previous[2], z);
+            x = MathHelper.lerp((double)advance, (double)previous[0], x);
+            y = MathHelper.lerp((double)advance, (double)previous[1], y);
+            z = MathHelper.lerp((double)advance, (double)previous[2], z);
          }
 
          out[0] = x;

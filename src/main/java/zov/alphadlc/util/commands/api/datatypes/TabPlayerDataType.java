@@ -12,7 +12,7 @@ public enum TabPlayerDataType implements IDatatypeFor<Team> {
    @Override
    public Stream<String> tabComplete(IDatatypeContext ctx) throws CommandException {
       return new TabCompleteHelper()
-         .append(this.getTeam().stream().<Collection>map(Team::method_1204).map(Object::toString).map(s -> s.replaceAll("[\\[\\]]", "")))
+         .append(this.getTeam().stream().<Collection>map(Team::getPlayerList).map(Object::toString).map(s -> s.replaceAll("[\\[\\]]", "")))
          .filterPrefix(ctx.getConsumer().getString())
          .sortAlphabetically()
          .stream();
@@ -20,10 +20,10 @@ public enum TabPlayerDataType implements IDatatypeFor<Team> {
 
    public Team get(IDatatypeContext datatypeContext) throws CommandException {
       String username = datatypeContext.getConsumer().getString();
-      return this.getTeam().stream().filter(s -> s.method_1197().equalsIgnoreCase(username)).findFirst().orElse(null);
+      return this.getTeam().stream().filter(s -> s.getName().equalsIgnoreCase(username)).findFirst().orElse(null);
    }
 
    public Collection<Team> getTeam() {
-      return mc.field_1687.method_8428().method_1159();
+      return mc.world.getScoreboard().getTeams();
    }
 }

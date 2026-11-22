@@ -70,7 +70,7 @@ public class MacroRepository implements IMinecraft, QuickLogger {
          this.logDirect(
             "\u041e\u0448\u0438\u0431\u043a\u0430 \u043f\u0440\u0438 \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u0438 \u043c\u0430\u043a\u0440\u043e\u0441\u043e\u0432: "
                + var6.getMessage(),
-            Formatting.field_1061
+            Formatting.RED
          );
       }
    }
@@ -93,7 +93,7 @@ public class MacroRepository implements IMinecraft, QuickLogger {
             this.logDirect(
                "\u041e\u0448\u0438\u0431\u043a\u0430 \u043f\u0440\u0438 \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0435 \u043c\u0430\u043a\u0440\u043e\u0441\u043e\u0432: "
                   + var6.getMessage(),
-               Formatting.field_1061
+               Formatting.RED
             );
          }
       }
@@ -103,7 +103,7 @@ public class MacroRepository implements IMinecraft, QuickLogger {
    public void onKey(EventKeyInput event) {
       int key = event.getKey();
       if (key != -1) {
-         if (mc.field_1724 != null && event.getAction() != 0 && mc.field_1755 == null) {
+         if (mc.player != null && event.getAction() != 0 && mc.currentScreen == null) {
             for (Macro macro : this.macroList) {
                if (macro.key() == key) {
                   String msg = macro.message();
@@ -111,9 +111,9 @@ public class MacroRepository implements IMinecraft, QuickLogger {
                      msg = msg.substring(1);
                      AlphaDLC.getInstance().getCommandDispatcher().runCommand(msg);
                   } else if (msg.startsWith("/")) {
-                     mc.method_1562().method_45730(msg.replaceFirst("/", ""));
+                     mc.getNetworkHandler().sendChatCommand(msg.replaceFirst("/", ""));
                   } else {
-                     mc.method_1562().method_45729(msg);
+                     mc.getNetworkHandler().sendChatMessage(msg);
                   }
                }
             }

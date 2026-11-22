@@ -51,7 +51,7 @@ public class HitIndicator extends Module {
 
    @Subscribe
    private void onTick(EventTick event) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null) {
+      if (this.mc.player != null && this.mc.world != null) {
          float currentHealth = this.getTotalHealth();
          if (this.lastHealth < 0.0F) {
             this.lastHealth = currentHealth;
@@ -73,15 +73,15 @@ public class HitIndicator extends Module {
 
    @Subscribe
    private void onHud(EventHUD event) {
-      if (this.mc.field_1724 != null && this.mc.field_1687 != null && !this.indicators.isEmpty() && !this.mc.field_1690.field_1842) {
+      if (this.mc.player != null && this.mc.world != null && !this.indicators.isEmpty() && !this.mc.options.hudHidden) {
          long now = System.currentTimeMillis();
-         float width = (float)this.mc.method_22683().method_4486();
-         float height = (float)this.mc.method_22683().method_4502();
+         float width = (float)this.mc.getWindow().getScaledWidth();
+         float height = (float)this.mc.getWindow().getScaledHeight();
          float centerX = width / 2.0F;
          float centerY = height / 2.0F;
          float maxRadius = Math.max(24.0F, Math.min(centerX, centerY) - 8.0F);
          float drawRadius = Math.min(this.radius.getFloatValue(), maxRadius);
-         float cameraYaw = this.mc.field_1773.method_19418().method_19330();
+         float cameraYaw = this.mc.gameRenderer.getCamera().getYaw();
          Iterator<HitIndicator.Indicator> iterator = this.indicators.iterator();
 
          while (iterator.hasNext()) {
@@ -91,11 +91,11 @@ public class HitIndicator extends Module {
             if (age >= lifetime) {
                iterator.remove();
             } else {
-               float progress = MathHelper.method_15363(age / lifetime, 0.0F, 1.0F);
-               float fadeIn = MathHelper.method_15363(age / 90.0F, 0.0F, 1.0F);
+               float progress = MathHelper.clamp(age / lifetime, 0.0F, 1.0F);
+               float fadeIn = MathHelper.clamp(age / 90.0F, 0.0F, 1.0F);
                float alpha = this.opacity.getFloatValue() * fadeIn * (1.0F - progress * progress);
                if (!(alpha <= 0.02F)) {
-                  float relativeYaw = MathHelper.method_15393(indicator.worldYaw - cameraYaw);
+                  float relativeYaw = MathHelper.wrapDegrees(indicator.worldYaw - cameraYaw);
                   int baseAlpha = (int)(alpha * 255.0F);
                   int color = ColorProvider.rgba(255, 35, 45, (float)baseAlpha);
                   if (this.glow.getValue()) {
@@ -112,7 +112,7 @@ public class HitIndicator extends Module {
    }
 
    private float getTotalHealth() {
-      return this.mc.field_1724 == null ? -1.0F : this.mc.field_1724.method_6032() + this.mc.field_1724.method_6067();
+      return this.mc.player == null ? -1.0F : this.mc.player.getHealth() + this.mc.player.getAbsorptionAmount();
    }
 
    private void addIndicator(float worldYaw) {
@@ -128,8 +128,8 @@ public class HitIndicator extends Module {
       if (!this.isValidSource(source)) {
          return null;
       } else {
-         double dx = source.method_23317() - this.mc.field_1724.method_23317();
-         double dz = source.method_23321() - this.mc.field_1724.method_23321();
+         double dx = source.getX() - this.mc.player.getX();
+         double dz = source.getZ() - this.mc.player.getZ();
          return dx * dx + dz * dz < 1.0E-4 ? null : (float)(Math.toDegrees(Math.atan2(dz, dx)) - 90.0);
       }
    }
@@ -140,12 +140,12 @@ public class HitIndicator extends Module {
       double bestDistance = (double)(this.sourceRange.getFloatValue() * this.sourceRange.getFloatValue());
       double bestSwingingDistance = bestDistance;
 
-      for (Entity entity : this.mc.field_1687.method_18112()) {
+      for (Entity entity : this.mc.world.getEntities()) {
          if (entity instanceof LivingEntity) {
             LivingEntity living = (LivingEntity)entity;
             if (this.isValidSource(entity)) {
-               double distance = this.mc.field_1724.method_5858(entity);
-               if (living.field_6279 < 10 && distance < bestSwingingDistance) {
+               double distance = this.mc.player.squaredDistanceTo(entity);
+               if (living.handSwingTicks < 10 && distance < bestSwingingDistance) {
                   bestSwingingDistance = distance;
                   nearestSwinging = entity;
                }
@@ -163,10 +163,10 @@ public class HitIndicator extends Module {
 
    private boolean isValidSource(Entity entity) {
       return entity != null
-         && entity != this.mc.field_1724
-         && entity.method_5805()
-         && this.mc.field_1724 != null
-         && this.mc.field_1724.method_5858(entity) <= (double)(this.sourceRange.getFloatValue() * this.sourceRange.getFloatValue());
+         && entity != this.mc.player
+         && entity.isAlive()
+         && this.mc.player != null
+         && this.mc.player.squaredDistanceTo(entity) <= (double)(this.sourceRange.getFloatValue() * this.sourceRange.getFloatValue());
    }
 
    private void drawArc(float centerX, float centerY, float radius, float yaw, float length, float lineWidth, int color) {

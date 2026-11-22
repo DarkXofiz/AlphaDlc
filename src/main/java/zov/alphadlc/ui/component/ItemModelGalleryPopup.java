@@ -47,8 +47,8 @@ public class ItemModelGalleryPopup implements IComponent {
 
    @Override
    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-      int screenWidth = MinecraftClient.method_1551().method_22683().method_4486();
-      int screenHeight = MinecraftClient.method_1551().method_22683().method_4502();
+      int screenWidth = MinecraftClient.getInstance().getWindow().getScaledWidth();
+      int screenHeight = MinecraftClient.getInstance().getWindow().getScaledHeight();
       this.width = Math.min(380.0F, (float)screenWidth - 20.0F);
       this.height = Math.min(292.0F, (float)screenHeight - 20.0F);
       this.x = ((float)screenWidth - this.width) / 2.0F;
@@ -108,7 +108,7 @@ public class ItemModelGalleryPopup implements IComponent {
          );
       } else {
          float maxScroll = this.maxScroll();
-         this.scroll = MathHelper.method_15363(this.scroll, 0.0F, maxScroll);
+         this.scroll = MathHelper.clamp(this.scroll, 0.0F, maxScroll);
          float cellWidth = (this.gridWidth - 20.0F) / 6.0F;
          int rowCount = this.rowCount();
          int firstRow = Math.max(0, (int)Math.floor((double)(this.scroll / 49.0F)));
@@ -152,12 +152,12 @@ public class ItemModelGalleryPopup implements IComponent {
       if (preview != null) {
          float iconSize = 31.0F;
          float scale = iconSize / 16.0F;
-         context.method_51448().method_22903();
-         context.method_51448().method_46416(cellX + (cellWidth - iconSize) / 2.0F, cellY + (45.0F - iconSize) / 2.0F, 100.0F);
-         context.method_51448().method_22905(scale, scale, 1.0F);
+         context.getMatrices().push();
+         context.getMatrices().translate(cellX + (cellWidth - iconSize) / 2.0F, cellY + (45.0F - iconSize) / 2.0F, 100.0F);
+         context.getMatrices().scale(scale, scale, 1.0F);
          RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-         context.method_51427(preview, 0, 0);
-         context.method_51448().method_22909();
+         context.drawItem(preview, 0, 0);
+         context.getMatrices().pop();
       }
    }
 
@@ -209,7 +209,7 @@ public class ItemModelGalleryPopup implements IComponent {
    @Override
    public void mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
       if (HoverUtil.isHovered(mouseX, mouseY, (double)this.gridX, (double)this.gridY, (double)this.gridWidth, (double)this.gridHeight)) {
-         this.scroll = MathHelper.method_15363(this.scroll - (float)verticalAmount * 28.0F, 0.0F, this.maxScroll());
+         this.scroll = MathHelper.clamp(this.scroll - (float)verticalAmount * 28.0F, 0.0F, this.maxScroll());
       }
    }
 

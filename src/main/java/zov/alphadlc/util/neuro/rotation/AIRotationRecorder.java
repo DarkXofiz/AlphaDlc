@@ -24,23 +24,23 @@ public class AIRotationRecorder implements IMinecraft {
 
    @Subscribe
    public void onTick(EventTick event) {
-      if (recording && mc.field_1724 != null) {
+      if (recording && mc.player != null) {
          LivingEntity target = KillAura.lastTarget;
-         if (target != null && target.method_5805()) {
+         if (target != null && target.isAlive()) {
             KillAura killAura = AlphaDLC.getInstance().getModuleStorage().get(KillAura.class);
             if (killAura != null && killAura.isEnabled()) {
-               Rotation currentRotation = new Rotation(MathHelper.method_15393(mc.field_1724.method_36454()), mc.field_1724.method_36455());
+               Rotation currentRotation = new Rotation(MathHelper.wrapDegrees(mc.player.getYaw()), mc.player.getPitch());
                if (previousRotation == null) {
                   previousRotation = currentRotation;
                   System.out
                      .println("AI RECORDER: Initialized with rotation " + String.format("%.2f, %.2f", currentRotation.getYaw(), currentRotation.getPitch()));
                } else {
-                  float actualDeltaYaw = MathHelper.method_15393(currentRotation.getYaw() - previousRotation.getYaw());
+                  float actualDeltaYaw = MathHelper.wrapDegrees(currentRotation.getYaw() - previousRotation.getYaw());
                   float actualDeltaPitch = currentRotation.getPitch() - previousRotation.getPitch();
                   double distance = killAura.distance.getValue();
                   Vec3d targetPoint = BestPoint.getMultipoint(target, distance);
                   Rotation targetRotation = new Rotation(RotationUtil.calculate(targetPoint));
-                  float targetDeltaYaw = MathHelper.method_15393(targetRotation.getYaw() - currentRotation.getYaw());
+                  float targetDeltaYaw = MathHelper.wrapDegrees(targetRotation.getYaw() - currentRotation.getYaw());
                   float targetDeltaPitch = targetRotation.getPitch() - currentRotation.getPitch();
                   if (!isValidData(actualDeltaYaw, actualDeltaPitch, targetDeltaYaw, targetDeltaPitch)) {
                      System.out.println("AI RECORDER: Invalid data, skipping sample");

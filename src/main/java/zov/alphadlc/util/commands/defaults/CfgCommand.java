@@ -49,7 +49,7 @@ public class CfgCommand extends Command {
                      Files.delete(file);
                   } catch (IOException var12) {
                      this.logDirect(
-                        Formatting.field_1080
+                        Formatting.GRAY
                            + "\u041e\u0448\u0438\u0431\u043a\u0430 \u043f\u0440\u0438 \u0443\u0434\u0430\u043b\u0435\u043d\u0438\u0438 \u0444\u0430\u0439\u043b\u0430."
                      );
                      var12.printStackTrace();
@@ -59,18 +59,18 @@ public class CfgCommand extends Command {
 
             this.logDirect(
                "\u0421\u043f\u0438\u0441\u043e\u043a \u043a\u043e\u043d\u0444\u0438\u0433\u043e\u0432 \u043e\u0447\u0438\u0449\u0435\u043d",
-               Formatting.field_1080
+               Formatting.GRAY
             );
             break;
          case "dir":
             try {
                File dir = new File("alphadlc/configs/");
                if (!dir.exists()) {
-                  this.logDirect(Formatting.field_1080 + "\u0417\u0430\u0447 \u043f\u0430\u043f\u043a\u0443 \u0443\u0434\u0430\u043b\u0438\u043b?");
+                  this.logDirect(Formatting.GRAY + "\u0417\u0430\u0447 \u043f\u0430\u043f\u043a\u0443 \u0443\u0434\u0430\u043b\u0438\u043b?");
                   dir.mkdirs();
                } else {
                   this.logDirect(
-                     Formatting.field_1080
+                     Formatting.GRAY
                         + "\u041e\u0442\u043a\u0440\u044b\u0432\u0430\u044e \u043f\u0430\u043f\u043a\u0443 \u0441 \u043a\u043e\u043d\u0444\u0438\u0433\u0430\u043c\u0438..."
                   );
                }
@@ -78,9 +78,9 @@ public class CfgCommand extends Command {
                Runtime.getRuntime().exec("explorer " + dir.getAbsolutePath());
             } catch (IOException var11) {
                this.logDirect(
-                  Formatting.field_1080
+                  Formatting.GRAY
                      + "\u041e\u0448\u0438\u0431\u043a\u0430 \u043f\u0440\u0438 \u043e\u0442\u043a\u0440\u044b\u0442\u0438\u0438 \u043f\u0430\u043f\u043a\u0438: "
-                     + Formatting.field_1068
+                     + Formatting.WHITE
                      + var11.getMessage()
                );
             }
@@ -91,7 +91,7 @@ public class CfgCommand extends Command {
          default:
             this.logDirect(
                "\u041d\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043d\u0430\u044f \u043f\u043e\u0434\u043a\u043e\u043c\u0430\u043d\u0434\u0430. \u0418\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0439 load/save/remove/list/dir.",
-               Formatting.field_1080
+               Formatting.GRAY
             );
       }
    }
@@ -101,11 +101,11 @@ public class CfgCommand extends Command {
       String name = args.getString();
       ConfigManager.save(name);
       this.logDirect(
-         Formatting.field_1080
+         Formatting.GRAY
             + "\u041a\u043e\u043d\u0444\u0438\u0433 \u0441 \u0438\u043c\u0435\u043d\u0435\u043c "
-            + Formatting.field_1068
+            + Formatting.WHITE
             + name
-            + Formatting.field_1080
+            + Formatting.GRAY
             + " \u0443\u0441\u043f\u0435\u0448\u043d\u043e \u0441\u043e\u0445\u0440\u0430\u043d\u0451\u043d"
       );
    }
@@ -115,17 +115,17 @@ public class CfgCommand extends Command {
       String name = args.getString();
       if (!ConfigManager.getConfigs().contains(name)) {
          this.logDirect(
-            Formatting.field_1080
+            Formatting.GRAY
                + "\u041a\u043e\u043d\u0444\u0438\u0433 \u0441 \u0442\u0430\u043a\u0438\u043c \u0438\u043c\u0435\u043d\u0435\u043c \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d"
          );
       } else {
          ConfigManager.load(name);
          this.logDirect(
-            Formatting.field_1080
+            Formatting.GRAY
                + "\u041a\u043e\u043d\u0444\u0438\u0433 \u0441 \u0438\u043c\u0435\u043d\u0435\u043c "
-               + Formatting.field_1068
+               + Formatting.WHITE
                + name
-               + Formatting.field_1080
+               + Formatting.GRAY
                + " \u0443\u0441\u043f\u0435\u0448\u043d\u043e \u0437\u0430\u0433\u0440\u0443\u0436\u0435\u043d"
          );
       }
@@ -134,23 +134,23 @@ public class CfgCommand extends Command {
    private void handleList(IArgConsumer args, String label) throws CommandException {
       args.requireMax(1);
       List<String> configs = ConfigManager.getConfigs();
-      this.logDirect("\u0421\u043f\u0438\u0441\u043e\u043a \u043a\u043e\u043d\u0444\u0438\u0433\u043e\u0432:", Formatting.field_1080);
+      this.logDirect("\u0421\u043f\u0438\u0441\u043e\u043a \u043a\u043e\u043d\u0444\u0438\u0433\u043e\u0432:", Formatting.GRAY);
       Paginator.paginate(
          args,
          new Paginator<>(configs),
          name -> {
-            Text nameText = Text.method_43470(Formatting.field_1080 + "- " + Formatting.field_1068 + name + " ");
-            Text loadText = Text.method_43470(Formatting.field_1060 + "[\u0417\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c]")
-               .method_27694(
-                  style -> style.method_10958(new ClickEvent(Action.field_11750, IBaritoneChatControl.FORCE_COMMAND_PREFIX + "cfg load " + name))
-                        .method_10949(new HoverEvent(net.minecraft.text.HoverEvent.Action.field_24342, Text.method_43470("Click to load config")))
+            Text nameText = Text.literal(Formatting.GRAY + "- " + Formatting.WHITE + name + " ");
+            Text loadText = Text.literal(Formatting.GREEN + "[\u0417\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c]")
+               .styled(
+                  style -> style.withClickEvent(new ClickEvent(Action.RUN_COMMAND, IBaritoneChatControl.FORCE_COMMAND_PREFIX + "cfg load " + name))
+                        .withHoverEvent(new HoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, Text.literal("Click to load config")))
                );
-            Text deleteText = Text.method_43470(Formatting.field_1061 + " [\u0423\u0434\u0430\u043b\u0438\u0442\u044c]")
-               .method_27694(
-                  style -> style.method_10958(new ClickEvent(Action.field_11750, IBaritoneChatControl.FORCE_COMMAND_PREFIX + "cfg remove " + name))
-                        .method_10949(new HoverEvent(net.minecraft.text.HoverEvent.Action.field_24342, Text.method_43470("Click to delete config")))
+            Text deleteText = Text.literal(Formatting.RED + " [\u0423\u0434\u0430\u043b\u0438\u0442\u044c]")
+               .styled(
+                  style -> style.withClickEvent(new ClickEvent(Action.RUN_COMMAND, IBaritoneChatControl.FORCE_COMMAND_PREFIX + "cfg remove " + name))
+                        .withHoverEvent(new HoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, Text.literal("Click to delete config")))
                );
-            return nameText.method_27661().method_10852(loadText).method_10852(deleteText);
+            return nameText.copy().append(loadText).append(deleteText);
          },
          IBaritoneChatControl.FORCE_COMMAND_PREFIX + label
       );
@@ -164,22 +164,22 @@ public class CfgCommand extends Command {
          try {
             Files.delete(file);
             this.logDirect(
-               Formatting.field_1080
+               Formatting.GRAY
                   + "\u041a\u043e\u043d\u0444\u0438\u0433 "
-                  + Formatting.field_1068
+                  + Formatting.WHITE
                   + name
-                  + Formatting.field_1080
+                  + Formatting.GRAY
                   + " \u0443\u0441\u043f\u0435\u0448\u043d\u043e \u0443\u0434\u0430\u043b\u0451\u043d"
             );
          } catch (IOException var5) {
             this.logDirect(
-               Formatting.field_1080
+               Formatting.GRAY
                   + "\u041e\u0448\u0438\u0431\u043a\u0430 \u043f\u0440\u0438 \u0443\u0434\u0430\u043b\u0435\u043d\u0438\u0438 \u0444\u0430\u0439\u043b\u0430."
             );
             var5.printStackTrace();
          }
       } else {
-         this.logDirect(Formatting.field_1080 + "\u041a\u043e\u043d\u0444\u0438\u0433 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d");
+         this.logDirect(Formatting.GRAY + "\u041a\u043e\u043d\u0444\u0438\u0433 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d");
       }
    }
 

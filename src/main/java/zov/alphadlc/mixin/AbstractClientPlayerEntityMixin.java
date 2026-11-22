@@ -11,7 +11,7 @@ import zov.alphadlc.module.list.render.Cape;
 
 @Mixin({AbstractClientPlayerEntity.class})
 public class AbstractClientPlayerEntityMixin {
-   private static final Identifier CUSTOM_CAPE = Identifier.method_60655("mre", "textures/entity/cape.png");
+   private static final Identifier CUSTOM_CAPE = Identifier.of("mre", "textures/entity/cape.png");
 
    @Inject(
       method = {"getSkinTextures"},

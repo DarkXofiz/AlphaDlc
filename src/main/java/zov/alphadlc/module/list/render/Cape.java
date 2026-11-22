@@ -27,8 +27,8 @@ public class Cape extends Module {
 
    public boolean shouldRenderCape(AbstractClientPlayerEntity player) {
       if (this.isEnabled() && player != null) {
-         boolean isSelf = player == this.mc.field_1724;
-         boolean isFriend = FriendRepository.isFriend(player.method_5820());
+         boolean isSelf = player == this.mc.player;
+         boolean isFriend = FriendRepository.isFriend(player.getNameForScoreboard());
          boolean selfEnabled = this.targets.isEnabled("\u0421\u0435\u0431\u044f");
          boolean friendsEnabled = this.targets.isEnabled("\u0414\u0440\u0443\u0437\u044c\u044f");
          if (isSelf) {

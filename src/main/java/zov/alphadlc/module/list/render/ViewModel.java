@@ -28,13 +28,13 @@ public class ViewModel extends Module {
 
    public void applyHandPosition(MatrixStack matrices, Arm arm) {
       if (this.isEnabled()) {
-         if (arm == Arm.field_6182) {
-            matrices.method_22904(this.offsetLeftX.getValue(), this.offsetLeftY.getValue(), this.offsetLeftZ.getValue());
+         if (arm == Arm.LEFT) {
+            matrices.translate(this.offsetLeftX.getValue(), this.offsetLeftY.getValue(), this.offsetLeftZ.getValue());
          } else {
-            matrices.method_22904(this.offsetRightX.getValue(), this.offsetRightY.getValue(), this.offsetRightZ.getValue());
+            matrices.translate(this.offsetRightX.getValue(), this.offsetRightY.getValue(), this.offsetRightZ.getValue());
          }
       } else {
-         matrices.method_46416(0.0F, 0.0F, 0.0F);
+         matrices.translate(0.0F, 0.0F, 0.0F);
       }
    }
 }
