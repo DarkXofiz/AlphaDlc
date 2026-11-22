@@ -58,6 +58,10 @@ RENAMES = [
         (r"(?<!final String lambdaName = name;\n)([ \t]*)(Optional<Interface\.Staff> existingStaff = this\.staffPlayers\.stream\(\)\.filter\(s -> s\.name\.equals\()name(\)\)\.findFirst\(\);)",
          r"\1final String lambdaName = name;\n\1\2lambdaName\3"),
     ]),
+    ("zov/alphadlc/ui/ModuleComponent.java", [
+        (r"([ \t]*)(case ColorSetting \w+:\s*this\.components\.add\(new ColorPickerComponent\(\w+\)\);\s*break;)(?!\s*default:)",
+         r"\1\2\n\1default:\n\1   break;"),
+    ]),
     ("zov/alphadlc/module/list/render/KillEffect.java", [
         (r"String player = this\.totemEffect\.getValue\(\);", "String totemMode = this.totemEffect.getValue();"),
         (r"String name = switch \(player\) \{", "String name = switch (totemMode) {"),
