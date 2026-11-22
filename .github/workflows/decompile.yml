@@ -6,8 +6,7 @@ on:
     paths:
       - "input/*.jar"
       - ".github/workflows/decompile.yml"
-      - "scripts/convert_aw.py"
-      - "scripts/fix_names.py"
+      - "scripts/*.py"
 
 permissions:
   contents: write
@@ -53,6 +52,9 @@ jobs:
 
       - name: Fix leftover intermediary names
         run: python3 scripts/fix_names.py work/yarn.tiny src/main/java
+
+      - name: Apply known source fixes
+        run: python3 scripts/fix_sources.py src/main/java
 
       - name: Extract resources and libs
         run: |
