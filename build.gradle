@@ -29,6 +29,9 @@ dependencies {
 
     // Orijinal jar icinde gomulu gelen bagimliliklar
     implementation fileTree(dir: "libs", include: ["*.jar"])
+
+    // Decompile edilen kaynakta kalan lombok.* importlari icin (annotation processor gerekmez)
+    compileOnly "org.projectlombok:lombok:1.18.34"
 }
 
 processResources {

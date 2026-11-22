@@ -7,7 +7,7 @@ git rebase --abort 2>/dev/null || true
 git config user.name "DarkXofiz"
 git config user.email "ahmeetmuhammet78@gmail.com"
 git add -A
-git commit -m "Serialize builds, safe log commit" || true
+git commit -m "Add lombok compileOnly dependency" || true
 git remote remove origin 2>/dev/null || true
 git remote add origin "https://github.com/$GH_USER/$REPO.git"
 git fetch origin main
