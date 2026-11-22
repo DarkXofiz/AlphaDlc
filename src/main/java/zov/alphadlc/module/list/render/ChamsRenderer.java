@@ -92,7 +92,7 @@ public final class ChamsRenderer extends FeatureRenderer<PlayerEntityRenderState
                   MathHelper.clamp(blue + 0.15F, 0.0F, 1.0F),
                   outlineBaseAlpha * pulse
                );
-               renderFill(matrices, model, state.skinTextures.comp_1626(), module, red, green, blue, fillAlpha, animTime);
+               renderFill(matrices, model, state.skinTextures.texture(), module, red, green, blue, fillAlpha, animTime);
                if (module.isThroughWalls()) {
                   RenderSystem.disableDepthTest();
                   if (module.hasGlow()) {
@@ -118,7 +118,7 @@ public final class ChamsRenderer extends FeatureRenderer<PlayerEntityRenderState
                      MathHelper.clamp(blue + 0.15F, 0.0F, 1.0F),
                      outlineBaseAlpha * pulse * 0.5F
                   );
-                  renderFill(matrices, model, state.skinTextures.comp_1626(), module, red, green, blue, fillAlpha * 0.5F, animTime);
+                  renderFill(matrices, model, state.skinTextures.texture(), module, red, green, blue, fillAlpha * 0.5F, animTime);
                }
             } finally {
                RenderSystem.defaultBlendFunc();

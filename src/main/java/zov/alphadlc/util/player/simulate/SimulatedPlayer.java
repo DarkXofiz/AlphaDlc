@@ -194,7 +194,7 @@ public class SimulatedPlayer implements IMinecraft {
             this.jumpingCooldown--;
          }
 
-         this.isJumping = this.input.playerInput.comp_3163();
+         this.isJumping = this.input.playerInput.jump();
          double newX = this.velocity.x;
          double newY = this.velocity.y;
          double newZ = this.velocity.z;
@@ -253,7 +253,7 @@ public class SimulatedPlayer implements IMinecraft {
             MathHelper.floor(this.pos.y + 1.0 - 0.1),
             MathHelper.floor(this.pos.z)
          );
-         if (g <= 0.0 || this.input.playerInput.comp_3163() || !this.player.getWorld().getBlockState(posAbove).getFluidState().isEmpty()) {
+         if (g <= 0.0 || this.input.playerInput.jump() || !this.player.getWorld().getBlockState(posAbove).getFluidState().isEmpty()) {
             this.velocity = this.velocity.add(0.0, (g - this.velocity.y) * h, 0.0);
          }
       }
@@ -404,7 +404,7 @@ public class SimulatedPlayer implements IMinecraft {
 
    private float getAirStrafingSpeed() {
       float speed = 0.02F;
-      return this.input.playerInput.comp_3165() ? speed + 0.006F : speed;
+      return this.input.playerInput.sprint() ? speed + 0.006F : speed;
    }
 
    private float getMovementSpeed() {
@@ -587,7 +587,7 @@ public class SimulatedPlayer implements IMinecraft {
    }
 
    protected boolean shouldClipAtLedge() {
-      return this.input.playerInput.comp_3164() || this.input.forceSafeWalk;
+      return this.input.playerInput.sneak() || this.input.forceSafeWalk;
    }
 
    private boolean method_30263() {
@@ -859,19 +859,19 @@ public class SimulatedPlayer implements IMinecraft {
       }
 
       public void update() {
-         if (this.playerInput.comp_3159() != this.playerInput.comp_3160()) {
-            this.movementForward = this.playerInput.comp_3159() ? 1.0F : -1.0F;
+         if (this.playerInput.forward() != this.playerInput.backward()) {
+            this.movementForward = this.playerInput.forward() ? 1.0F : -1.0F;
          } else {
             this.movementForward = 0.0F;
          }
 
-         if (this.playerInput.comp_3161() == this.playerInput.comp_3162()) {
+         if (this.playerInput.left() == this.playerInput.right()) {
             this.movementSideways = 0.0F;
          } else {
-            this.movementSideways = this.playerInput.comp_3161() ? 1.0F : -1.0F;
+            this.movementSideways = this.playerInput.left() ? 1.0F : -1.0F;
          }
 
-         if (this.playerInput.comp_3164()) {
+         if (this.playerInput.sneak()) {
             this.movementSideways *= 0.3F;
             this.movementForward *= 0.3F;
          }
@@ -879,19 +879,19 @@ public class SimulatedPlayer implements IMinecraft {
 
       public String toString() {
          return "SimulatedPlayerInput(forwards={"
-            + this.playerInput.comp_3159()
+            + this.playerInput.forward()
             + "}, backwards={"
-            + this.playerInput.comp_3160()
+            + this.playerInput.backward()
             + "}, left={"
-            + this.playerInput.comp_3161()
+            + this.playerInput.left()
             + "}, right={"
-            + this.playerInput.comp_3162()
+            + this.playerInput.right()
             + "}, jumping={"
-            + this.playerInput.comp_3163()
+            + this.playerInput.jump()
             + "}, sprinting="
-            + this.playerInput.comp_3165()
+            + this.playerInput.sprint()
             + ", slowDown="
-            + this.playerInput.comp_3164()
+            + this.playerInput.sneak()
             + ")";
       }
 

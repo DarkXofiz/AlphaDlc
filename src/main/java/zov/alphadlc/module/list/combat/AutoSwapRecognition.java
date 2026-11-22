@@ -15,7 +15,7 @@ final class AutoSwapRecognition {
       } else {
          boolean playerHead = stack.isOf(Items.PLAYER_HEAD);
          AttributeModifiersComponent attributes = (AttributeModifiersComponent)stack.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
-         boolean customSphere = playerHead && attributes != null && !attributes.comp_2393().isEmpty();
+         boolean customSphere = playerHead && attributes != null && !attributes.modifiers().isEmpty();
          return isSphereCandidate(customSphere, playerHead);
       }
    }

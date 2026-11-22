@@ -22,7 +22,7 @@ public class AutoTpaccept extends Module {
    public void onPacket(EventPacket e) {
       if (this.mc.player != null && this.mc.world != null) {
          if (e.getPacket() instanceof GameMessageS2CPacket p
-            && TpRequestRecognizer.shouldAccept(p.comp_763().getString(), this.friendsOnly.getValue(), FriendRepository::isFriend)) {
+            && TpRequestRecognizer.shouldAccept(p.content().getString(), this.friendsOnly.getValue(), FriendRepository::isFriend)) {
             this.mc.getNetworkHandler().sendChatCommand("tpaccept");
          }
       }

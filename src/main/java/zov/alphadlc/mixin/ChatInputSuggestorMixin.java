@@ -70,7 +70,7 @@ public class ChatInputSuggestorMixin {
                this.pendingSuggestions.complete(suggestions);
             }
 
-            ((ChatInputSuggestor)this).show(true);
+            ((ChatInputSuggestor)((net.minecraft.client.gui.screen.ChatInputSuggestor) (Object) this)).show(true);
          }
       }
    }

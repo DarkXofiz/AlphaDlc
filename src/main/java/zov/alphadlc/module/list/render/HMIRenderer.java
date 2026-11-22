@@ -138,9 +138,9 @@ public class HMIRenderer {
       if (modifiers == null) {
          return totalDamage;
       } else {
-         for (Entry entry : modifiers.comp_2393()) {
-            if (entry.comp_2395().equals(EntityAttributes.ATTACK_DAMAGE)) {
-               totalDamage += (float)entry.comp_2396().comp_2449();
+         for (Entry entry : modifiers.modifiers()) {
+            if (entry.attribute().equals(EntityAttributes.ATTACK_DAMAGE)) {
+               totalDamage += (float)entry.modifier().value();
             }
          }
 

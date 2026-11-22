@@ -27,7 +27,7 @@ public class ReplaceUtil {
       Style style = current.getStyle();
       if (content instanceof Literal literal) {
          Pattern pattern = Pattern.compile(Pattern.quote(target), 2);
-         String replaced = pattern.matcher(literal.comp_737()).replaceAll(replacement);
+         String replaced = pattern.matcher(literal.string()).replaceAll(replacement);
          result.append(Text.literal(replaced).setStyle(style));
       } else if (!(content instanceof Literal)) {
          String str = content.toString();
@@ -55,7 +55,7 @@ public class ReplaceUtil {
       TextContent content = current.getContent();
       Style style = current.getStyle();
       if (content instanceof Literal literal) {
-         String s = literal.comp_737();
+         String s = literal.string();
          String[] parts = s.split(Pattern.quote(target), -1);
 
          for (int i = 0; i < parts.length; i++) {
@@ -157,7 +157,7 @@ public class ReplaceUtil {
    private static void collect(Text text, List<ReplaceUtil.StyledChar> list) {
       Style style = text.getStyle();
       if (text.getContent() instanceof Literal literal) {
-         String s = literal.comp_737();
+         String s = literal.string();
 
          for (int i = 0; i < s.length(); i++) {
             list.add(new ReplaceUtil.StyledChar(s.charAt(i), style));

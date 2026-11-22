@@ -109,7 +109,7 @@ public abstract class ClientPlayerEntityMixin {
       EventCloseInv event = new EventCloseInv();
       event.post();
       if (!event.isCancelled()) {
-         ScreenHandler screenHandler = ((PlayerEntity)this).currentScreenHandler;
+         ScreenHandler screenHandler = ((PlayerEntity)((net.minecraft.entity.player.PlayerEntity) (Object) this)).currentScreenHandler;
          this.networkHandler.sendPacket(new CloseHandledScreenC2SPacket(screenHandler.syncId));
       }
 

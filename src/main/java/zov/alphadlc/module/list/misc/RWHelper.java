@@ -28,7 +28,7 @@ public class RWHelper extends Module {
    @Subscribe
    private void onPacket(EventPacket e) {
       if (e.getPacket() instanceof GameMessageS2CPacket p
-         && p.comp_763()
+         && p.content()
             .getString()
             .contains(
                "\u0410\u043d\u0442\u0438 \u041f\u043e\u043b\u0435\u0442 \u00bb \u0412\u044b \u043d\u0435 \u043c\u043e\u0436\u0435\u0442\u0435 \u0432\u0437\u043b\u0435\u0442\u0435\u0442\u044c!"

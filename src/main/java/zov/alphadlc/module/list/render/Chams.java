@@ -55,7 +55,7 @@ public class Chams extends Module {
       LivingEntityFeatureRendererRegistrationCallback.EVENT
          .register((LivingEntityFeatureRendererRegistrationCallback)(entityType, entityRenderer, registrationHelper, context) -> {
             if (entityType == EntityType.PLAYER) {
-               registrationHelper.register(new ChamsRenderer(entityRenderer));
+               registrationHelper.register(new ChamsRenderer((net.minecraft.client.render.entity.feature.FeatureRendererContext<net.minecraft.client.render.entity.state.PlayerEntityRenderState, net.minecraft.client.render.entity.model.PlayerEntityModel>) (Object) entityRenderer));
             }
          });
    }

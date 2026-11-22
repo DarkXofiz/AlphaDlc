@@ -16,7 +16,7 @@ public class EnderPearlEntityMixin {
    )
    private void fixOwner(CallbackInfo ci) {
       if (MinecraftClient.getInstance().player != null && MinecraftClient.getInstance().world != null) {
-         EnderPearlEntity entity = (EnderPearlEntity)this;
+         EnderPearlEntity entity = (EnderPearlEntity)((net.minecraft.entity.projectile.thrown.EnderPearlEntity) (Object) this);
          entity.setOwner(
             MinecraftClient.getInstance()
                .world

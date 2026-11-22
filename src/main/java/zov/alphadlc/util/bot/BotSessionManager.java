@@ -196,7 +196,7 @@ public final class BotSessionManager {
                         handler.getConnection().send(new CommonPongC2SPacket(p.getParameter()));
                         ReferenceCountUtil.release(msg);
                      } else if (msg instanceof PlayerPositionLookS2CPacket p) {
-                        handler.sendPacket(new TeleportConfirmC2SPacket(p.comp_3133()));
+                        handler.sendPacket(new TeleportConfirmC2SPacket(p.teleportId()));
                         ReferenceCountUtil.release(msg);
                      } else if (msg instanceof HealthUpdateS2CPacket p) {
                         if (botPlayer != null) {

@@ -99,10 +99,10 @@ public class FreeCamera extends Module {
       PlayerPosition playerPosition = PlayerPosition.fromEntityLerpTarget(this.fakePlayer);
       PlayerPosition playerPosition2 = PlayerPosition.apply(playerPosition, pos, flags);
       this.frozenPos = new Vec3d(
-         playerPosition2.comp_3148().getX(), playerPosition2.comp_3148().getY(), playerPosition2.comp_3148().getZ()
+         playerPosition2.position().getX(), playerPosition2.position().getY(), playerPosition2.position().getZ()
       );
-      this.frozenYaw = playerPosition2.comp_3150();
-      this.frozenPitch = playerPosition2.comp_3151();
+      this.frozenYaw = playerPosition2.yaw();
+      this.frozenPitch = playerPosition2.pitch();
    }
 
    @Subscribe
@@ -112,9 +112,9 @@ public class FreeCamera extends Module {
             return;
          }
 
-         NetworkUtils.sendPacket(new TeleportConfirmC2SPacket(packet.comp_3133()));
+         NetworkUtils.sendPacket(new TeleportConfirmC2SPacket(packet.teleportId()));
          if (!this.mc.player.hasVehicle()) {
-            this.setPosition(packet.comp_3228(), packet.comp_3229());
+            this.setPosition(packet.change(), packet.relatives());
          }
 
          NetworkUtils.sendSilentPacket(

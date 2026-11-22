@@ -16,6 +16,6 @@ public abstract class EntityMixin {
       )}
    )
    private boolean fixFallDistanceCalculation(boolean original) {
-      return this == MinecraftClient.getInstance().player ? false : original;
+      return (Object) this == MinecraftClient.getInstance().player ? false : original;
    }
 }

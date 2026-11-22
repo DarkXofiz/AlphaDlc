@@ -383,7 +383,7 @@ public class NameTags extends Module {
                   float headX = bgX + 2.8F + friendPrefixWidth;
                   float headY = tagY + (tagHeight - headSize) / 2.0F;
                   if (entity instanceof AbstractClientPlayerEntity clientPlayer) {
-                     AbstractTexture skinTex = this.mc.getTextureManager().getTexture(clientPlayer.getSkinTextures().comp_1626());
+                     AbstractTexture skinTex = this.mc.getTextureManager().getTexture(clientPlayer.getSkinTextures().texture());
                      int texId = skinTex.getGlId();
                      Builder.texture()
                         .size(new SizeState(headSize, headSize))

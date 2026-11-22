@@ -115,7 +115,7 @@ public class ServerJoiner extends Module {
    private void onPacket(EventPacket e) {
       if (this.isEnabled() && e.getType() == EventPacket.Type.RECEIVE) {
          if (e.getPacket() instanceof DisconnectS2CPacket packet) {
-            String message = packet.comp_2325().getString().toLowerCase();
+            String message = packet.reason().getString().toLowerCase();
             boolean retry = message.contains("\u0441\u0435\u0440\u0432\u0435\u0440 \u043f\u0435\u0440\u0435\u043f\u043e\u043b\u043d\u0435\u043d")
                || message.contains("\u043f\u043e\u0434\u043e\u0436\u0434\u0438\u0442\u0435")
                || message.contains("\u0432\u044b \u0443\u0436\u0435 \u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u044b")

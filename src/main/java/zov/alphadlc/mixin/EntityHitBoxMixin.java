@@ -15,7 +15,7 @@ public class EntityHitBoxMixin {
       cancellable = true
    )
    private void onGetTargetingMargin(CallbackInfoReturnable<Float> cir) {
-      Entity entity = (Entity)this;
+      Entity entity = (Entity)((net.minecraft.entity.Entity) (Object) this);
       EventEntityHitBox event = new EventEntityHitBox(entity, 1.0F);
       event.post();
       if (event.getSize() != 1.0F) {

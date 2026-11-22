@@ -67,10 +67,10 @@ public final class MoveUtil implements IMinecraft {
    }
 
    public static PlayerInput getDirectionalInputForDegrees(PlayerInput input, double dgs, float deadAngle) {
-      boolean forwards = input.comp_3159();
-      boolean backwards = input.comp_3160();
-      boolean left = input.comp_3161();
-      boolean right = input.comp_3162();
+      boolean forwards = input.forward();
+      boolean backwards = input.backward();
+      boolean left = input.left();
+      boolean right = input.right();
       if (dgs >= (double)(-90.0F + deadAngle) && dgs <= (double)(90.0F - deadAngle)) {
          forwards = true;
       } else if (dgs < (double)(-90.0F - deadAngle) || dgs > (double)(90.0F + deadAngle)) {
@@ -83,7 +83,7 @@ public final class MoveUtil implements IMinecraft {
          left = true;
       }
 
-      return new PlayerInput(forwards, backwards, left, right, input.comp_3163(), input.comp_3164(), input.comp_3165());
+      return new PlayerInput(forwards, backwards, left, right, input.jump(), input.sneak(), input.sprint());
    }
 
    public static double direction(float rotationYaw, float moveForward, float moveStrafing) {

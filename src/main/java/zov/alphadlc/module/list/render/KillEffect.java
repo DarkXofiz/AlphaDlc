@@ -237,7 +237,7 @@ public class KillEffect extends Module {
          this.mc.world.addParticle(ParticleTypes.EXPLOSION, x + ox, y + oy, z + oz, ox * 0.1, oy * 0.1, oz * 0.1);
       }
 
-      this.mc.world.playSound(this.mc.player, x, y, z, (SoundEvent)SoundEvents.ENTITY_GENERIC_EXPLODE.comp_349(), SoundCategory.MASTER, 10.0F, 1.0F);
+      this.mc.world.playSound(this.mc.player, x, y, z, (SoundEvent)SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.MASTER, 10.0F, 1.0F);
    }
 
    private abstract class AnimatedEffect {
@@ -370,7 +370,7 @@ public class KillEffect extends Module {
             KillEffect.this.mc
                .world
                .playSound(
-                  KillEffect.this.mc.player, this.x, this.y, this.z, (SoundEvent)SoundEvents.ENTITY_GENERIC_EXPLODE.comp_349(), SoundCategory.MASTER, 3.0F, 0.5F
+                  KillEffect.this.mc.player, this.x, this.y, this.z, (SoundEvent)SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.MASTER, 3.0F, 0.5F
                );
 
             for (int ix = 0; ix < 50; ix++) {
@@ -753,7 +753,7 @@ public class KillEffect extends Module {
                      this.x,
                      this.y,
                      this.z,
-                     (SoundEvent)SoundEvents.ENTITY_GENERIC_EXPLODE.comp_349(),
+                     (SoundEvent)SoundEvents.ENTITY_GENERIC_EXPLODE.value(),
                      SoundCategory.MASTER,
                      5.0F,
                      0.7F
@@ -834,7 +834,7 @@ public class KillEffect extends Module {
             KillEffect.this.mc
                .world
                .playSound(
-                  KillEffect.this.mc.player, this.x, this.y, this.z, (SoundEvent)SoundEvents.ENTITY_GENERIC_EXPLODE.comp_349(), SoundCategory.MASTER, 4.0F, 1.2F
+                  KillEffect.this.mc.player, this.x, this.y, this.z, (SoundEvent)SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.MASTER, 4.0F, 1.2F
                );
 
             for (int i = 0; i < 30; i++) {
@@ -1065,7 +1065,7 @@ public class KillEffect extends Module {
          KillEffect.this.mc
             .world
             .playSound(
-               KillEffect.this.mc.player, this.x, this.y, this.z, (SoundEvent)SoundEvents.ENTITY_GENERIC_EXPLODE.comp_349(), SoundCategory.MASTER, 5.0F, 0.8F
+               KillEffect.this.mc.player, this.x, this.y, this.z, (SoundEvent)SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.MASTER, 5.0F, 0.8F
             );
          KillEffect.this.mc
             .world
@@ -1264,7 +1264,7 @@ public class KillEffect extends Module {
          super(x, y, z, 25);
          KillEffect.this.mc
             .world
-            .playSound(KillEffect.this.mc.player, x, y, z, (SoundEvent)SoundEvents.ENTITY_GENERIC_EXPLODE.comp_349(), SoundCategory.MASTER, 2.0F, 1.5F);
+            .playSound(KillEffect.this.mc.player, x, y, z, (SoundEvent)SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.MASTER, 2.0F, 1.5F);
       }
 
       @Override
@@ -1463,7 +1463,7 @@ public class KillEffect extends Module {
             KillEffect.this.mc
                .world
                .playSound(
-                  KillEffect.this.mc.player, this.x, this.y, this.z, (SoundEvent)SoundEvents.ENTITY_GENERIC_EXPLODE.comp_349(), SoundCategory.MASTER, 3.0F, 1.8F
+                  KillEffect.this.mc.player, this.x, this.y, this.z, (SoundEvent)SoundEvents.ENTITY_GENERIC_EXPLODE.value(), SoundCategory.MASTER, 3.0F, 1.8F
                );
 
             for (int i = 0; i < 40; i++) {

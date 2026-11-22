@@ -15,7 +15,7 @@ public class ScoreboardMixin {
       cancellable = true
    )
    private void ignoreInvalidRemove(String scoreHolderName, Team team, CallbackInfo ci) {
-      if (((Scoreboard)this).getScoreHolderTeam(scoreHolderName) != team) {
+      if (((Scoreboard)((net.minecraft.scoreboard.Scoreboard) (Object) this)).getScoreHolderTeam(scoreHolderName) != team) {
          ci.cancel();
       }
    }

@@ -32,7 +32,7 @@ public class LivingEntityMixin {
       cancellable = true
    )
    private void onSetSprinting(boolean sprinting, CallbackInfo ci) {
-      if (this instanceof ClientPlayerEntity && sprinting) {
+      if (((net.minecraft.client.network.ClientPlayerEntity) (Object) this) instanceof ClientPlayerEntity && sprinting) {
          EventChangeSprint event = new EventChangeSprint(true);
          event.post();
          if (!event.isSprinting()) {

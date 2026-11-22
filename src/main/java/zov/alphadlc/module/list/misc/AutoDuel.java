@@ -84,7 +84,7 @@ public class AutoDuel extends Module {
    @Subscribe
    public void onPacket(EventPacket e) {
       if (e.getPacket() instanceof GameMessageS2CPacket packet) {
-         String text = packet.comp_763().getString().toLowerCase();
+         String text = packet.content().getString().toLowerCase();
          if ((
                text.contains("\u043d\u0430\u0447\u0430\u043b\u043e")
                      && text.contains("\u0447\u0435\u0440\u0435\u0437")

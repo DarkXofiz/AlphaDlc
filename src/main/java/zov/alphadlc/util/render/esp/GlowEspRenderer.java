@@ -229,7 +229,7 @@ public class GlowEspRenderer {
 
    private void renderSilhouette(MatrixStack matrices, PlayerEntity player, float tickDelta) {
       if (player instanceof AbstractClientPlayerEntity clientPlayer) {
-         if (mc.getEntityRenderDispatcher().getRenderer(player) instanceof PlayerEntityRenderer renderer) {
+         if ((Object) mc.getEntityRenderDispatcher().getRenderer(player) instanceof PlayerEntityRenderer renderer) {
             PlayerEntityRenderState state = renderer.createRenderState();
             renderer.updateRenderState(clientPlayer, state, tickDelta);
             PlayerEntityModel model = (PlayerEntityModel)renderer.getModel();
@@ -250,11 +250,11 @@ public class GlowEspRenderer {
             accessor.alphadlc$scale(state, matrices);
             matrices.scale(-1.0F, -1.0F, 1.0F);
             matrices.translate(0.0F, -1.501F, 0.0F);
-            RenderSystem.setShaderTexture(0, clientPlayer.getSkinTextures().comp_1626());
+            RenderSystem.setShaderTexture(0, clientPlayer.getSkinTextures().texture());
             RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX_COLOR);
             ModelPart root = model.getRootPart();
             BufferBuilder buf = Tessellator.getInstance().begin(DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
-            boolean slim = clientPlayer.getSkinTextures().comp_1629() == Model.SLIM;
+            boolean slim = clientPlayer.getSkinTextures().model() == Model.SLIM;
             this.fillPartTextured(matrices, buf, root, model.head, -4.0F, -8.0F, -4.0F, 8.0F, 8.0F, 8.0F, 8.0F, 8.0F, 16.0F, 16.0F);
             this.fillPartTextured(matrices, buf, root, model.body, -4.0F, 0.0F, -2.0F, 8.0F, 12.0F, 4.0F, 20.0F, 20.0F, 28.0F, 32.0F);
             if (slim) {

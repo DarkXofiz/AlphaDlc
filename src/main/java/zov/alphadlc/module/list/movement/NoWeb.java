@@ -20,19 +20,19 @@ public class NoWeb extends Module {
       float yaw = this.mc.player.getYaw();
       double forward = 0.0;
       double strafe = 0.0;
-      if (this.mc.player.input.playerInput.comp_3159()) {
+      if (this.mc.player.input.playerInput.forward()) {
          forward++;
       }
 
-      if (this.mc.player.input.playerInput.comp_3160()) {
+      if (this.mc.player.input.playerInput.backward()) {
          forward--;
       }
 
-      if (this.mc.player.input.playerInput.comp_3161()) {
+      if (this.mc.player.input.playerInput.left()) {
          strafe++;
       }
 
-      if (this.mc.player.input.playerInput.comp_3162()) {
+      if (this.mc.player.input.playerInput.right()) {
          strafe--;
       }
 

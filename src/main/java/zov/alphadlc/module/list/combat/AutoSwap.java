@@ -147,14 +147,14 @@ public class AutoSwap extends Module {
             if (!ignoreOffhand
                && this.mc.player.getOffHandStack().getItem() == Items.TOTEM_OF_UNDYING
                && this.mc.player.getOffHandStack().get(DataComponentTypes.ATTRIBUTE_MODIFIERS) != null
-               && !((AttributeModifiersComponent)this.mc.player.getOffHandStack().get(DataComponentTypes.ATTRIBUTE_MODIFIERS)).comp_2393().isEmpty()) {
+               && !((AttributeModifiersComponent)this.mc.player.getOffHandStack().get(DataComponentTypes.ATTRIBUTE_MODIFIERS)).modifiers().isEmpty()) {
                return 40;
             }
 
             return InventoryUtil.searchItemStack(
                item -> item.getItem() == Items.TOTEM_OF_UNDYING
                      && item.get(DataComponentTypes.ATTRIBUTE_MODIFIERS) != null
-                     && !((AttributeModifiersComponent)item.get(DataComponentTypes.ATTRIBUTE_MODIFIERS)).comp_2393().isEmpty()
+                     && !((AttributeModifiersComponent)item.get(DataComponentTypes.ATTRIBUTE_MODIFIERS)).modifiers().isEmpty()
             );
          case "\u0428\u0430\u0440":
             if (!ignoreOffhand && AutoSwapRecognition.isSphere(this.mc.player.getOffHandStack())) {

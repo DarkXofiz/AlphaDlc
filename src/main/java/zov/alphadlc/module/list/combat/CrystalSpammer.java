@@ -75,7 +75,7 @@ public class CrystalSpammer extends Module {
             ItemStack itemStack = this.mc.player.getStackInHand(Hand.MAIN_HAND);
             int i = itemStack.getCount();
             if (this.mc.interactionManager.interactBlock(this.mc.player, Hand.MAIN_HAND, blockHitResult) instanceof Success success2
-               && success2.comp_2909() == SwingSource.CLIENT) {
+               && success2.swingSource() == SwingSource.CLIENT) {
                this.mc.player.swingHand(Hand.MAIN_HAND);
                if (!itemStack.isEmpty() && (itemStack.getCount() != i || this.mc.interactionManager.hasCreativeInventory())) {
                   this.mc.gameRenderer.firstPersonRenderer.resetEquipProgress(Hand.MAIN_HAND);

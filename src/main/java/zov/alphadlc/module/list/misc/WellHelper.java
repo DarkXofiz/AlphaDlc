@@ -40,7 +40,7 @@ public class WellHelper extends Module {
       if (this.mc.player != null && this.mc.world != null) {
          if (e.getType() == EventPacket.Type.RECEIVE) {
             if (e.getPacket() instanceof GameMessageS2CPacket p && this.invseeElytraCheck.getValue()) {
-               String text = p.comp_763().getString();
+               String text = p.content().getString();
                if (text.toLowerCase().contains("\u0438\u0433\u0440\u043e\u043a\u0438 \u0440\u044f\u0434\u043e\u043c")) {
                   this.pendingPlayers.clear();
                   this.currentInvseePlayer = null;

@@ -859,7 +859,7 @@ public class Interface extends Module {
    private void onCooldownPacket(EventPacket e) {
       if (this.mc.player != null && e.getType() == EventPacket.Type.RECEIVE) {
          if (e.getPacket() instanceof CooldownUpdateS2CPacket c) {
-            Item item = (Item)Registries.ITEM.get(c.comp_3082());
+            Item item = (Item)Registries.ITEM.get(c.cooldownGroup());
             if (item == null || item == Items.AIR) {
                return;
             }
@@ -870,8 +870,8 @@ public class Interface extends Module {
                }
             }
 
-            if (c.comp_2199() != 0) {
-               long durMs = (long)c.comp_2199() * 50L;
+            if (c.cooldown() != 0) {
+               long durMs = (long)c.cooldown() * 50L;
                this.cooldownItems.add(new Interface.CooldownItem(item, System.currentTimeMillis() + durMs, durMs));
             }
          } else if (e.getPacket() instanceof PlayerRespawnS2CPacket) {
@@ -1400,7 +1400,7 @@ public class Interface extends Module {
                   PlayerListEntry playerEntry = this.mc.getNetworkHandler().getPlayerListEntry(staffxxx.name);
                   Identifier skinTexture;
                   if (playerEntry != null) {
-                     skinTexture = playerEntry.getSkinTextures().comp_1626();
+                     skinTexture = playerEntry.getSkinTextures().texture();
                   } else {
                      skinTexture = DefaultSkinHelper.getTexture();
                   }
@@ -1719,8 +1719,8 @@ public class Interface extends Module {
                      int sec = seconds % 60;
                      String timeStr = String.format("%d:%02d", minutes, sec);
                      String nameStr = itemxx.name;
-                     boolean isHarmful = !((StatusEffect)itemxx.effect.comp_349()).isBeneficial();
-                     String effectId = Registries.STATUS_EFFECT.getId((StatusEffect)itemxx.effect.comp_349()).getPath();
+                     boolean isHarmful = !((StatusEffect)itemxx.effect.value()).isBeneficial();
+                     String effectId = Registries.STATUS_EFFECT.getId((StatusEffect)itemxx.effect.value()).getPath();
                      boolean isNightVision = effectId.equals("night_vision");
                      int textAlpha = 255;
                      if (itemxx.durationTicks <= 200 && itemxx.durationTicks > 0 && !isNightVision) {
@@ -2636,7 +2636,7 @@ public class Interface extends Module {
    private Identifier getEntityFaceTexture(LivingEntity entity, AbstractClientPlayerEntity player) {
       try {
          if (player != null) {
-            return player.getSkinTextures().comp_1626();
+            return player.getSkinTextures().texture();
          }
 
          if (this.mc.getEntityRenderDispatcher().getRenderer(entity) instanceof LivingEntityRenderer renderer) {

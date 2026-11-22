@@ -18,8 +18,8 @@ public abstract class KeyboardInputMixin extends Input {
    private void onTick(CallbackInfo ci) {
       float forward = this.movementForward;
       float strafe = this.movementSideways;
-      boolean jump = ((KeyboardInput)this).playerInput.comp_3163();
-      boolean sneak = ((KeyboardInput)this).playerInput.comp_3164();
+      boolean jump = ((KeyboardInput)((net.minecraft.client.input.KeyboardInput) (Object) this)).playerInput.jump();
+      boolean sneak = ((KeyboardInput)((net.minecraft.client.input.KeyboardInput) (Object) this)).playerInput.sneak();
       MoveInputEvent event = new MoveInputEvent(forward, strafe, jump, sneak, 0.3);
       event.post();
       if (event.isCancelled()) {
@@ -28,14 +28,14 @@ public abstract class KeyboardInputMixin extends Input {
       } else {
          this.movementForward = event.getForward();
          this.movementSideways = event.getStrafe();
-         ((KeyboardInput)this).playerInput = new PlayerInput(
+         ((KeyboardInput)((net.minecraft.client.input.KeyboardInput) (Object) this)).playerInput = new PlayerInput(
             event.getForward() > 0.0F,
             event.getForward() < 0.0F,
             event.getStrafe() > 0.0F,
             event.getStrafe() < 0.0F,
             event.isJump(),
             event.isSneaking(),
-            ((KeyboardInput)this).playerInput.comp_3165()
+            ((KeyboardInput)((net.minecraft.client.input.KeyboardInput) (Object) this)).playerInput.sprint()
          );
       }
    }

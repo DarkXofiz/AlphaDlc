@@ -24,7 +24,7 @@ public class ParseTextUtil implements IMinecraft {
       TextContent content = text.getContent();
       String raw = "";
       if (content instanceof Literal literal) {
-         raw = literal.comp_737();
+         raw = literal.string();
       } else if (content instanceof TranslatableTextContent translatable) {
          raw = translatable.getKey();
       } else if (content instanceof KeybindTextContent keybind) {

@@ -72,7 +72,7 @@ public record BuiltMutableText(
    private static String extractContent(Text text) {
       TextContent content = text.getContent();
       if (content instanceof Literal literal) {
-         return literal.comp_737();
+         return literal.string();
       } else if (content instanceof TranslatableTextContent translatable) {
          return translatable.getKey();
       } else {

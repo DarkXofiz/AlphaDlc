@@ -42,7 +42,7 @@ public abstract class FireworkRocketEntityMixin {
       if (mc.player != null && mc.world != null && mc.player.isGliding()) {
          if (this.shooter != mc.player) {
             if (!this.hasActiveOwnFirework()) {
-               FireworkRocketEntity self = (FireworkRocketEntity)this;
+               FireworkRocketEntity self = (FireworkRocketEntity)((net.minecraft.entity.projectile.FireworkRocketEntity) (Object) this);
                Vec3d fireworkPos = self.getPos();
                Vec3d playerPos = mc.player.getPos();
                double distance = fireworkPos.distanceTo(playerPos);

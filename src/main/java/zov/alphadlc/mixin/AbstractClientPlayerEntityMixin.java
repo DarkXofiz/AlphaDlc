@@ -20,9 +20,9 @@ public class AbstractClientPlayerEntityMixin {
    )
    private void onGetSkinTextures(CallbackInfoReturnable<SkinTextures> cir) {
       Cape capeModule = Cape.getInstance();
-      if (capeModule != null && capeModule.shouldRenderCape((AbstractClientPlayerEntity)this)) {
+      if (capeModule != null && capeModule.shouldRenderCape((AbstractClientPlayerEntity)((net.minecraft.client.network.AbstractClientPlayerEntity) (Object) this))) {
          SkinTextures original = (SkinTextures)cir.getReturnValue();
-         cir.setReturnValue(new SkinTextures(original.comp_1626(), original.comp_1911(), CUSTOM_CAPE, CUSTOM_CAPE, original.comp_1629(), original.comp_1630()));
+         cir.setReturnValue(new SkinTextures(original.texture(), original.textureUrl(), CUSTOM_CAPE, CUSTOM_CAPE, original.model(), original.secure()));
       }
    }
 }
