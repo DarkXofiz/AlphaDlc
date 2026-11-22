@@ -40,7 +40,7 @@ Note: Some messages have been simplified; recompile with -Xdiags:verbose to get 
 > Task :remapSourcesJar SKIPPED
 > Task :processTestResources NO-SOURCE
 > Task :validateAccessWidener
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1795349140072.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/build-1795365027981.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/AlphaDlc/AlphaDlc/build/reports/problems/problems-report.html
 
@@ -75,5 +75,5 @@ Execution failed for task ':compileJava'.
 > Check your code and dependencies to fix the compilation error(s)
 > Run with --scan to get full insights.
 
-BUILD FAILED in 25s
+BUILD FAILED in 20s
 4 actionable tasks: 4 executed

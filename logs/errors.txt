@@ -3,4 +3,4 @@
 > Task :compileJava FAILED
   Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full outputNote: Recompile with -Xlint:deprecation for details.Note: Recompile with -Xlint:unchecked for details./home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/hud/Interface.java:2140: error: local variables referenced from a lambda expression must be final or effectively final
                                                                                                           ^Note: Some input files use unchecked or unsafe operations./home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:124: error: incompatible types: HeldItemRenderer cannot be converted to HeldItemRendererAccessor
-BUILD FAILED in 25s
+BUILD FAILED in 20s
