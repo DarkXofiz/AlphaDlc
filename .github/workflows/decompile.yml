@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - "input/*.jar"
+      - ".github/workflows/decompile.yml"
 
 permissions:
   contents: write
@@ -22,30 +23,42 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Download Vineflower
+      - name: Download tools
         run: |
-          curl -L -o vineflower.jar \
-            https://github.com/Vineflower/vineflower/releases/download/1.10.1/vineflower-1.10.1.jar
+          curl -fL -o vineflower.jar https://github.com/Vineflower/vineflower/releases/download/1.10.1/vineflower-1.10.1.jar
+          curl -fL -o tiny-remapper.jar https://maven.fabricmc.net/net/fabricmc/tiny-remapper/0.10.4/tiny-remapper-0.10.4-fat.jar
+          curl -fL -o yarn.jar "https://maven.fabricmc.net/net/fabricmc/yarn/1.21.4%2Bbuild.8/yarn-1.21.4%2Bbuild.8-v2.jar"
+          mkdir -p work
+          unzip -p yarn.jar mappings/mappings.tiny > work/yarn.tiny
+
+      - name: Remap intermediary to yarn
+        run: |
+          mkdir -p work/remapped
+          JAR=$(ls input/*.jar | head -n 1)
+          java -jar tiny-remapper.jar "$JAR" work/remapped/mod.jar work/yarn.tiny intermediary named
+          ls -l work/remapped
 
       - name: Decompile
         run: |
-          rm -rf work src libs
-          mkdir -p work/out src/main/java src/main/resources libs
-          for jar in input/*.jar; do
-            java -jar vineflower.jar -dgs=1 -asc=1 -rsy=1 "$jar" work/out/
-          done
-          for out in work/out/*.jar; do
-            [ -e "$out" ] && unzip -q -o "$out" -d src/main/java
-          done
-          for jar in input/*.jar; do
-            unzip -q -o "$jar" -x "*.class" "META-INF/jars/*" "META-INF/MANIFEST.MF" -d src/main/resources
-            unzip -q -o "$jar" "META-INF/jars/*" -d work/nested || true
-          done
-          cp work/nested/META-INF/jars/*.jar libs/ 2>/dev/null || true
-          rm -rf work
+          rm -rf src libs
+          mkdir -p work/classes src/main/java src/main/resources libs
+          unzip -q -o work/remapped/mod.jar "*.class" -d work/classes
+          find work/classes -name "*.class" | wc -l
+          java -Xmx4g -jar vineflower.jar -dgs=1 -asc=1 -rsy=1 work/classes src/main/java/
+          COUNT=$(find src/main/java -name "*.java" | wc -l)
+          echo "Java dosya sayisi: $COUNT"
+          if [ "$COUNT" -lt 100 ]; then echo "Decompile basarisiz"; exit 1; fi
+
+      - name: Extract resources and libs
+        run: |
+          JAR=$(ls input/*.jar | head -n 1)
+          unzip -q -o "$JAR" -x "*.class" "META-INF/jars/*" "META-INF/MANIFEST.MF" "alphadlc-refmap.json" -d src/main/resources
+          unzip -q -o "$JAR" "META-INF/jars/*" -d work/nested
+          cp work/nested/META-INF/jars/*.jar libs/
 
       - name: Commit sources
         run: |
+          rm -rf work
           git config user.name "decompile-bot"
           git config user.email "decompile-bot@users.noreply.github.com"
           git add -A src libs
