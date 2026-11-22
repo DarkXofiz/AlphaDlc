@@ -20,18 +20,9 @@ Fabric Loom: 1.10.5
 /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:179: warning: @Overwrite is missing javadoc comment
    public void renderItem(float tickDelta, MatrixStack matrices, Immediate vertexConsumers, ClientPlayerEntity player, int light) {
                ^
-/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/commands/defaults/AICommand.java:85: error: variable modelName is already defined in method execute(String,IArgConsumer)
-               String modelName = args.getString();
-                      ^
-/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/render/ambience/SkyShaderRenderer.java:84: error: variable shader is already defined in method render(Ambience)
-            ShaderProgram shader = RenderSystem.setShader(key);
-                          ^
-/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/KillEffect.java:102: error: variable player is already defined in method onTotemPop(EventPopTotem)
-         PlayerEntity player = event.getPlayer();
-                      ^
-/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/KillEffect.java:161: error: variable size is already defined in method playKillEffect(Entity)
-            float size = this.effect.is("Smash") ? 2.4F : (this.effect.is("Flash") ? 1.8F : 1.25F);
-                  ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/hud/Interface.java:2140: error: local variables referenced from a lambda expression must be final or effectively final
+         Optional<Interface.Staff> existingStaff = this.staffPlayers.stream().filter(s -> s.name.equals(name)).findFirst();
+                                                                                                        ^
 /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:124: error: incompatible types: HeldItemRenderer cannot be converted to HeldItemRendererAccessor
          hmi.renderHMI((HeldItemRenderer)((net.minecraft.client.render.item.HeldItemRenderer) (Object) this), ((net.minecraft.client.render.item.HeldItemRenderer) (Object) this), player, tickDelta, pitch, hand, swingProgress, item, equipProgress, matrices, vertexConsumers, light);
                                                                                                                ^
@@ -40,7 +31,7 @@ Note: Recompile with -Xlint:deprecation for details.
 Note: Some input files use unchecked or unsafe operations.
 Note: Recompile with -Xlint:unchecked for details.
 Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
-5 errors
+2 errors
 5 warnings
 
 > Task :compileJava FAILED
@@ -49,7 +40,7 @@ Note: Some messages have been simplified; recompile with -Xdiags:verbose to get 
 > Task :remapSourcesJar SKIPPED
 > Task :processTestResources NO-SOURCE
 > Task :validateAccessWidener
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1795348925270.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1795349140072.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/AlphaDlc/AlphaDlc/build/reports/problems/problems-report.html
 
@@ -58,7 +49,9 @@ FAILURE: Build failed with an exception.
 * What went wrong:
 Execution failed for task ':compileJava'.
 > Compilation failed; see the compiler output below.
-  Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full outputNote: Recompile with -Xlint:deprecation for details.Note: Recompile with -Xlint:unchecked for details.Note: Some input files use unchecked or unsafe operations./home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:124: error: incompatible types: HeldItemRenderer cannot be converted to HeldItemRendererAccessor
+  Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full outputNote: Recompile with -Xlint:deprecation for details.Note: Recompile with -Xlint:unchecked for details./home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/hud/Interface.java:2140: error: local variables referenced from a lambda expression must be final or effectively final
+           Optional<Interface.Staff> existingStaff = this.staffPlayers.stream().filter(s -> s.name.equals(name)).findFirst();
+                                                                                                          ^Note: Some input files use unchecked or unsafe operations./home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:124: error: incompatible types: HeldItemRenderer cannot be converted to HeldItemRendererAccessor
            hmi.renderHMI((HeldItemRenderer)((net.minecraft.client.render.item.HeldItemRenderer) (Object) this), ((net.minecraft.client.render.item.HeldItemRenderer) (Object) this), player, tickDelta, pitch, hand, swingProgress, item, equipProgress, matrices, vertexConsumers, light);
                                                                                                                  ^/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/DeltaTrackerTimerMixin.java:11: warning: Unable to determine descriptor for @ModifyExpressionValue target method
      @ModifyExpressionValue(
@@ -74,24 +67,13 @@ Execution failed for task ':compileJava'.
                  ^
   /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:179: warning: @Overwrite is missing javadoc comment
      public void renderItem(float tickDelta, MatrixStack matrices, Immediate vertexConsumers, ClientPlayerEntity player, int light) {
-                 ^Note: Some input files use or override a deprecated API./home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/commands/defaults/AICommand.java:85: error: variable modelName is already defined in method execute(String,IArgConsumer)
-                 String modelName = args.getString();
-                        ^
-  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/render/ambience/SkyShaderRenderer.java:84: error: variable shader is already defined in method render(Ambience)
-              ShaderProgram shader = RenderSystem.setShader(key);
-                            ^
-  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/KillEffect.java:102: error: variable player is already defined in method onTotemPop(EventPopTotem)
-           PlayerEntity player = event.getPlayer();
-                        ^
-  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/KillEffect.java:161: error: variable size is already defined in method playKillEffect(Entity)
-              float size = this.effect.is("Smash") ? 2.4F : (this.effect.is("Flash") ? 1.8F : 1.25F);
-                    ^
-  5 errors
+                 ^Note: Some input files use or override a deprecated API.
+  2 errors
   5 warnings
 
 * Try:
 > Check your code and dependencies to fix the compilation error(s)
 > Run with --scan to get full insights.
 
-BUILD FAILED in 26s
+BUILD FAILED in 25s
 4 actionable tasks: 4 executed

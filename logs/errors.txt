@@ -1,12 +1,6 @@
-/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/commands/defaults/AICommand.java:85: error: variable modelName is already defined in method execute(String,IArgConsumer)
-/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/render/ambience/SkyShaderRenderer.java:84: error: variable shader is already defined in method render(Ambience)
-/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/KillEffect.java:102: error: variable player is already defined in method onTotemPop(EventPopTotem)
-/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/KillEffect.java:161: error: variable size is already defined in method playKillEffect(Entity)
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/hud/Interface.java:2140: error: local variables referenced from a lambda expression must be final or effectively final
 /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:124: error: incompatible types: HeldItemRenderer cannot be converted to HeldItemRendererAccessor
 > Task :compileJava FAILED
-  Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full outputNote: Recompile with -Xlint:deprecation for details.Note: Recompile with -Xlint:unchecked for details.Note: Some input files use unchecked or unsafe operations./home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:124: error: incompatible types: HeldItemRenderer cannot be converted to HeldItemRendererAccessor
-                 ^Note: Some input files use or override a deprecated API./home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/commands/defaults/AICommand.java:85: error: variable modelName is already defined in method execute(String,IArgConsumer)
-  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/render/ambience/SkyShaderRenderer.java:84: error: variable shader is already defined in method render(Ambience)
-  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/KillEffect.java:102: error: variable player is already defined in method onTotemPop(EventPopTotem)
-  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/KillEffect.java:161: error: variable size is already defined in method playKillEffect(Entity)
-BUILD FAILED in 26s
+  Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full outputNote: Recompile with -Xlint:deprecation for details.Note: Recompile with -Xlint:unchecked for details./home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/hud/Interface.java:2140: error: local variables referenced from a lambda expression must be final or effectively final
+                                                                                                          ^Note: Some input files use unchecked or unsafe operations./home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:124: error: incompatible types: HeldItemRenderer cannot be converted to HeldItemRendererAccessor
+BUILD FAILED in 25s
