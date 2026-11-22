@@ -1,0 +1,53 @@
+name: Decompile Jar
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "input/*.jar"
+
+permissions:
+  contents: write
+
+jobs:
+  decompile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Download Vineflower
+        run: |
+          curl -L -o vineflower.jar \
+            https://github.com/Vineflower/vineflower/releases/download/1.10.1/vineflower-1.10.1.jar
+
+      - name: Decompile
+        run: |
+          rm -rf work src libs
+          mkdir -p work/out src/main/java src/main/resources libs
+          for jar in input/*.jar; do
+            java -jar vineflower.jar -dgs=1 -asc=1 -rsy=1 "$jar" work/out/
+          done
+          for out in work/out/*.jar; do
+            [ -e "$out" ] && unzip -q -o "$out" -d src/main/java
+          done
+          for jar in input/*.jar; do
+            unzip -q -o "$jar" -x "*.class" "META-INF/jars/*" "META-INF/MANIFEST.MF" -d src/main/resources
+            unzip -q -o "$jar" "META-INF/jars/*" -d work/nested || true
+          done
+          cp work/nested/META-INF/jars/*.jar libs/ 2>/dev/null || true
+          rm -rf work
+
+      - name: Commit sources
+        run: |
+          git config user.name "decompile-bot"
+          git config user.email "decompile-bot@users.noreply.github.com"
+          git add -A src libs
+          git diff --cached --quiet || git commit -m "Decompiled sources from jar"
+          git push
