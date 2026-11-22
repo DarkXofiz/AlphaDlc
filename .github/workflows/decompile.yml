@@ -7,6 +7,7 @@ on:
       - "input/*.jar"
       - ".github/workflows/decompile.yml"
       - "scripts/convert_aw.py"
+      - "scripts/fix_names.py"
 
 permissions:
   contents: write
@@ -49,6 +50,9 @@ jobs:
           COUNT=$(find src/main/java -name "*.java" | wc -l)
           echo "Java dosya sayisi: $COUNT"
           if [ "$COUNT" -lt 100 ]; then echo "Decompile basarisiz"; exit 1; fi
+
+      - name: Fix leftover intermediary names
+        run: python3 scripts/fix_names.py work/yarn.tiny src/main/java
 
       - name: Extract resources and libs
         run: |
