@@ -5,15 +5,13 @@ on:
   workflow_run:
     workflows: ["Decompile Jar"]
     types: [completed]
-  push:
-    paths:
-      - "src/**"
-      - "build.gradle"
-      - "gradle.properties"
-      - "settings.gradle"
 
 permissions:
   contents: write
+
+concurrency:
+  group: build
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -42,15 +40,19 @@ jobs:
 
       - name: Commit build log
         run: |
-          mkdir -p logs
-          cp build.log logs/build.log
-          grep -E "error:|warning: \[|FAILED|BUILD" build.log | head -n 300 > logs/errors.txt || true
+          mkdir -p /tmp/logs
+          cp build.log /tmp/logs/build.log
+          grep -E "error:|FAILED|BUILD" build.log | head -n 400 > /tmp/logs/errors.txt || true
           git config user.name "build-bot"
           git config user.email "build-bot@users.noreply.github.com"
+          git fetch origin main
+          git reset --hard origin/main
+          mkdir -p logs
+          cp /tmp/logs/build.log logs/build.log
+          cp /tmp/logs/errors.txt logs/errors.txt
           git add -f logs
           git diff --cached --quiet || git commit -m "Build log"
-          git pull --rebase origin main || true
-          git push
+          git push origin HEAD:main
 
       - name: Upload jar
         uses: actions/upload-artifact@v4
