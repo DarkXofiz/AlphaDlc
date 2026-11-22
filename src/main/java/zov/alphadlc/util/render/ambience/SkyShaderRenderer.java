@@ -72,9 +72,9 @@ public final class SkyShaderRenderer {
          }
 
          if (c != null) {
-            String shader = c.mode;
+            String shaderName = c.mode;
 
-            ShaderProgramKey key = switch (shader) {
+            ShaderProgramKey key = switch (shaderName) {
                case "Aurora" -> AURORA;
                case "Nebula" -> NEBULA;
                case "Matrix" -> MATRIX;

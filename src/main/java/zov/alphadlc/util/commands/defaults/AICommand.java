@@ -82,9 +82,9 @@ public class AICommand extends Command {
                }
 
                String datasetName = args.getString();
-               String modelName = args.getString();
+               String trainModelName = args.getString();
                ChatUtil.send("\u00a77\u041d\u0430\u0447\u0438\u043d\u0430\u044e \u043e\u0431\u0443\u0447\u0435\u043d\u0438\u0435...");
-               new Thread(() -> AIRotationManager.trainModel(datasetName, modelName)).start();
+               new Thread(() -> AIRotationManager.trainModel(datasetName, trainModelName)).start();
                break;
             case "list":
                AIRotationManager.listFiles();

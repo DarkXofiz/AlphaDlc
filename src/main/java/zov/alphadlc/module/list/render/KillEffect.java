@@ -92,9 +92,9 @@ public class KillEffect extends Module {
    @Subscribe
    private void onTotemPop(EventPopTotem event) {
       if (!this.totemEffect.is("Off") && event.getPlayer() != null) {
-         String player = this.totemEffect.getValue();
+         String totemMode = this.totemEffect.getValue();
 
-         String name = switch (player) {
+         String name = switch (totemMode) {
             case "Revive Spark" -> "revive_spark";
             case "Shield Wave" -> "shield_wave";
             default -> "revive";
@@ -145,9 +145,9 @@ public class KillEffect extends Module {
          double z = entity.getZ();
          double centerY = y + (double)(entity.getHeight() / 2.0F);
          double height = (double)entity.getHeight();
-         String size = this.effect.getValue();
+         String effectName = this.effect.getValue();
 
-         String masEffect = switch (size) {
+         String masEffect = switch (effectName) {
             case "Death Skull" -> "death_skull";
             case "Death Spark" -> "death_spark";
             case "Diamond Scrap" -> "diamond_scrap";
@@ -161,8 +161,8 @@ public class KillEffect extends Module {
             float size = this.effect.is("Smash") ? 2.4F : (this.effect.is("Flash") ? 1.8F : 1.25F);
             this.activeMasEffects.add(new KillEffect.MasInstance(masEffect, new Vec3d(x, centerY, z), System.currentTimeMillis(), 850L, size));
          } else {
-            size = this.effect.getValue();
-            switch (size) {
+            effectName = this.effect.getValue();
+            switch (effectName) {
                case "Lightning":
                   this.playLightning(x, y, z);
                   break;
