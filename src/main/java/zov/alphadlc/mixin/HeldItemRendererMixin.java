@@ -121,7 +121,7 @@ public abstract class HeldItemRendererMixin implements HeldItemRendererAccessor 
       SwingAnimations swingAnimation = Instance.get(SwingAnimations.class);
       if (swingAnimation != null && swingAnimation.isEnabled() && swingAnimation.isHMI()) {
          HMIRenderer hmi = swingAnimation.getHMIRenderer();
-         hmi.renderHMI((HeldItemRenderer)((net.minecraft.client.render.item.HeldItemRenderer) (Object) this), ((net.minecraft.client.render.item.HeldItemRenderer) (Object) this), player, tickDelta, pitch, hand, swingProgress, item, equipProgress, matrices, vertexConsumers, light);
+         hmi.renderHMI((HeldItemRenderer)((zov.alphadlc.module.list.render.HeldItemRendererAccessor) (Object) this), ((zov.alphadlc.module.list.render.HeldItemRendererAccessor) (Object) this), player, tickDelta, pitch, hand, swingProgress, item, equipProgress, matrices, vertexConsumers, light);
          ci.cancel();
       }
    }

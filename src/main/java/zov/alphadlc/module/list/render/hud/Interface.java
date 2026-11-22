@@ -2137,7 +2137,8 @@ public class Interface extends Module {
             }
          }
 
-         Optional<Interface.Staff> existingStaff = this.staffPlayers.stream().filter(s -> s.name.equals(name)).findFirst();
+         final String lambdaName = name;
+         Optional<Interface.Staff> existingStaff = this.staffPlayers.stream().filter(s -> s.name.equals(lambdaName)).findFirst();
          Interface.Status status = vanish ? Interface.Status.VANISHED : (isGM3 ? Interface.Status.VANISHED : Interface.Status.NONE);
          if (existingStaff.isPresent()) {
             Interface.Staff s = existingStaff.get();
