@@ -6,6 +6,7 @@ on:
     paths:
       - "input/*.jar"
       - ".github/workflows/decompile.yml"
+      - "scripts/convert_aw.py"
 
 permissions:
   contents: write
@@ -55,6 +56,9 @@ jobs:
           unzip -q -o "$JAR" -x "*.class" "META-INF/jars/*" "META-INF/MANIFEST.MF" "alphadlc-refmap.json" -d src/main/resources
           unzip -q -o "$JAR" "META-INF/jars/*" -d work/nested
           cp work/nested/META-INF/jars/*.jar libs/
+
+      - name: Convert access widener to named
+        run: python3 scripts/convert_aw.py work/yarn.tiny src/main/resources/alphadlc.accesswidener
 
       - name: Commit sources
         run: |
