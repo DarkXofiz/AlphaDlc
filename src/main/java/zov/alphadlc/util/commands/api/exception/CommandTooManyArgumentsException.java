@@ -1,0 +1,18 @@
+package zov.alphadlc.util.commands.api.exception;
+
+public class CommandTooManyArgumentsException extends CommandErrorMessageException {
+   public CommandTooManyArgumentsException(int maxArgs) {
+      super(
+         String.format(
+            maxArgs == 1
+               ? "\u0421\u043b\u0438\u0448\u043a\u043e\u043c \u043c\u043d\u043e\u0433\u043e \u0430\u0440\u0433\u0443\u043c\u0435\u043d\u0442\u043e\u0432, \u043c\u0430\u043a\u0441\u0438\u043c\u0443\u043c %d \u0430\u0440\u0433\u0443\u043c\u0435\u043d\u0442"
+               : (
+                  maxArgs > 4
+                     ? "\u0421\u043b\u0438\u0448\u043a\u043e\u043c \u043c\u043d\u043e\u0433\u043e \u0430\u0440\u0433\u0443\u043c\u0435\u043d\u0442\u043e\u0432, \u043c\u0430\u043a\u0441\u0438\u043c\u0443\u043c %d \u0430\u0440\u0433\u0443\u043c\u0435\u043d\u0442\u043e\u0432"
+                     : "\u0421\u043b\u0438\u0448\u043a\u043e\u043c \u043c\u043d\u043e\u0433\u043e \u0430\u0440\u0433\u0443\u043c\u0435\u043d\u0442\u043e\u0432, \u043c\u0430\u043a\u0441\u0438\u043c\u0443\u043c %d \u0430\u0440\u0433\u0443\u043c\u0435\u043d\u0442\u0430"
+               ),
+            maxArgs
+         )
+      );
+   }
+}

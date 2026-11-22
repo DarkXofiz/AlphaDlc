@@ -1,0 +1,109 @@
+package zov.alphadlc.module.list.movement;
+
+import com.google.common.eventbus.Subscribe;
+import net.minecraft.util.math.Vec3d;
+import zov.alphadlc.event.list.EventCobweb;
+import zov.alphadlc.module.Module;
+import zov.alphadlc.module.ModuleCategory;
+import zov.alphadlc.module.ModuleInformation;
+import zov.alphadlc.util.player.move.MoveUtil;
+
+@ModuleInformation(
+   moduleName = "No Web",
+   moduleDesc = "\u041e\u0442\u043c\u0435\u043d\u044f\u0435\u0442 \u0437\u0430\u043c\u0435\u0434\u043b\u0435\u043d\u0438\u0435 \u0432 \u043f\u0430\u0443\u0442\u0438\u043d\u0435",
+   moduleCategory = ModuleCategory.MOVEMENT
+)
+public class NoWeb extends Module {
+   @Subscribe
+   private void onCobweb(EventCobweb e) {
+      Vec3d velocity = this.mc.field_1724.method_18798();
+      float yaw = this.mc.field_1724.method_36454();
+      double forward = 0.0;
+      double strafe = 0.0;
+      if (this.mc.field_1724.field_3913.field_54155.comp_3159()) {
+         forward++;
+      }
+
+      if (this.mc.field_1724.field_3913.field_54155.comp_3160()) {
+         forward--;
+      }
+
+      if (this.mc.field_1724.field_3913.field_54155.comp_3161()) {
+         strafe++;
+      }
+
+      if (this.mc.field_1724.field_3913.field_54155.comp_3162()) {
+         strafe--;
+      }
+
+      if (forward != 0.0 || strafe != 0.0) {
+         if (forward != 0.0) {
+            if (strafe > 0.0) {
+               yaw += (float)(forward > 0.0 ? -45 : 45);
+            } else if (strafe < 0.0) {
+               yaw += (float)(forward > 0.0 ? 45 : -45);
+            }
+
+            strafe = 0.0;
+            if (forward > 0.0) {
+               forward = 1.0;
+            } else {
+               forward = -1.0;
+            }
+         }
+
+         double movementYaw = Math.toDegrees(Math.atan2(strafe, forward)) + (double)yaw;
+         yaw = (float)((movementYaw % 360.0 + 360.0) % 360.0);
+      }
+
+      float result = 0.2F;
+      if ((!(yaw >= 313.0F) || !(yaw <= 317.0F))
+         && (!(yaw >= 223.0F) || !(yaw <= 227.0F))
+         && (!(yaw >= 133.0F) || !(yaw <= 137.0F))
+         && (!(yaw >= 43.0F) || !(yaw <= 47.0F))) {
+         if ((!(yaw >= 311.0F) || !(yaw <= 319.0F))
+            && (!(yaw >= 221.0F) || !(yaw <= 229.0F))
+            && (!(yaw >= 131.0F) || !(yaw <= 139.0F))
+            && (!(yaw >= 41.0F) || !(yaw <= 49.0F))) {
+            if ((!(yaw >= 310.8F) || !(yaw <= 320.8F))
+               && (!(yaw >= 220.8F) || !(yaw <= 230.8F))
+               && (!(yaw >= 130.8F) || !(yaw <= 140.8F))
+               && (!(yaw >= 40.8F) || !(yaw <= 50.8F))) {
+               if ((!(yaw >= 308.7F) || !(yaw <= 322.7F))
+                  && (!(yaw >= 218.7F) || !(yaw <= 232.7F))
+                  && (!(yaw >= 128.7F) || !(yaw <= 142.7F))
+                  && (!(yaw >= 38.7F) || !(yaw <= 52.7F))) {
+                  if ((!(yaw >= 306.5F) || !(yaw <= 324.5F))
+                     && (!(yaw >= 216.5F) || !(yaw <= 234.5F))
+                     && (!(yaw >= 126.5F) || !(yaw <= 144.5F))
+                     && (!(yaw >= 36.5F) || !(yaw <= 54.5F))) {
+                     if (yaw >= 304.0F && yaw <= 327.0F || yaw >= 214.0F && yaw <= 237.0F || yaw >= 124.0F && yaw <= 147.0F || yaw >= 34.0F && yaw <= 57.0F) {
+                        result = 0.255F;
+                     }
+                  } else {
+                     result = 0.268F;
+                  }
+               } else {
+                  result = 0.275F;
+               }
+            } else {
+               result = 0.284F;
+            }
+         } else {
+            result = 0.292F;
+         }
+      } else {
+         result = 0.295F;
+      }
+
+      if (this.mc.field_1690.field_1903.method_1434()) {
+         this.mc.field_1724.method_18800(velocity.field_1352, 1.219F, velocity.field_1350);
+      } else if (this.mc.field_1690.field_1832.method_1434()) {
+         this.mc.field_1724.method_18800(velocity.field_1352, this.mc.field_1724.method_6128() ? -1.5 : -3.5, velocity.field_1350);
+      } else {
+         this.mc.field_1724.method_18800(velocity.field_1352, 0.0, velocity.field_1350);
+      }
+
+      MoveUtil.setMotion((double)result);
+   }
+}
