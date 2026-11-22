@@ -41,6 +41,28 @@ REPLACES = [
      "net.minecraft.client.render.entity.model.PlayerEntityModel>) (Object) entityRenderer)"),
 ]
 
+
+# Decompiler'in ayni isimle urettigi ve derlenmeyen degiskenler icin yeniden adlandirma.
+# (dosya, [(regex, yeni metin)])
+RENAMES = [
+    ("zov/alphadlc/util/commands/defaults/AICommand.java", [
+        (r"(String datasetName = args\.getString\(\);\s*)String modelName = args\.getString\(\);",
+         r"\1String trainModelName = args.getString();"),
+        (r"trainModel\(datasetName, modelName\)", "trainModel(datasetName, trainModelName)"),
+    ]),
+    ("zov/alphadlc/util/render/ambience/SkyShaderRenderer.java", [
+        (r"String shader = c\.mode;", "String shaderName = c.mode;"),
+        (r"switch \(shader\) \{(\s*case \"Aurora\")", r"switch (shaderName) {\1"),
+    ]),
+    ("zov/alphadlc/module/list/render/KillEffect.java", [
+        (r"String player = this\.totemEffect\.getValue\(\);", "String totemMode = this.totemEffect.getValue();"),
+        (r"String name = switch \(player\) \{", "String name = switch (totemMode) {"),
+        (r"String size = this\.effect\.getValue\(\);", "String effectName = this.effect.getValue();"),
+        (r"(?<![A-Za-z_] )(?<!float )\bsize = this\.effect\.getValue\(\);", "effectName = this.effect.getValue();"),
+        (r"switch \(size\) \{", "switch (effectName) {"),
+    ]),
+]
+
 BARE_THIS = re.compile(r"\bthis\b(?!\s*\.)")
 
 
@@ -95,6 +117,22 @@ def main():
             continue
         lines[line_no - 1] = line.replace(old, new, 1)
         applied += 1
+
+
+    for rel, rules in RENAMES:
+        p = os.path.join(root, rel)
+        if not os.path.exists(p):
+            skipped.append((rel, 0, "dosya yok"))
+            continue
+        with open(p, encoding="utf-8") as f:
+            text = f.read()
+        for pattern, repl in rules:
+            new_text, n = re.subn(pattern, repl, text)
+            if n:
+                text = new_text
+                applied += n
+        with open(p, "w", encoding="utf-8") as f:
+            f.write(text)
 
     for p, lines in cache.items():
         write_lines(p, lines)
