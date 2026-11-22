@@ -12,6 +12,9 @@ on:
       - "gradle.properties"
       - "settings.gradle"
 
+permissions:
+  contents: write
+
 jobs:
   build:
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
@@ -37,15 +40,21 @@ jobs:
         continue-on-error: true
         run: gradle build --continue --console=plain 2>&1 | tee build.log
 
-      - name: Upload build log
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-log
-          path: build.log
+      - name: Commit build log
+        run: |
+          mkdir -p logs
+          cp build.log logs/build.log
+          grep -E "error:|warning: \[|FAILED|BUILD" build.log | head -n 300 > logs/errors.txt || true
+          git config user.name "build-bot"
+          git config user.email "build-bot@users.noreply.github.com"
+          git add -f logs
+          git diff --cached --quiet || git commit -m "Build log"
+          git pull --rebase origin main || true
+          git push
 
       - name: Upload jar
         uses: actions/upload-artifact@v4
         with:
-          name: alphadlc-jar
-          path: build/libs/*.jar
-          if-no-files-found: ignore
+          name: alphadlc-0_0_9
+          path: build/libs/alphadlc-0_0_9.jar
+          if-no-files-found: error
