@@ -7,7 +7,7 @@ git rebase --abort 2>/dev/null || true
 git config user.name "DarkXofiz"
 git config user.email "ahmeetmuhammet78@gmail.com"
 git add -A
-git commit -m "Rename duplicate variables in AICommand, SkyShaderRenderer, KillEffect" || true
+git commit -m "Build error summary and log artifact" || true
 git remote remove origin 2>/dev/null || true
 git remote add origin "https://github.com/$GH_USER/$REPO.git"
 git fetch origin main

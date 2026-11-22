@@ -35,10 +35,38 @@ jobs:
           gradle-version: "8.12"
 
       - name: Build
+        id: build
         continue-on-error: true
         run: gradle build --continue --console=plain 2>&1 | tee build.log
 
+      - name: Error summary
+        if: always()
+        run: |
+          {
+            echo "## Derleme sonucu"
+            echo "Hata sayisi: $(grep -c 'error:' build.log || true)"
+            echo ""
+            echo "### Hata turleri"
+            echo '```'
+            grep 'error:' build.log | sed 's/^.*error: //' | sort | uniq -c | sort -rn | head -n 20 || true
+            echo '```'
+            echo ""
+            echo "### Ilk 40 hata"
+            echo '```'
+            grep 'error:' build.log | sed 's#.*/src/main/java/##' | head -n 40 || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+
       - name: Commit build log
+        if: always()
+        continue-on-error: true
         run: |
           mkdir -p /tmp/logs
           cp build.log /tmp/logs/build.log
