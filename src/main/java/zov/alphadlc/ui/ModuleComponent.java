@@ -77,6 +77,8 @@ public class ModuleComponent extends Component {
             case ColorSetting optionxxxxxxx:
                this.components.add(new ColorPickerComponent(optionxxxxxxx));
                break;
+            default:
+               break;
          }
       }
 
