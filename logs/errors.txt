@@ -1,0 +1,202 @@
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/AIRotationRecorder.java:6: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:4: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/AIRotationManager.java:18: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/ChatEvent.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/Module.java:6: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/render/math/Animation.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/render/math/Easing.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/friend/Friend.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/macro/Macro.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/macro/MacroRepository.java:19: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/AlphaDLC.java:6: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/ModuleStorage.java:7: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/staff/StaffManager.java:19: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/other/ServerManager.java:4: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/TPSGetter.java:6: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventKeyInput.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/StopWatch.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventAttack.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventPacket.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/staff/Staff.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/draggable/Draggable.java:4: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventHUD.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/text/BetterText.java:4: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/render/msdf/MsdfRenderer.java:5: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/settings/BooleanSetting.java:4: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/settings/SliderSetting.java:4: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventWorldRender.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/render/math/GCDFixer.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/server/Server.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/base/Instance.java:7: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/packet/NetworkUtils.java:5: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/PingGetter.java:4: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/CrystalDamageCalculator.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/Counter.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/RotationUtil.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/BestPoint.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/other/WorldUtils.java:5: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/other/SlownessManager.java:6: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/other/InventoryUtil.java:9: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/combat/RaytraceUtil.java:5: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/combat/PredictUtils.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/move/MoveUtil.java:4: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/move/VerticalTeleport.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/party/connection/PartyApiClient.java:18: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/FreeLookComponent.java:4: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/LookEvent.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/RotationEvent.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/RotationComponent.java:4: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventPreHUD.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventHandledScreen.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventRightClickBlock.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventObsidianPlace.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventPopTotem.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventChangeSprint.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventEntitySpawn.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/ui/ClickGuiFrame.java:7: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/ui/Panel.java:7: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/ui/ModuleComponent.java:6: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/ui/component/Component.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/Particles.java:7: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/combat/KillAura.java:6: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/combat/AutoExplosion.java:6: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/combat/AutoPotion.java:4: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/player/Panic.java:3: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/settings/ThemeSetting.java:5: error: package lombok does not exist
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/AIRotationRecorder.java:115: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:17: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:22: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:27: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:39: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:44: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:52: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:78: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:83: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:88: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:93: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:98: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:112: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:117: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:126: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:132: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:136: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:10: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:15: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:20: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:25: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:30: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:44: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:49: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:58: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:64: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:68: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/AIRotationManager.java:208: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/ChatEvent.java:9: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/ChatEvent.java:14: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/Module.java:100: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/Module.java:105: error: cannot find symbol
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/Module.java:110: error: cannot find symbol
+> Task :compileJava FAILED
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/AIRotationRecorder.java:6: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:4: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/AIRotationManager.java:18: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/ChatEvent.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/Module.java:6: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/render/math/Animation.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/render/math/Easing.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/friend/Friend.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/macro/Macro.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/macro/MacroRepository.java:19: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/AlphaDLC.java:6: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/ModuleStorage.java:7: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/staff/StaffManager.java:19: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/other/ServerManager.java:4: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/TPSGetter.java:6: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventKeyInput.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/StopWatch.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventAttack.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventPacket.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/staff/Staff.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/draggable/Draggable.java:4: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventHUD.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/text/BetterText.java:4: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/render/msdf/MsdfRenderer.java:5: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/settings/BooleanSetting.java:4: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/settings/SliderSetting.java:4: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventWorldRender.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/render/math/GCDFixer.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/server/Server.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/base/Instance.java:7: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/packet/NetworkUtils.java:5: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/PingGetter.java:4: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/CrystalDamageCalculator.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/Counter.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/RotationUtil.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/BestPoint.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/other/WorldUtils.java:5: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/other/SlownessManager.java:6: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/other/InventoryUtil.java:9: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/combat/RaytraceUtil.java:5: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/combat/PredictUtils.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/move/MoveUtil.java:4: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/move/VerticalTeleport.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/party/connection/PartyApiClient.java:18: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/FreeLookComponent.java:4: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/LookEvent.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/RotationEvent.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/RotationComponent.java:4: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventPreHUD.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventHandledScreen.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventRightClickBlock.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventObsidianPlace.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventPopTotem.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventChangeSprint.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventEntitySpawn.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/ui/ClickGuiFrame.java:7: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/ui/Panel.java:7: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/ui/ModuleComponent.java:6: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/ui/component/Component.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/Particles.java:7: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/combat/KillAura.java:6: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/combat/AutoExplosion.java:6: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/combat/AutoPotion.java:4: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/player/Panic.java:3: error: package lombok does not exist
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/settings/ThemeSetting.java:5: error: package lombok does not exist
+               ^/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/AIRotationRecorder.java:115: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:17: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:22: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:27: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:39: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:44: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:52: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:78: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:83: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:88: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:93: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:98: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:112: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:117: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:126: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:132: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:136: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:10: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:15: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:20: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:25: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:30: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:44: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:49: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:58: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:64: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:68: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/AIRotationManager.java:208: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/ChatEvent.java:9: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/ChatEvent.java:14: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/Module.java:100: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/Module.java:105: error: cannot find symbol
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/Module.java:110: error: cannot find symbol
+BUILD FAILED in 22s

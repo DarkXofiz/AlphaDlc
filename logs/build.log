@@ -1,0 +1,980 @@
+Starting a Gradle Daemon (subsequent builds will be faster)
+
+> Configure project :
+Fabric Loom: 1.10.5
+:remapping 50 mods from modImplementation (java-api)
+
+> Task :compileJava
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/DeltaTrackerTimerMixin.java:11: warning: Unable to determine descriptor for @ModifyExpressionValue target method
+   @ModifyExpressionValue(
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/DeltaTrackerTimerMixin.java:11: warning: Unable to locate method mapping for @At(INVOKE.<target>) 'Lit/unimi/dsi/fastutil/floats/FloatUnaryOperator;apply(F)F'
+   @ModifyExpressionValue(
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HandledScreenMixin.java:17: warning: Cannot find target for @Shadow field in net.minecraft.client.gui.screen.ingame.HandledScreen
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/FireworkRocketEntityMixin.java:20: warning: Cannot find target for @Shadow field in net.minecraft.entity.projectile.FireworkRocketEntity
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/LivingEntityRendererMixin.java:31: warning: Cannot find target for @Shadow method in net.minecraft.client.render.entity.LivingEntityRenderer
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/LivingEntityRendererMixin.java:36: warning: Cannot find target for @Shadow method in net.minecraft.client.render.entity.LivingEntityRenderer
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ChatInputSuggestorMixin.java:26: warning: Cannot find target for @Shadow field in net.minecraft.client.gui.screen.ChatInputSuggestor
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ChatInputSuggestorMixin.java:29: warning: Cannot find target for @Shadow field in net.minecraft.client.gui.screen.ChatInputSuggestor
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ChatInputSuggestorMixin.java:32: warning: Cannot find target for @Shadow field in net.minecraft.client.gui.screen.ChatInputSuggestor
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ChatInputSuggestorMixin.java:34: warning: Cannot find target for @Shadow field in net.minecraft.client.gui.screen.ChatInputSuggestor
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ChatInputSuggestorMixin.java:36: warning: Cannot find target for @Shadow field in net.minecraft.client.gui.screen.ChatInputSuggestor
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ChatInputSuggestorMixin.java:38: warning: Cannot find target for @Shadow field in net.minecraft.client.gui.screen.ChatInputSuggestor
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ClientPlayNetworkHandlerMixin.java:18: warning: Cannot find target for @Shadow field in net.minecraft.client.network.ClientPlayNetworkHandler
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ClientPlayerEntityMixin.java:31: warning: Cannot find target for @Shadow field in net.minecraft.client.network.ClientPlayerEntity
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ClientPlayerEntityMixin.java:34: warning: Cannot find target for @Shadow field in net.minecraft.client.network.ClientPlayerEntity
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ClientPlayerEntityMixin.java:37: warning: Cannot find target for @Shadow method in net.minecraft.client.network.ClientPlayerEntity
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/MouseMixin.java:19: warning: Cannot find target for @Shadow field in net.minecraft.client.Mouse
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/MouseMixin.java:22: warning: Cannot find target for @Shadow field in net.minecraft.client.Mouse
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/MouseMixin.java:24: warning: Cannot find target for @Shadow field in net.minecraft.client.Mouse
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/MouseMixin.java:27: warning: Cannot find target for @Shadow field in net.minecraft.client.Mouse
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/MouseMixin.java:30: warning: Cannot find target for @Shadow field in net.minecraft.client.Mouse
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:38: warning: Cannot find target for @Shadow field in net.minecraft.client.render.item.HeldItemRenderer
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:40: warning: Cannot find target for @Shadow field in net.minecraft.client.render.item.HeldItemRenderer
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:42: warning: Cannot find target for @Shadow field in net.minecraft.client.render.item.HeldItemRenderer
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:44: warning: Cannot find target for @Shadow field in net.minecraft.client.render.item.HeldItemRenderer
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:46: warning: Cannot find target for @Shadow field in net.minecraft.client.render.item.HeldItemRenderer
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:48: warning: Cannot find target for @Shadow field in net.minecraft.client.render.item.HeldItemRenderer
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:51: warning: Cannot find target for @Shadow method in net.minecraft.client.render.item.HeldItemRenderer
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:65: warning: Cannot find target for @Shadow method in net.minecraft.client.render.item.HeldItemRenderer
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:68: warning: Cannot find target for @Shadow method in net.minecraft.client.render.item.HeldItemRenderer
+   @Shadow
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/LivingEntityRendererMixin.java:45: warning: Cannot find target for @Overwrite method in net.minecraft.client.render.entity.LivingEntityRenderer
+   @Overwrite
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/LivingEntityRendererMixin.java:46: warning: @Overwrite is missing javadoc comment
+   public void method_62355(T livingEntity, S livingEntityRenderState, float f) {
+               ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ClientPlayerEntityMixin.java:107: warning: Cannot find target for @Overwrite method in net.minecraft.client.network.ClientPlayerEntity
+   @Overwrite
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ClientPlayerEntityMixin.java:108: warning: @Overwrite is missing javadoc comment
+   public void method_7346() {
+               ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:178: warning: Cannot find target for @Overwrite method in net.minecraft.client.render.item.HeldItemRenderer
+   @Overwrite
+   ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:179: warning: @Overwrite is missing javadoc comment
+   public void method_22976(float tickDelta, MatrixStack matrices, Immediate vertexConsumers, ClientPlayerEntity player, int light) {
+               ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/AIRotationRecorder.java:6: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:4: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/AIRotationManager.java:18: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/ChatEvent.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/Module.java:6: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/render/math/Animation.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/render/math/Easing.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/friend/Friend.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/macro/Macro.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/macro/MacroRepository.java:19: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/AlphaDLC.java:6: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/ModuleStorage.java:7: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/staff/StaffManager.java:19: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/other/ServerManager.java:4: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/TPSGetter.java:6: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventKeyInput.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/StopWatch.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventAttack.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventPacket.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/staff/Staff.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/draggable/Draggable.java:4: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventHUD.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/text/BetterText.java:4: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/render/msdf/MsdfRenderer.java:5: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/settings/BooleanSetting.java:4: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/settings/SliderSetting.java:4: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventWorldRender.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/render/math/GCDFixer.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/server/Server.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/base/Instance.java:7: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/packet/NetworkUtils.java:5: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/PingGetter.java:4: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/CrystalDamageCalculator.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/Counter.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/RotationUtil.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/BestPoint.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/other/WorldUtils.java:5: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/other/SlownessManager.java:6: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/other/InventoryUtil.java:9: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/combat/RaytraceUtil.java:5: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/combat/PredictUtils.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/move/MoveUtil.java:4: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/move/VerticalTeleport.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/party/connection/PartyApiClient.java:18: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/FreeLookComponent.java:4: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/LookEvent.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/RotationEvent.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/RotationComponent.java:4: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventPreHUD.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventHandledScreen.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventRightClickBlock.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventObsidianPlace.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventPopTotem.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventChangeSprint.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventEntitySpawn.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/ui/ClickGuiFrame.java:7: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/ui/Panel.java:7: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/ui/ModuleComponent.java:6: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/ui/component/Component.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/Particles.java:7: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/combat/KillAura.java:6: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/combat/AutoExplosion.java:6: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/combat/AutoPotion.java:4: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/player/Panic.java:3: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/settings/ThemeSetting.java:5: error: package lombok does not exist
+import lombok.Generated;
+             ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/AIRotationRecorder.java:115: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class AIRotationRecorder
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:17: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class Event
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:22: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class Event
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:27: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class Event
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:39: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class Event
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:44: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class Event
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:52: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class Event
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:78: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class Rotation
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:83: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class Rotation
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:88: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class Rotation
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:93: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class Rotation
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:98: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class Rotation
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:112: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class Rotation
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:117: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class Rotation
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:126: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class Rotation
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:132: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class Rotation
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:136: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class Rotation
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:10: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class TrainingSample
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:15: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class TrainingSample
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:20: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class TrainingSample
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:25: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class TrainingSample
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:30: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class TrainingSample
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:44: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class TrainingSample
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:49: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class TrainingSample
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:58: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class TrainingSample
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:64: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class TrainingSample
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:68: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class TrainingSample
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/AIRotationManager.java:208: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class AIRotationManager
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/ChatEvent.java:9: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class ChatEvent
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/ChatEvent.java:14: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class ChatEvent
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/Module.java:100: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class Module
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/Module.java:105: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class Module
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/Module.java:110: error: cannot find symbol
+   @Generated
+    ^
+  symbol:   class Generated
+  location: class Module
+100 errors
+36 warnings
+
+> Task :compileJava FAILED
+> Task :processResources
+> Task :processIncludeJars
+> Task :remapSourcesJar SKIPPED
+> Task :processTestResources NO-SOURCE
+> Task :validateAccessWidener
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1795347811285.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/AlphaDlc/AlphaDlc/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Compilation failed; see the compiler output below.
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/AIRotationRecorder.java:6: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:4: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/AIRotationManager.java:18: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/ChatEvent.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/Module.java:6: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/render/math/Animation.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/render/math/Easing.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/friend/Friend.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/macro/Macro.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/macro/MacroRepository.java:19: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/AlphaDLC.java:6: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/ModuleStorage.java:7: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/staff/StaffManager.java:19: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/other/ServerManager.java:4: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/TPSGetter.java:6: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventKeyInput.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/StopWatch.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventAttack.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventPacket.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/staff/Staff.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/draggable/Draggable.java:4: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventHUD.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/text/BetterText.java:4: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/render/msdf/MsdfRenderer.java:5: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/settings/BooleanSetting.java:4: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/settings/SliderSetting.java:4: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventWorldRender.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/render/math/GCDFixer.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/server/Server.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/base/Instance.java:7: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/packet/NetworkUtils.java:5: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/PingGetter.java:4: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/CrystalDamageCalculator.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/Counter.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/RotationUtil.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/math/BestPoint.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/other/WorldUtils.java:5: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/other/SlownessManager.java:6: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/other/InventoryUtil.java:9: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/combat/RaytraceUtil.java:5: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/combat/PredictUtils.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/move/MoveUtil.java:4: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/player/move/VerticalTeleport.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/party/connection/PartyApiClient.java:18: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/FreeLookComponent.java:4: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/LookEvent.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/RotationEvent.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/RotationComponent.java:4: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventPreHUD.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventHandledScreen.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventRightClickBlock.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventObsidianPlace.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventPopTotem.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventChangeSprint.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/EventEntitySpawn.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/ui/ClickGuiFrame.java:7: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/ui/Panel.java:7: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/ui/ModuleComponent.java:6: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/ui/component/Component.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/Particles.java:7: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/combat/KillAura.java:6: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/combat/AutoExplosion.java:6: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/combat/AutoPotion.java:4: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/player/Panic.java:3: error: package lombok does not exist
+  import lombok.Generated;
+               ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/settings/ThemeSetting.java:5: error: package lombok does not exist
+  import lombok.Generated;
+               ^/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/AIRotationRecorder.java:115: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class AIRotationRecorder
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:17: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class Event
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:22: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class Event
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:27: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class Event
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:39: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class Event
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:44: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class Event
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/Event.java:52: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class Event
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:78: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class Rotation
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:83: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class Rotation
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:88: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class Rotation
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:93: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class Rotation
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:98: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class Rotation
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:112: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class Rotation
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:117: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class Rotation
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:126: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class Rotation
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:132: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class Rotation
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/rotation/Rotation.java:136: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class Rotation
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:10: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class TrainingSample
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:15: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class TrainingSample
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:20: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class TrainingSample
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:25: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class TrainingSample
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:30: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class TrainingSample
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:44: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class TrainingSample
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:49: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class TrainingSample
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:58: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class TrainingSample
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:64: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class TrainingSample
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/TrainingSample.java:68: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class TrainingSample
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/util/neuro/rotation/AIRotationManager.java:208: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class AIRotationManager
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/ChatEvent.java:9: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class ChatEvent
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/event/list/ChatEvent.java:14: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class ChatEvent
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/Module.java:100: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class Module
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/Module.java:105: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class Module
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/Module.java:110: error: cannot find symbol
+     @Generated
+      ^
+    symbol:   class Generated
+    location: class Module/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/DeltaTrackerTimerMixin.java:11: warning: Unable to determine descriptor for @ModifyExpressionValue target method
+     @ModifyExpressionValue(
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/DeltaTrackerTimerMixin.java:11: warning: Unable to locate method mapping for @At(INVOKE.<target>) 'Lit/unimi/dsi/fastutil/floats/FloatUnaryOperator;apply(F)F'
+     @ModifyExpressionValue(
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HandledScreenMixin.java:17: warning: Cannot find target for @Shadow field in net.minecraft.client.gui.screen.ingame.HandledScreen
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/FireworkRocketEntityMixin.java:20: warning: Cannot find target for @Shadow field in net.minecraft.entity.projectile.FireworkRocketEntity
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/LivingEntityRendererMixin.java:31: warning: Cannot find target for @Shadow method in net.minecraft.client.render.entity.LivingEntityRenderer
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/LivingEntityRendererMixin.java:36: warning: Cannot find target for @Shadow method in net.minecraft.client.render.entity.LivingEntityRenderer
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ChatInputSuggestorMixin.java:26: warning: Cannot find target for @Shadow field in net.minecraft.client.gui.screen.ChatInputSuggestor
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ChatInputSuggestorMixin.java:29: warning: Cannot find target for @Shadow field in net.minecraft.client.gui.screen.ChatInputSuggestor
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ChatInputSuggestorMixin.java:32: warning: Cannot find target for @Shadow field in net.minecraft.client.gui.screen.ChatInputSuggestor
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ChatInputSuggestorMixin.java:34: warning: Cannot find target for @Shadow field in net.minecraft.client.gui.screen.ChatInputSuggestor
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ChatInputSuggestorMixin.java:36: warning: Cannot find target for @Shadow field in net.minecraft.client.gui.screen.ChatInputSuggestor
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ChatInputSuggestorMixin.java:38: warning: Cannot find target for @Shadow field in net.minecraft.client.gui.screen.ChatInputSuggestor
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ClientPlayNetworkHandlerMixin.java:18: warning: Cannot find target for @Shadow field in net.minecraft.client.network.ClientPlayNetworkHandler
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ClientPlayerEntityMixin.java:31: warning: Cannot find target for @Shadow field in net.minecraft.client.network.ClientPlayerEntity
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ClientPlayerEntityMixin.java:34: warning: Cannot find target for @Shadow field in net.minecraft.client.network.ClientPlayerEntity
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ClientPlayerEntityMixin.java:37: warning: Cannot find target for @Shadow method in net.minecraft.client.network.ClientPlayerEntity
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/MouseMixin.java:19: warning: Cannot find target for @Shadow field in net.minecraft.client.Mouse
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/MouseMixin.java:22: warning: Cannot find target for @Shadow field in net.minecraft.client.Mouse
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/MouseMixin.java:24: warning: Cannot find target for @Shadow field in net.minecraft.client.Mouse
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/MouseMixin.java:27: warning: Cannot find target for @Shadow field in net.minecraft.client.Mouse
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/MouseMixin.java:30: warning: Cannot find target for @Shadow field in net.minecraft.client.Mouse
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:38: warning: Cannot find target for @Shadow field in net.minecraft.client.render.item.HeldItemRenderer
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:40: warning: Cannot find target for @Shadow field in net.minecraft.client.render.item.HeldItemRenderer
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:42: warning: Cannot find target for @Shadow field in net.minecraft.client.render.item.HeldItemRenderer
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:44: warning: Cannot find target for @Shadow field in net.minecraft.client.render.item.HeldItemRenderer
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:46: warning: Cannot find target for @Shadow field in net.minecraft.client.render.item.HeldItemRenderer
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:48: warning: Cannot find target for @Shadow field in net.minecraft.client.render.item.HeldItemRenderer
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:51: warning: Cannot find target for @Shadow method in net.minecraft.client.render.item.HeldItemRenderer
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:65: warning: Cannot find target for @Shadow method in net.minecraft.client.render.item.HeldItemRenderer
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:68: warning: Cannot find target for @Shadow method in net.minecraft.client.render.item.HeldItemRenderer
+     @Shadow
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/LivingEntityRendererMixin.java:45: warning: Cannot find target for @Overwrite method in net.minecraft.client.render.entity.LivingEntityRenderer
+     @Overwrite
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/LivingEntityRendererMixin.java:46: warning: @Overwrite is missing javadoc comment
+     public void method_62355(T livingEntity, S livingEntityRenderState, float f) {
+                 ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ClientPlayerEntityMixin.java:107: warning: Cannot find target for @Overwrite method in net.minecraft.client.network.ClientPlayerEntity
+     @Overwrite
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/ClientPlayerEntityMixin.java:108: warning: @Overwrite is missing javadoc comment
+     public void method_7346() {
+                 ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:178: warning: Cannot find target for @Overwrite method in net.minecraft.client.render.item.HeldItemRenderer
+     @Overwrite
+     ^
+  /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:179: warning: @Overwrite is missing javadoc comment
+     public void method_22976(float tickDelta, MatrixStack matrices, Immediate vertexConsumers, ClientPlayerEntity player, int light) {
+                 ^
+  100 errors
+  36 warnings
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights.
+
+BUILD FAILED in 22s
+4 actionable tasks: 4 executed
