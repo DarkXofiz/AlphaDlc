@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "id": "alphadlc",
+  "accessWidener": "alphadlc.accesswidener",
+  "version": "1.0.0",
+  "name": "AlphaDLC",
+  "description": "AlphaDLC Client",
+  "authors": [
+    "AlphaDLC Team"
+  ],
+  "contact": {
+    "homepage": "https://t.me/LegitDLC"
+  },
+  "license": "CC0-1.0",
+  "icon": "assets/mre/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "zov.alphadlc.AlphaDLC"
+    ]
+  },
+  "mixins": [
+    "alphadlc.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": "\u003e\u003d0.16.14",
+    "minecraft": "~1.21.4",
+    "java": "\u003e\u003d21",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "another-mod": "*"
+  },
+  "jars": [
+    {
+      "file": "META-INF/jars/api-0.32.0.jar"
+    },
+    {
+      "file": "META-INF/jars/pytorch-engine-0.32.0.jar"
+    }
+  ]
+}
