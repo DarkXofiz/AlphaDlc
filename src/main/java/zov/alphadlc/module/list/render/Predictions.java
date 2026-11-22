@@ -392,6 +392,8 @@ public class Predictions extends Module {
          case PersistentProjectileEntity persistent:
             this.points.add(new Predictions.Point(persistent.getItemStack(), pos, ticks));
             break;
+         default:
+            break;
       }
    }
 
