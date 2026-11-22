@@ -20,9 +20,9 @@ Fabric Loom: 1.10.5
 /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:179: warning: @Overwrite is missing javadoc comment
    public void renderItem(float tickDelta, MatrixStack matrices, Immediate vertexConsumers, ClientPlayerEntity player, int light) {
                ^
-/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/ui/ModuleComponent.java:55: error: the switch statement does not cover all possible input values
-         switch (setting) {
-         ^
+/home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/Predictions.java:385: error: the switch statement does not cover all possible input values
+      switch (entity) {
+      ^
 Note: Some input files use or override a deprecated API.
 Note: Recompile with -Xlint:deprecation for details.
 Note: Some input files use unchecked or unsafe operations.
@@ -36,7 +36,7 @@ Note: Recompile with -Xlint:unchecked for details.
 > Task :remapSourcesJar SKIPPED
 > Task :processTestResources NO-SOURCE
 > Task :validateAccessWidener
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/build-1795365328300.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/build-1795367497117.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/AlphaDlc/AlphaDlc/build/reports/problems/problems-report.html
 
@@ -59,9 +59,9 @@ Execution failed for task ':compileJava'.
                  ^
   /home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/mixin/HeldItemRendererMixin.java:179: warning: @Overwrite is missing javadoc comment
      public void renderItem(float tickDelta, MatrixStack matrices, Immediate vertexConsumers, ClientPlayerEntity player, int light) {
-                 ^Note: Some input files use or override a deprecated API./home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/ui/ModuleComponent.java:55: error: the switch statement does not cover all possible input values
-           switch (setting) {
-           ^
+                 ^Note: Some input files use or override a deprecated API./home/runner/work/AlphaDlc/AlphaDlc/src/main/java/zov/alphadlc/module/list/render/Predictions.java:385: error: the switch statement does not cover all possible input values
+        switch (entity) {
+        ^
   1 error
   5 warnings
 
@@ -69,5 +69,5 @@ Execution failed for task ':compileJava'.
 > Check your code and dependencies to fix the compilation error(s)
 > Run with --scan to get full insights.
 
-BUILD FAILED in 19s
+BUILD FAILED in 17s
 4 actionable tasks: 4 executed
