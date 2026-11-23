@@ -1,28 +1,30 @@
-# AlphaDlc
+# MiranWare
 
-Minecraft 1.21.4 Fabric client mod (`zov.alphadlc`).
+Minecraft 1.21.4 Fabric client mod (package `miranware`).
 
-Kaynak kodlar `input/alphadlc-0_0_9.jar` dosyasından GitHub Actions ile
-üretilir: jar önce intermediary isimlerinden Yarn isimlerine remap edilir,
-sonra Vineflower ile decompile edilir.
+Sources are generated from `input/alphadlc-0_0_9.jar` by GitHub Actions:
+the jar is remapped (intermediary to Yarn), decompiled with Vineflower, patched,
+translated to English and rebranded to MiranWare.
 
-## Yapı
-- `input/` orijinal jar
-- `src/main/java` decompile edilmiş kaynak
-- `src/main/resources` asset, mixin, accesswidener, fabric.mod.json
-- `libs/` jar içine gömülü bağımlılıklar (DJL api, pytorch-engine)
+## Layout
+- `input/` original jar
+- `overrides/` MiranWare assets and sources applied after decompiling (menu background, logo, icon, main menu screen)
+- `scripts/` pipeline scripts (name fixes, source fixes, translation, rebrand)
+- `src/main` generated sources and resources
+- `libs/` libraries bundled inside the original jar
+- `TRANSLATION_NOTES.md` strings that were intentionally left in Russian
 
-## Akış
-1. `Decompile Jar` workflow'u kaynakları üretir ve commit eder.
-2. `Build` workflow'u `gradle build` çalıştırır.
-3. Derleme logu `build-log`, jar `alphadlc-jar` artifact'ı olarak yüklenir.
+## Pipeline
+1. `Decompile Jar` generates and commits the sources.
+2. `Build` runs `gradle build`; errors are shown in the run summary and committed to `logs/`.
+3. The jar is uploaded as the `miranware-0_0_9` artifact.
 
-## Yerel derleme
-Java 21 ve Gradle 8.12 ile:
+## Local build
+Java 21 and Gradle 8.12:
 
     gradle build
 
-Çıktı: `build/libs/`
+Output: `build/libs/miranware-0_0_9.jar`
 
-## Lisans
-CC0 1.0 Universal, bkz. `LICENSE`.
+## License
+CC0 1.0 Universal, see `LICENSE`.

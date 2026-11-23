@@ -6,7 +6,8 @@ on:
     paths:
       - "input/*.jar"
       - ".github/workflows/decompile.yml"
-      - "scripts/*.py"
+      - "scripts/**"
+      - "overrides/**"
 
 permissions:
   contents: write
@@ -41,7 +42,7 @@ jobs:
 
       - name: Decompile
         run: |
-          rm -rf src libs
+          rm -rf src libs TRANSLATION_NOTES.md
           mkdir -p work/classes src/main/java src/main/resources libs
           unzip -q -o work/remapped/mod.jar "*.class" -d work/classes
           find work/classes -name "*.class" | wc -l
@@ -56,6 +57,9 @@ jobs:
       - name: Apply known source fixes
         run: python3 scripts/fix_sources.py src/main/java
 
+      - name: Translate Russian strings to English
+        run: python3 scripts/translate_ru.py src/main/java TRANSLATION_NOTES.md
+
       - name: Extract resources and libs
         run: |
           JAR=$(ls input/*.jar | head -n 1)
@@ -66,11 +70,20 @@ jobs:
       - name: Convert access widener to named
         run: python3 scripts/convert_aw.py work/yarn.tiny src/main/resources/alphadlc.accesswidener
 
+      - name: Apply resource overrides (menu images, icon)
+        run: cp -r overrides/resources/. src/main/resources/
+
+      - name: Rebrand to MiranWare
+        run: python3 scripts/rebrand.py . --add-mixin MiranTitleMixin
+
+      - name: Add MiranWare menu sources
+        run: cp -r overrides/java/. src/main/java/
+
       - name: Commit sources
         run: |
           rm -rf work
           git config user.name "decompile-bot"
           git config user.email "decompile-bot@users.noreply.github.com"
-          git add -A src libs
+          git add -A src libs TRANSLATION_NOTES.md
           git diff --cached --quiet || git commit -m "Decompiled sources from jar"
           git push

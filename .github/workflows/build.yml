@@ -43,15 +43,15 @@ jobs:
         if: always()
         run: |
           {
-            echo "## Derleme sonucu"
-            echo "Hata sayisi: $(grep -c 'error:' build.log || true)"
+            echo "## Build result"
+            echo "Error count: $(grep -c 'error:' build.log || true)"
             echo ""
-            echo "### Hata turleri"
+            echo "### Error types"
             echo '```'
             grep 'error:' build.log | sed 's/^.*error: //' | sort | uniq -c | sort -rn | head -n 20 || true
             echo '```'
             echo ""
-            echo "### Ilk 40 hata"
+            echo "### First 40 errors"
             echo '```'
             grep 'error:' build.log | sed 's#.*/src/main/java/##' | head -n 40 || true
             echo '```'
@@ -85,6 +85,6 @@ jobs:
       - name: Upload jar
         uses: actions/upload-artifact@v4
         with:
-          name: alphadlc-0_0_9
-          path: build/libs/alphadlc-0_0_9.jar
+          name: miranware-0_0_9
+          path: build/libs/miranware-0_0_9.jar
           if-no-files-found: error

@@ -15,9 +15,9 @@ repositories {
 }
 
 loom {
-    accessWidenerPath = file("src/main/resources/alphadlc.accesswidener")
+    accessWidenerPath = file("src/main/resources/miranware.accesswidener")
     mixin {
-        defaultRefmapName = "alphadlc-refmap.json"
+        defaultRefmapName = "miranware-refmap.json"
     }
 }
 
@@ -27,15 +27,15 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    // Orijinal jar icinde gomulu gelen bagimliliklar
+    // Dependencies that were bundled inside the original jar
     implementation fileTree(dir: "libs", include: ["*.jar"])
 
-    // Decompile edilen kaynakta kalan lombok.* importlari icin (annotation processor gerekmez)
+    // lombok.* imports left in the decompiled sources (no annotation processor needed)
     compileOnly "org.projectlombok:lombok:1.18.34"
 }
 
 processResources {
-    exclude "alphadlc-refmap.json"
+    exclude "miranware-refmap.json"
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -51,13 +51,12 @@ java {
 
 jar {
     from("LICENSE")
-    // fabric.mod.json "jars" girdileri icin gomulu bagimliliklar
+    // bundled libraries referenced by the "jars" entry of fabric.mod.json
     from("libs") {
         into "META-INF/jars"
     }
 }
 
-// Cikti adi orijinal jar ile ayni: alphadlc-0_0_9.jar
 remapJar {
-    archiveFileName = "alphadlc-0_0_9.jar"
+    archiveFileName = "miranware-0_0_9.jar"
 }
