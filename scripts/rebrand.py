@@ -108,7 +108,8 @@ def main():
     if os.path.exists(mod_json):
         patch_mod_json(mod_json)
     if mixin:
-        add_mixin(os.path.join(res_root, "miranware.mixins.json"), mixin)
+        for mixin_name in mixin.split(","):
+            add_mixin(os.path.join(res_root, "miranware.mixins.json"), mixin_name.strip())
     left = 0
     for base in (java_root, res_root):
         for d, _, fs in os.walk(base):

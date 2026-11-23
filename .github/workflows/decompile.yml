@@ -74,7 +74,7 @@ jobs:
         run: cp -r overrides/resources/. src/main/resources/
 
       - name: Rebrand to MiranWare
-        run: python3 scripts/rebrand.py . --add-mixin MiranTitleMixin
+        run: python3 scripts/rebrand.py . --add-mixin MiranTitleMixin,MiranSplashMixin,MiranScreenBackgroundMixin
 
       - name: Add MiranWare menu sources
         run: cp -r overrides/java/. src/main/java/

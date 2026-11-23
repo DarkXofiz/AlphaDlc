@@ -48,7 +48,9 @@
     "WeatherRenderingMixin",
     "WorldMixin",
     "WorldRendererMixin",
-    "MiranTitleMixin"
+    "MiranTitleMixin",
+    "MiranSplashMixin",
+    "MiranScreenBackgroundMixin"
   ],
   "injectors": {
     "defaultRequire": 1
