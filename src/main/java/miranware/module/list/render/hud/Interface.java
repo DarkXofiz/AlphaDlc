@@ -2279,7 +2279,7 @@ public class Interface extends Module {
       int dotColor = ColorProvider.rgba(255, 255, 255, 60.0F);
       String pingIcon = "Q";
       String logoIcon = "4";
-      String title = "LEAK BY NEDO t.me/Legit_DLC";
+      String title = "MiranWare";
       float logoIconW = Fonts.ICONS2.get().getWidth(logoIcon, 7.0F);
       float titleW = Fonts.SFMEDIUM.get().getWidth(title, 7.0F);
       float userIconW = Fonts.MIRANWARE.get().getWidth("b", 7.0F);
