@@ -248,6 +248,15 @@ public class ClickGuiFrame extends Screen implements IMinecraft {
       this.applyCursor(desiredCursor);
    }
 
+   @Override
+   public void close() {
+      if (mc.world == null) {
+         mc.setScreen(new MiranMenuScreen());
+      } else {
+         super.close();
+      }
+   }
+
    public void removed() {
       super.removed();
       if (this.cursorsCreated) {

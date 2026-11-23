@@ -30,7 +30,8 @@ public class MiranMenuScreen extends Screen {
     private static final long SLIDE_MS = 700L;
     private static final long FADE_MS = 500L;
 
-    private static boolean introPlayed = false;
+    // The Mojang splash screen already shows the logo and progress bar, so the menu skips its own intro.
+    private static boolean introPlayed = true;
 
     private static final int BAR_COLOR = 0x8A2BE2;
     private static final int BUTTON_COLOR = 0x101018;
