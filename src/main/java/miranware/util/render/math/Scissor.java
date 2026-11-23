@@ -32,6 +32,11 @@ public class Scissor {
 
    public static void pop() {
       state = stateStack.remove(stateStack.size() - 1);
+      if (state.enabled) {
+         RenderSystem.enableScissor(state.x, state.y, state.width, state.height);
+      } else {
+         RenderSystem.disableScissor();
+      }
    }
 
    public static void unset() {

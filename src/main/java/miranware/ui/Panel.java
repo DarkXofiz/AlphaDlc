@@ -33,8 +33,12 @@ public class Panel implements IMinecraft {
    private final Animation scrollbarAnim = new Animation(Easing.CUBIC_IN_OUT, 220L);
    public final Animation slideAnim = new Animation(Easing.QUINTIC_OUT, 320L);
    public int slideDir = 1;
+   public static final float HEADER_HEIGHT = 26.0F;
+   public static final float BOTTOM_PAD = 5.0F;
+   public static final float ROW_GAP = 3.0F;
    float scroll;
    float maxScroll;
+   float contentHeight;
    private final ClickGuiFrame parent;
    private String cachedTitle;
    private String cachedIcon;
@@ -66,7 +70,7 @@ public class Panel implements IMinecraft {
       this.animationAlpha.setValue(alphaRatio);
       float alpha = Math.min(255.0F * alphaRatio, 255.0F);
       float cornerRadius = 8.0F;
-      float headerHeight = 25.0F;
+      float headerHeight = HEADER_HEIGHT;
       int panelColor = ColorProvider.setAlpha(ColorProvider.getColorClickGui(), (int)(130.0F * alphaRatio));
       DrawUtil.drawRoundBlur(
          this.x, this.y, this.width, this.height, cornerRadius, ColorProvider.rgba(200, 200, 200, (float)((int)(255.0F * alphaRatio))), 14.0F
@@ -121,17 +125,19 @@ public class Panel implements IMinecraft {
          ColorProvider.setAlpha(ColorProvider.getColorHeaderText(), (int)alpha),
          8.5F
       );
-      float offset = 2.0F;
+      float viewTop = this.getViewTop();
+      float viewHeight = this.getViewHeight();
+      float offset = 0.0F;
       this.clampScroll();
       this.animation.run(this.scroll);
       Scissor.push();
-      Scissor.setFromComponentCoordinates((double)this.x, (double)(this.y + headerHeight), (double)this.width, (double)(this.height - headerHeight - 4.0F));
+      Scissor.setFromComponentCoordinates((double)(this.x + 1.0F), (double)viewTop, (double)(this.width - 2.0F), (double)viewHeight);
 
       for (ModuleComponent component : this.moduleComponents) {
          if (!this.parent.searchCheck(component.getModule().getName())) {
             float sideMargin = 6.0F;
             component.setX(this.x + sideMargin);
-            component.setY(this.y + headerHeight + offset + this.animation.getValue());
+            component.setY(viewTop + offset + this.animation.getValue());
             component.setWidth(this.width - sideMargin * 2.0F);
             float baseHeight = 19.0F;
             float extraHeight = 0.0F;
@@ -151,25 +157,56 @@ public class Panel implements IMinecraft {
             }
 
             component.setHeight(baseHeight + extraHeight * component.getAnimation().getValue());
-            Scissor.setFromComponentCoordinates(
-               (double)this.x, (double)(this.y + headerHeight), (double)this.width, (double)(this.height - headerHeight - 4.0F)
-            );
-            component.render(context, mouseX, mouseY, partialTicks);
-            Scissor.setFromComponentCoordinates(
-               (double)this.x, (double)(this.y + headerHeight), (double)this.width, (double)(this.height - headerHeight - 4.0F)
-            );
-            offset += component.getHeight() + 5.0F;
+            float rowTop = component.getY();
+            float rowBottom = rowTop + component.getHeight();
+            if (rowBottom >= viewTop - 2.0F && rowTop <= viewTop + viewHeight + 2.0F) {
+               component.render(context, mouseX, mouseY, partialTicks);
+            }
+
+            offset += component.getHeight() + ROW_GAP;
          }
       }
 
-      this.maxScroll = Math.max(0.0F, offset - (this.height - headerHeight - 8.0F));
+      this.contentHeight = Math.max(0.0F, offset - ROW_GAP);
+      this.maxScroll = Math.max(0.0F, this.contentHeight - viewHeight);
       this.scrollbarAnim.run(this.maxScroll > 0.0F);
       Scissor.unset();
       Scissor.pop();
+      if (this.maxScroll > 0.0F) {
+         int fadeBase = ColorProvider.getColorClickGui();
+         int fadeClear = ColorProvider.setAlpha(fadeBase, 0);
+         float topFade = MathHelper.clamp(-this.animation.getValue() / 10.0F, 0.0F, 1.0F);
+         float bottomFade = MathHelper.clamp((this.maxScroll + this.animation.getValue()) / 10.0F, 0.0F, 1.0F);
+         if (topFade > 0.01F) {
+            DrawUtil.drawRound(this.x + 1.0F, viewTop, this.width - 2.0F, 7.0F, 0.0F, ColorProvider.setAlpha(fadeBase, (int)(130.0F * alphaRatio * topFade)), fadeClear);
+         }
+
+         if (bottomFade > 0.01F) {
+            DrawUtil.drawRound(this.x + 1.0F, viewTop + viewHeight - 7.0F, this.width - 2.0F, 7.0F, 0.0F, fadeClear, ColorProvider.setAlpha(fadeBase, (int)(130.0F * alphaRatio * bottomFade)));
+         }
+
+         float barH = Math.max(14.0F, viewHeight * viewHeight / Math.max(viewHeight, this.contentHeight));
+         float progress = MathHelper.clamp(-this.animation.getValue() / this.maxScroll, 0.0F, 1.0F);
+         float barY = viewTop + (viewHeight - barH) * progress;
+         int barAlpha = (int)(70.0F * alphaRatio * Math.max(0.55F, this.scrollbarAnim.getValue()));
+         DrawUtil.drawRound(this.x + this.width - 3.4F, barY, 1.6F, barH, 0.8F, ColorProvider.rgba(255, 255, 255, (float)barAlpha));
+      }
+   }
+
+   public float getViewTop() {
+      return this.y + HEADER_HEIGHT;
+   }
+
+   public float getViewHeight() {
+      return Math.max(0.0F, this.height - HEADER_HEIGHT - BOTTOM_PAD);
+   }
+
+   public float naturalHeight() {
+      return HEADER_HEIGHT + this.contentHeight + BOTTOM_PAD + 2.0F;
    }
 
    public void mouseClicked(double mouseX, double mouseY, int button) {
-      if (HoverUtil.isHovered(mouseX, mouseY, (double)this.x, (double)(this.y + 20.0F), (double)this.width, (double)(this.height - 20.0F))) {
+      if (HoverUtil.isHovered(mouseX, mouseY, (double)this.x, (double)this.getViewTop(), (double)this.width, (double)this.getViewHeight())) {
          for (ModuleComponent moduleComponent : this.moduleComponents) {
             if (!this.parent.searchCheck(moduleComponent.getModule().getName())) {
                moduleComponent.mouseClicked(mouseX, mouseY, button);

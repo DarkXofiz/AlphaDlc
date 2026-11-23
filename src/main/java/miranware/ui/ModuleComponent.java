@@ -111,8 +111,8 @@ public class ModuleComponent extends Component {
          this.enabledAnim.getValue()
       );
       float currentHeight = 19.0F + (this.height - 19.0F) * this.animation.getValue();
-      float visTop = this.panel.getY() + 25.0F;
-      float visBottom = this.panel.getY() + this.panel.getHeight() - 4.0F;
+      float visTop = this.panel.getViewTop();
+      float visBottom = this.panel.getViewTop() + this.panel.getViewHeight();
       if (!(this.y + currentHeight < visTop) && !(this.y > visBottom)) {
          DrawUtil.drawRoundBlur(
             this.x, this.y, this.width, currentHeight - 0.5F, 3.0F, ColorProvider.rgba(200, 200, 200, (float)((int)(255.0F * alpha))), 10.0F
@@ -167,8 +167,8 @@ public class ModuleComponent extends Component {
 
          if (this.animation.getValue() > 0.01F) {
             float compY = this.y + 22.0F;
-            float panelTop = this.panel.getY() + 25.0F;
-            float panelBottom = this.panel.getY() + this.panel.getHeight() - 4.0F;
+            float panelTop = this.panel.getViewTop();
+            float panelBottom = this.panel.getViewTop() + this.panel.getViewHeight();
             float boxBottom = this.y + currentHeight;
             float intersectY = Math.max(this.y + 19.0F, panelTop);
             float intersectBottom = Math.min(boxBottom, panelBottom);

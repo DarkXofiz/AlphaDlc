@@ -35,6 +35,9 @@ public class ClickGuiFrame extends Screen implements IMinecraft {
    private final Animation descAnim = new Animation(Easing.QUINTIC_OUT, 220L);
    private String lastDesc = null;
    private boolean closing = false;
+   private static final float SEARCH_HEIGHT = 18.0F;
+   private float panelHeightCurrent = -1.0F;
+   private long lastFrameNanos = 0L;
    private long handCursor;
    private long iBeamCursor;
    private long pointingCursor;
@@ -63,6 +66,8 @@ public class ClickGuiFrame extends Screen implements IMinecraft {
 
    public void playOpenAnimation() {
       this.closing = false;
+      this.panelHeightCurrent = -1.0F;
+      this.lastFrameNanos = 0L;
       this.itemModelGallery = null;
 
       for (Panel panel : this.panels) {
@@ -101,12 +106,30 @@ public class ClickGuiFrame extends Screen implements IMinecraft {
       modelView.translate(centerX, centerY, 0.0F);
       modelView.scale(guiScale, guiScale, 1.0F);
       modelView.translate(-centerX, -centerY, 0.0F);
-      float panelWidth = 120.0F;
-      float spacing = 4.0F;
-      float panelHeight = 270.0F;
-      float panelTotalWidth = (float)this.panels.size() * (panelWidth + spacing) - spacing;
-      float startX = ((float)windowWidth - panelTotalWidth) / 2.0F;
-      float panelY = ((float)windowHeight - panelHeight) / 2.0F;
+      int panelCount = Math.max(1, this.panels.size());
+      float spacing = 7.0F;
+      float sideMargin = 12.0F;
+      float panelWidth = (float)Math.floor((double)Math.min(122.0F, ((float)windowWidth - sideMargin * 2.0F - spacing * (float)(panelCount - 1)) / (float)panelCount));
+      panelWidth = Math.max(60.0F, panelWidth);
+      float panelTotalWidth = panelWidth * (float)panelCount + spacing * (float)(panelCount - 1);
+      float startX = (float)Math.floor((double)(((float)windowWidth - panelTotalWidth) / 2.0F));
+      float bottomReserve = 8.0F + SEARCH_HEIGHT + 4.0F;
+      float maxPanelHeight = (float)windowHeight - 24.0F - bottomReserve;
+      float naturalHeight = 150.0F;
+
+      for (Panel measured : this.panels) {
+         naturalHeight = Math.max(naturalHeight, measured.naturalHeight());
+      }
+
+      float targetHeight = Math.max(80.0F, Math.min(maxPanelHeight, naturalHeight));
+      long nowNanos = System.nanoTime();
+      float frameSeconds = this.lastFrameNanos == 0L ? 0.016F : Math.min(0.1F, (float)(nowNanos - this.lastFrameNanos) / 1.0E9F);
+      this.lastFrameNanos = nowNanos;
+      this.panelHeightCurrent = this.panelHeightCurrent < 0.0F
+         ? targetHeight
+         : this.panelHeightCurrent + (targetHeight - this.panelHeightCurrent) * Math.min(1.0F, 12.0F * frameSeconds);
+      float panelHeight = this.panelHeightCurrent;
+      float panelY = (float)Math.floor((double)(((float)windowHeight - (panelHeight + bottomReserve)) / 2.0F));
       float offscreen = (float)windowHeight / 2.0F + panelHeight;
 
       for (int i = 0; i < this.panels.size(); i++) {
@@ -141,10 +164,10 @@ public class ClickGuiFrame extends Screen implements IMinecraft {
          }
       }
 
-      float searchW = 90.0F;
-      float searchH = 18.0F;
-      float searchX = (float)windowWidth / 2.0F - searchW / 2.0F;
-      float searchY = panelY + panelHeight + 35.0F;
+      float searchW = Math.min(150.0F, Math.max(110.0F, panelWidth * 1.25F));
+      float searchH = SEARCH_HEIGHT;
+      float searchX = (float)Math.floor((double)((float)windowWidth / 2.0F - searchW / 2.0F));
+      float searchY = panelY + panelHeight + 8.0F;
       this.searchField.setBounds(searchX, searchY, searchW, searchH);
       this.searchField.render(context, mouseX, mouseY, delta);
       String hoveredDesc = null;
