@@ -1,0 +1,62 @@
+plugins {
+    id 'fabric-loom' version '1.10-SNAPSHOT'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    mavenCentral()
+    maven { url = "https://maven.fabricmc.net/" }
+}
+
+loom {
+    accessWidenerPath = file("src/main/resources/miranware.accesswidener")
+    mixin {
+        defaultRefmapName = "miranware-refmap.json"
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    // Dependencies that were bundled inside the original jar
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+
+    // lombok.* imports left in the decompiled sources (no annotation processor needed)
+    compileOnly "org.projectlombok:lombok:1.18.34"
+}
+
+processResources {
+    exclude "miranware-refmap.json"
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 21
+    options.encoding = "UTF-8"
+    options.compilerArgs << "-Xmaxerrs" << "5000"
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+jar {
+    from("LICENSE")
+    // bundled libraries referenced by the "jars" entry of fabric.mod.json
+    from("libs") {
+        into "META-INF/jars"
+    }
+}
+
+remapJar {
+    archiveFileName = "miranware-0_0_9.jar"
+}
