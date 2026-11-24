@@ -40,9 +40,9 @@ Note: Recompile with -Xlint:unchecked for details.
 > Task :remapJar
 > Task :assemble
 > Task :build
-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/build-1795434233977.json
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/build-1795520098378.json
 
 [Incubating] Problems report is available at: file:///home/runner/work/AlphaDlc/AlphaDlc/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 21s
+BUILD SUCCESSFUL in 22s
 6 actionable tasks: 6 executed
