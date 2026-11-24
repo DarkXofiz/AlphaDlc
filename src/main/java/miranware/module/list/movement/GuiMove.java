@@ -1,0 +1,154 @@
+package miranware.module.list.movement;
+
+import com.google.common.eventbus.Subscribe;
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.client.gui.screen.ChatScreen;
+import net.minecraft.client.gui.screen.ingame.InventoryScreen;
+import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.util.InputUtil;
+import net.minecraft.network.packet.Packet;
+import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
+import net.minecraft.network.packet.c2s.play.CloseHandledScreenC2SPacket;
+import net.minecraft.network.packet.s2c.play.CloseScreenS2CPacket;
+import miranware.event.list.EventCloseInv;
+import miranware.event.list.EventPacket;
+import miranware.event.list.EventPlayerUpdate;
+import miranware.event.list.MoveInputEvent;
+import miranware.module.Module;
+import miranware.module.ModuleCategory;
+import miranware.module.ModuleInformation;
+import miranware.module.settings.ModeSetting;
+import miranware.util.packet.NetworkUtils;
+import miranware.util.player.move.MoveUtil;
+
+@ModuleInformation(
+   moduleName = "Gui Move",
+   moduleDesc = "Lets you use the inventory while moving",
+   moduleCategory = ModuleCategory.MOVEMENT
+)
+public class GuiMove extends Module {
+   private final ModeSetting mode = new ModeSetting(
+      "Bypass",
+      "Legit",
+      "Vanilla",
+      "Reallyworld",
+      "Funtime",
+      "Holyworld",
+      "SpookyTime",
+      "LonyGrief",
+      "Legit"
+   );
+   private final List<Packet<?>> pending = new ArrayList<>();
+   private int freezeTicks;
+   private boolean flushPending;
+
+   @Override
+   public void onDisable() {
+      super.onDisable();
+      this.flush();
+      this.pending.clear();
+      this.freezeTicks = 0;
+      this.flushPending = false;
+   }
+
+   private boolean isVanilla() {
+      return this.mode.is("Vanilla");
+   }
+
+   private boolean isLegit() {
+      return this.mode.is("Legit");
+   }
+
+   private boolean usesBypass() {
+      return !this.isVanilla() && !this.isLegit();
+   }
+
+   private int freezeWindow() {
+      String var1 = this.mode.getValue();
+
+      return switch (var1) {
+         case "Reallyworld" -> 3;
+         case "Funtime" -> 4;
+         case "Holyworld" -> 5;
+         case "SpookyTime" -> 3;
+         case "LonyGrief" -> 2;
+         default -> 0;
+      };
+   }
+
+   @Subscribe
+   private void onPacket(EventPacket e) {
+      if (this.mc.player != null && !this.isVanilla()) {
+         if (this.mc.currentScreen != null && !(this.mc.currentScreen instanceof ChatScreen)) {
+            if (e.getType() == EventPacket.Type.RECEIVE && e.getPacket() instanceof CloseScreenS2CPacket && this.usesBypass() && !this.pending.isEmpty()) {
+               e.cancelEvent();
+            } else if (e.getType() == EventPacket.Type.SEND) {
+               if (e.getPacket() instanceof ClickSlotC2SPacket click) {
+                  if (this.mc.currentScreen instanceof InventoryScreen) {
+                     if (MoveUtil.hasPlayerMovement()) {
+                        if (this.isLegit()) {
+                           e.cancelEvent();
+                        } else {
+                           this.pending.add(click);
+                           e.cancelEvent();
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
+
+   @Subscribe
+   private void onCloseInv(EventCloseInv e) {
+      if (this.mc.player != null && !this.isVanilla() && !this.isLegit()) {
+         if (!this.pending.isEmpty()) {
+            e.cancelEvent();
+            this.flushPending = true;
+            this.freezeTicks = this.freezeWindow();
+         }
+      }
+   }
+
+   @Subscribe
+   private void onMoveInput(MoveInputEvent e) {
+      if (this.freezeTicks > 0) {
+         e.cancel();
+      }
+   }
+
+   @Subscribe
+   private void onUpdate(EventPlayerUpdate ignored) {
+      if (this.mc.player != null && !this.isVanilla()) {
+         if (this.freezeTicks > 0) {
+            this.freezeTicks--;
+            if (this.freezeTicks == 0 && this.flushPending) {
+               this.flush();
+               NetworkUtils.sendSilentPacket(new CloseHandledScreenC2SPacket(this.mc.player.currentScreenHandler.syncId));
+               this.flushPending = false;
+            }
+         }
+
+         if (this.mc.currentScreen != null && !(this.mc.currentScreen instanceof ChatScreen)) {
+            for (KeyBinding key : new KeyBinding[]{
+               this.mc.options.forwardKey,
+               this.mc.options.backKey,
+               this.mc.options.leftKey,
+               this.mc.options.rightKey,
+               this.mc.options.jumpKey
+            }) {
+               key.setPressed(InputUtil.isKeyPressed(this.mc.getWindow().getHandle(), InputUtil.fromTranslationKey(key.getBoundKeyTranslationKey()).getCode()));
+            }
+         }
+      }
+   }
+
+   private void flush() {
+      if (!this.pending.isEmpty()) {
+         this.pending.forEach(NetworkUtils::sendSilentPacket);
+         this.pending.clear();
+      }
+   }
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "miranware",
+  "accessWidener": "miranware.accesswidener",
+  "version": "1.0.0",
+  "name": "MiranWare",
+  "description": "MiranWare Client",
+  "authors": [
+    "MiranWare Team"
+  ],
+  "license": "CC0-1.0",
+  "icon": "assets/mre/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "miranware.MiranWare"
+    ]
+  },
+  "mixins": [
+    "miranware.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.14",
+    "minecraft": "~1.21.4",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "another-mod": "*"
+  },
+  "jars": [
+    {
+      "file": "META-INF/jars/api-0.32.0.jar"
+    },
+    {
+      "file": "META-INF/jars/pytorch-engine-0.32.0.jar"
+    }
+  ]
+}
