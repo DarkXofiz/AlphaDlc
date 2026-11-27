@@ -1,0 +1,119 @@
+# Translation notes
+
+Strings intentionally left in Russian because they match text sent by Russian servers (chat messages, item names, menu titles). Translating them would break the related features.
+
+- `AutoDuel.java`: `Классик`
+- `AutoDuel.java`: `Лук`
+- `AutoDuel.java`: `НоДебафф`
+- `AutoDuel.java`: `Тотемы`
+- `AutoDuel.java`: `Читерский рай`
+- `AutoDuel.java`: `Шары`
+- `AutoDuel.java`: `Шипы 3`
+- `AutoDuel.java`: `Щиты`
+- `AutoDuel.java`: `во время поединка запрещено использовать команды`
+- `AutoDuel.java`: `начало`
+- `AutoDuel.java`: `секунд`
+- `AutoDuel.java`: `через`
+- `Interface.java`: `.*(ꔷ|ꔳ|ꔩ|ꔥ|ꔡ|ꔗ|ꔓ|\bmod\b|\badm\b|\bhelp\b|\bwne\b|модер|хелп|помощ|админ|владел|отриц|\btaf\b|\bcurat\b|куратор|\bdev\b|разраб|\bsupp\b|саппорт|\byt\b|\[yt\]|ютуб|стажер|сотрудник).*`
+- `RWHelper.java`: `Анти Полет » Вы не можете взлететь!`
+- `ReplaceUtil.java`: `Ё`
+- `ReplaceUtil.java`: `А`
+- `ReplaceUtil.java`: `Б`
+- `ReplaceUtil.java`: `В`
+- `ReplaceUtil.java`: `Г`
+- `ReplaceUtil.java`: `Д`
+- `ReplaceUtil.java`: `Е`
+- `ReplaceUtil.java`: `Ж`
+- `ReplaceUtil.java`: `З`
+- `ReplaceUtil.java`: `И`
+- `ReplaceUtil.java`: `Й`
+- `ReplaceUtil.java`: `К`
+- `ReplaceUtil.java`: `Л`
+- `ReplaceUtil.java`: `М`
+- `ReplaceUtil.java`: `Н`
+- `ReplaceUtil.java`: `О`
+- `ReplaceUtil.java`: `П`
+- `ReplaceUtil.java`: `Р`
+- `ReplaceUtil.java`: `С`
+- `ReplaceUtil.java`: `Т`
+- `ReplaceUtil.java`: `У`
+- `ReplaceUtil.java`: `Ф`
+- `ReplaceUtil.java`: `Х`
+- `ReplaceUtil.java`: `Ц`
+- `ReplaceUtil.java`: `Ч`
+- `ReplaceUtil.java`: `Ш`
+- `ReplaceUtil.java`: `Щ`
+- `ReplaceUtil.java`: `Ъ`
+- `ReplaceUtil.java`: `Ы`
+- `ReplaceUtil.java`: `Ь`
+- `ReplaceUtil.java`: `Э`
+- `ReplaceUtil.java`: `Ю`
+- `ReplaceUtil.java`: `Я`
+- `ReplaceUtil.java`: `а`
+- `ReplaceUtil.java`: `б`
+- `ReplaceUtil.java`: `в`
+- `ReplaceUtil.java`: `г`
+- `ReplaceUtil.java`: `д`
+- `ReplaceUtil.java`: `е`
+- `ReplaceUtil.java`: `ж`
+- `ReplaceUtil.java`: `з`
+- `ReplaceUtil.java`: `и`
+- `ReplaceUtil.java`: `й`
+- `ReplaceUtil.java`: `к`
+- `ReplaceUtil.java`: `л`
+- `ReplaceUtil.java`: `м`
+- `ReplaceUtil.java`: `н`
+- `ReplaceUtil.java`: `о`
+- `ReplaceUtil.java`: `п`
+- `ReplaceUtil.java`: `р`
+- `ReplaceUtil.java`: `с`
+- `ReplaceUtil.java`: `т`
+- `ReplaceUtil.java`: `у`
+- `ReplaceUtil.java`: `ф`
+- `ReplaceUtil.java`: `х`
+- `ReplaceUtil.java`: `ц`
+- `ReplaceUtil.java`: `ч`
+- `ReplaceUtil.java`: `ш`
+- `ReplaceUtil.java`: `щ`
+- `ReplaceUtil.java`: `ъ`
+- `ReplaceUtil.java`: `ы`
+- `ReplaceUtil.java`: `ь`
+- `ReplaceUtil.java`: `э`
+- `ReplaceUtil.java`: `ю`
+- `ReplaceUtil.java`: `я`
+- `ReplaceUtil.java`: `ё`
+- `ReplaceUtil.java`: `ғ`
+- `ServerHelper.java`: `гринч`
+- `ServerHelper.java`: `ловуш`
+- `ServerHelper.java`: `ловушк`
+- `ServerHelper.java`: `новогодний ужас`
+- `ServerHelper.java`: `снежок`
+- `ServerHelper.java`: `эссенция кромешника`
+- `ServerJoiner.java`: `большой поток игроков`
+- `ServerJoiner.java`: `вы были кикнуты`
+- `ServerJoiner.java`: `вы уже подключены`
+- `ServerJoiner.java`: `выберите режим`
+- `ServerJoiner.java`: `гриф #`
+- `ServerJoiner.java`: `гриферское выживание`
+- `ServerJoiner.java`: `дуэли`
+- `ServerJoiner.java`: `квадромясо`
+- `ServerJoiner.java`: `мясорубка`
+- `ServerJoiner.java`: `подождите`
+- `ServerJoiner.java`: `сервер заполнен`
+- `ServerJoiner.java`: `сервер переполнен`
+- `SunriseHelper.java`: `волна огня`
+- `SunriseHelper.java`: `трапка`
+- `TpRequestRecognizer.java`: `^\s*(?:Игрок\s+)?([A-Za-z0-9_]{1,16})\s+(?:просит к вам телепортироваться|запрашивает телепорт к вам|хочет телепортироваться к вам|отправил вам запрос на телепортацию|has requested teleport(?: to you)?|has requested to teleport to you|sent you a teleport request)[.!]?\s*$`
+- `UseTracker.java`: `арбалет`
+- `UseTracker.java`: `зелье`
+- `UseTracker.java`: `набор`
+- `UseTracker.java`: `незерит`
+- `UseTracker.java`: `солнечн`
+- `UseTracker.java`: `талисман`
+- `UseTracker.java`: `трезубец`
+- `UseTracker.java`: `фейерверк`
+- `UseTracker.java`: `шар`
+- `UseTracker.java`: `элитры`
+- `UseTracker.java`: `яблоко`
+- `WellHelper.java`: `Invsee элитры`
+- `WellHelper.java`: `игроки рядом`
